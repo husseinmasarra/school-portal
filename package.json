@@ -1,0 +1,35 @@
+{
+  "name": "school-portal",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:android": "vite build && npx cap sync android",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "canvas-confetti": "^1.9.4",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "lucide-react": "^1.25.0",
+    "mongodb": "^6.8.0",
+    "react": "^18.2.0",
+    "react-dom": "18.3.1",
+    "react-native": "^0.72.0"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "^20.2.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "4.3.3",
+    "oxlint": "^1.71.0",
+    "vite": "5.4.11"
+  }
+}

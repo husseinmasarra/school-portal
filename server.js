@@ -1,0 +1,135 @@
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { MongoClient } from 'mongodb';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+
+const SYNC_SECURITY_TOKEN = 'sp-secure-wifi-sync-token-2026';
+
+// 1. Validate security token for database endpoints
+const authenticateToken = (req, res, next) => {
+  const clientToken = req.headers['x-sync-token'];
+  if (clientToken !== SYNC_SECURITY_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid or missing token.' });
+  }
+  next();
+};
+
+// 2. Cloud MongoDB / Local JSON Database Setup
+const MONGODB_URI = process.env.MONGODB_URI;
+let mongoClient = null;
+let dbCollection = null;
+
+if (MONGODB_URI) {
+  mongoClient = new MongoClient(MONGODB_URI);
+  mongoClient.connect()
+    .then(() => {
+      const db = mongoClient.db('school_portal_db');
+      dbCollection = db.collection('database_records');
+      console.log('[Database] Connected successfully to Cloud MongoDB Atlas!');
+    })
+    .catch(err => {
+      console.error('[Database] Failed to connect to MongoDB, falling back to local file:', err.message);
+    });
+}
+
+const dbPath = path.join(__dirname, 'src', 'database.json');
+
+// Save Database API
+app.post('/api/db/save', authenticateToken, async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (dbCollection) {
+      // Save to Cloud MongoDB
+      await dbCollection.updateOne(
+        { _id: 'school_data_payload' },
+        { $set: { data, updatedAt: new Date() } },
+        { upsert: true }
+      );
+      console.log('[Database] Saved successfully to Cloud MongoDB.');
+    } else {
+      // Fallback: Write local database file
+      fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+
+      // Generate rolling automated backup (keeps last 10 states)
+      const backupsDir = path.join(__dirname, 'src', 'backups');
+      if (!fs.existsSync(backupsDir)) {
+        fs.mkdirSync(backupsDir, { recursive: true });
+      }
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupPath = path.join(backupsDir, `database_${timestamp}.json`);
+      fs.writeFileSync(backupPath, JSON.stringify(data, null, 2), 'utf8');
+
+      // Maintain rolling log of 10 backups maximum to conserve disk space
+      const backupFiles = fs.readdirSync(backupsDir)
+        .filter(f => f.startsWith('database_') && f.endsWith('.json'))
+        .map(f => ({ name: f, mtime: fs.statSync(path.join(backupsDir, f)).mtime.getTime() }))
+        .sort((a, b) => a.mtime - b.mtime);
+
+      if (backupFiles.length > 10) {
+        const obsoleteFiles = backupFiles.slice(0, backupFiles.length - 10);
+        obsoleteFiles.forEach(f => {
+          try {
+            fs.unlinkSync(path.join(backupsDir, f.name));
+          } catch (err) {
+            console.error('[DB Backups] Failed to delete obsolete backup:', err);
+          }
+        });
+      }
+      console.log('[Database] Saved successfully to local disk.');
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Load Database API
+app.get('/api/db/load', authenticateToken, async (req, res) => {
+  try {
+    if (dbCollection) {
+      // Load from Cloud MongoDB
+      const record = await dbCollection.findOne({ _id: 'school_data_payload' });
+      if (record && record.data) {
+        res.json(record.data);
+      } else {
+        res.json({});
+      }
+    } else {
+      // Fallback: Load local database file
+      if (fs.existsSync(dbPath)) {
+        const data = fs.readFileSync(dbPath, 'utf8');
+        res.setHeader('Content-Type', 'application/json');
+        res.end(data);
+      } else {
+        res.json({});
+      }
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 3. Serve the built React static files
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// 4. Fallback route for React Router (Single Page App)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

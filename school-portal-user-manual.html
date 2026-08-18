@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المرجع التعليمي الشامل والدليل التشغيلي للمنصة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --primary: #0284C7;
+            --primary-hover: #0369A1;
+            --accent: #EF4444;
+            --bg-dark: #0F172A;
+            --bg-light: #F8FAFC;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            line-height: 1.8;
+            display: flex;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 320px;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: white;
+            position: fixed;
+            top: 0;
+            right: 0;
+            overflow-y: auto;
+            padding: 30px 20px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 900;
+            font-size: 20px;
+            color: #38BDF8;
+            padding-bottom: 25px;
+            border-b: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .menu-section {
+            margin-bottom: 25px;
+        }
+
+        .menu-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .menu-list {
+            list-style: none;
+        }
+
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #94A3B8;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .menu-item a:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-item.active a {
+            color: white;
+            background-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        /* Main Content Container */
+        .main-content {
+            margin-right: 320px;
+            flex: 1;
+            padding: 50px 60px;
+            max-width: 1100px;
+        }
+
+        .header-title {
+            font-size: 34px;
+            font-weight: 900;
+            color: var(--bg-dark);
+            margin-bottom: 10px;
+            border-bottom: 4px solid var(--primary);
+            width: fit-content;
+            padding-bottom: 8px;
+        }
+
+        .section-card {
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+            scroll-margin-top: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--bg-dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .section-icon {
+            color: var(--primary);
+        }
+
+        /* Alert / Callout Boxes */
+        .alert-box {
+            background-color: #E0F2FE;
+            border-right: 6px solid var(--primary);
+            color: #0369A1;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .alert-danger {
+            background-color: #FEE2E2;
+            border-right-color: var(--accent);
+            color: #991B1B;
+        }
+
+        /* Feature Table Styles */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 15px;
+        }
+
+        .info-table th, .info-table td {
+            border: 1px solid var(--border);
+            padding: 14px 18px;
+            text-align: right;
+        }
+
+        .info-table th {
+            background-color: var(--bg-light);
+            color: var(--bg-dark);
+            font-weight: 800;
+        }
+
+        .info-table tr:hover {
+            background-color: rgba(2, 132, 199, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-admin { background-color: #E0F2FE; color: #0369A1; }
+        .badge-teacher { background-color: #F3E8FF; color: #6B21A8; }
+        .badge-student { background-color: #D1FAE5; color: #065F46; }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .print-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-3px);
+        }
+
+        /* Print Mode styles */
+        @media print {
+            .sidebar, .print-btn {
+                display: none !important;
+            }
+            .main-content {
+                margin-right: 0 !important;
+                padding: 0 !important;
+            }
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            .section-card {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin-bottom: 50px !important;
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Mobile view adjustments */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-left: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .main-content {
+                margin-right: 0;
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar TOC -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i data-lucide="graduation-cap"></i>
+            <span>مدرسة الدعم التعليمي</span>
+        </div>
+        
+        <div class="menu-section">
+            <h3 class="menu-title">مقدمة</h3>
+            <ul class="menu-list">
+                <li class="menu-item active"><a href="#intro"><i data-lucide="info"></i>عن المنصة</a></li>
+                <li class="menu-item"><a href="#roles"><i data-lucide="users"></i>الصلاحيات والأدوار</a></li>
+            </ul>
+        </div>
+
+        <div class="menu-section">
+            <h3 class="menu-title">دليل الصفحات والتبويبات</h3>
+            <ul class="menu-list">
+                <li class="menu-item"><a href="#dashboard"><i data-lucide="layout-dashboard"></i>لوحة التحكم</a></li>
+                <li class="menu-item"><a href="#agenda"><i data-lucide="book-open"></i>الأجندة والواجبات</a></li>
+                <li class="menu-item"><a href="#marks"><i data-lucide="edit-3"></i>رصد الدرجات</a></li>
+                <li class="menu-item"><a href="#attendance"><i data-lucide="calendar"></i>الحضور والغياب</a></li>
+                <li class="menu-item"><a href="#behavior"><i data-lucide="heart-handshake"></i>السلوك والتوجيه</a></li>
+                <li class="menu-item"><a href="#tuition"><i data-lucide="wallet"></i>الأقساط والمدفوعات</a></li>
+                <li class="menu-item"><a href="#documents"><i data-lucide="files"></i>مكتبة المرفقات</a></li>
+                <li class="menu-item"><a href="#settings"><i data-lucide="settings"></i>الإعدادات والجدول</a></li>
+            </ul>
+        </div>
+
+        <div class="menu-section">
+            <h3 class="menu-title">تطبيق الهاتف والتقنية</h3>
+            <ul class="menu-list">
+                <li class="menu-item"><a href="#mobile"><i data-lucide="smartphone"></i>تطبيق الهاتف APK</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h1 class="header-title">المرجع التعليمي ودليل التشغيل الشامل</h1>
+        <p style="color: var(--text-muted); margin-bottom: 40px; font-size: 16px;">
+            دليل عملي تفصيلي لشرح كيفية إدارة وتشغيل منصة "مدرسة الدعم التعليمي" لجميع المستخدمين (مدراء، معلمين، أولياء أمور، طلاب).
+        </p>
+
+        <!-- Intro -->
+        <section class="section-card" id="intro">
+            <h2 class="section-title"><i data-lucide="info" class="section-icon"></i> 1. عن المنصة ونظام العمل</h2>
+            <p>
+                تمثل منصة <strong>مدرسة الدعم التعليمي</strong> نظام إدارة مدرسي متكامل يهدف إلى تبسيط وتطوير المعاملات والعمليات اليومية بشكل رقمي كامل.
+                النظام مبني على أسس حوكمة البيانات؛ حيث <strong>لا يتم إدراج أو عرض أي مواد دراسية، طلاب، أو معلمين افتراضيين</strong> من النظام، بل تعتمد المنصة كلياً على البيانات الفعلية والمدخلة حصرياً من قِبل إدارة المدرسة.
+            </p>
+            <div class="alert-box">
+                💡 تم إعداد المنصة لتعمل باللغتين العربية والانجليزية مع دعم كامل لتغيير الألوان إلى الوضع الليلي (الأسود الفخم) لحماية أعين المستخدمين أثناء التصفح ليلاً.
+            </div>
+        </section>
+
+        <!-- Roles -->
+        <section class="section-card" id="roles">
+            <h2 class="section-title"><i data-lucide="users" class="section-icon"></i> 2. هيكلة الصلاحيات والأدوار</h2>
+            <p>تم تقسيم صلاحيات التحكم بالمنصة إلى ثلاثة أدوار رئيسية لضمان أمان وخصوصية البيانات:</p>
+            <table class="info-table">
+                <thead>
+                    <tr>
+                        <th>الدور الأكاديمي</th>
+                        <th>الصلاحيات والمهام</th>
+                        <th>الوصول للبيانات المالية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-admin">المدير (Admin)</span></td>
+                        <td>تحكم كامل بالنظام، تعديل إعدادات المدرسة، إضافة المعلمين والطلاب، إدارة الحصص وأوقات الفسحة والطباعة.</td>
+                        <td>متاح بالكامل (عرض وتعديل وتصدير)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-teacher">المدرس (Teacher)</span></td>
+                        <td>رصد الحضور اليومي لطلابه، إدخال العلامات، تسجيل ملاحظات التوجيه السلوكي، ومشاركة ملفات الواجبات.</td>
+                        <td>مخفي تماماً لخصوصية البيانات</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-student">الطالب / ولي الأمر (Student/Parent)</span></td>
+                        <td>متابعة الأجندة والواجبات، تصفح جدول الحصص اليومي، تنزيل الملفات التعليمية، والاطلاع على كشف الدرجات والأقساط.</td>
+                        <td>عرض الأقساط الخاصة به فقط وطباعة الإيصال</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Dashboard -->
+        <section class="section-card" id="dashboard">
+            <h2 class="section-title"><i data-lucide="layout-dashboard" class="section-icon"></i> 3. لوحة التحكم والتحليلات الإحصائية</h2>
+            <p>
+                هي الصفحة الرئيسية التي تظهر فور تسجيل الدخول. تحتوي على نظرة عامة ملخصة ومحدثة لحظياً لأنشطة المدرسة:
+            </p>
+            <ul style="margin-right: 20px; margin-top: 15px; display: grid; gap: 10px;">
+                <li><strong>العدادات الرئيسية:</strong> عدد الطلاب الفعليين، المعلمين، الصفوف، ونسبة الحضور اليومية.</li>
+                <li><strong>إحصائيات مالية (خاصة بالمدير):</strong> ملخص الأقساط المدفوعة والمتبقية والنسب المئوية للتحصيل.</li>
+                <li><strong>لوحة شرف الطلاب:</strong> ركن مخصص لتكريم الطلاب الحاصلين على أعلى التقييمات السلوكية والأكاديمية مع نجوم ذهبية تعبيرية.</li>
+                <li><strong>مركز التنبيهات:</strong> جرس الإشعارات المباشرة بأعلى الصفحة لمتابعة كل تحديث جديد.</li>
+            </ul>
+        </section>
+
+        <!-- Agenda -->
+        <section class="section-card" id="agenda">
+            <h2 class="section-title"><i data-lucide="book-open" class="section-icon"></i> 4. الأجندة والواجبات اليومية</h2>
+            <p>
+                تُستخدم لتنسيق وتوثيق كافة الأنشطة، الاختبارات، والواجبات اليومية المطلوبة من الطلاب.
+            </p>
+            <div class="alert-box">
+                ⚠️ تماشياً مع العطلة الرسمية للمدرسة، تم إزالة يوم <strong>الجمعة</strong> نهائياً من قائمة الأيام وجدول الحصص لضمان دقة وانسجام المواعيد.
+            </div>
+            <table class="info-table">
+                <thead>
+                    <tr>
+                        <th>المهمة في الأجندة</th>
+                        <th>من يستطيع الإضافة؟</th>
+                        <th>من يستطيع الحذف؟</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>إضافة واجب يومي أو إعلان اختبار</td>
+                        <td>المدير والمدرس</td>
+                        <td>المدير ومن قام بالإضافة فقط</td>
+                    </tr>
+                    <tr>
+                        <td>الأرشيف الكامل</td>
+                        <td>متاح للجميع للاطلاع</td>
+                        <td>المدير (الحذف نهائي ولا يتم استعادته تلقائياً)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Marks -->
+        <section class="section-card" id="marks">
+            <h2 class="section-title"><i data-lucide="edit-3" class="section-icon"></i> 5. رصد العلامات والدرجات</h2>
+            <p>
+                أداة مخصصة لتوثيق الأداء الأكاديمي للطلاب في الاختبارات الدورية والشهرية.
+            </p>
+            <ul style="margin-right: 20px; margin-top: 15px; display: grid; gap: 10px;">
+                <li><strong>تصفية ذكية:</strong> يمكن تحديد الصف، المادة، والطالب لعرض علاماته فقط.</li>
+                <li><strong>حماية من البيانات الوهمية:</strong> لن تظهر أي مادة أو طالب بالخيارات ما لم يتم إضافته بشكل فعلي من خلال الإعدادات من قِبل المدير.</li>
+                <li><strong>تقييم ملون:</strong> تظهر العلامات بترميز لوني ذكي (أخضر للممتاز، أصفر للمتوسط، وأحمر للضعيف) للتمييز الفوري للمستويات.</li>
+            </ul>
+        </section>
+
+        <!-- Attendance -->
+        <section class="section-card" id="attendance">
+            <h2 class="section-title"><i data-lucide="calendar" class="section-icon"></i> 6. نظام الحضور والغياب اليومي</h2>
+            <p>
+                نظام مرن لرصد حالة التواجد اليومية للطلاب وكذلك للأساتذة لضمان الانضباط الإداري والأكاديمي.
+            </p>
+            <ul style="margin-right: 20px; margin-top: 15px; display: grid; gap: 10px;">
+                <li><strong>رصد حضور المعلمين:</strong> سجل منفصل لتسجيل حضور وتأخر وغياب أعضاء هيئة التدريس يومياً.</li>
+                <li><strong>رصد حضور الطلاب:</strong> يقوم الأستاذ باختيار الصف وتحديد الطلاب الغائبين أو المتأخرين بضغطة زر.</li>
+                <li><strong>حفظ تلقائي وتاريخي:</strong> يتم تخزين سجل الحضور باليوم والتاريخ لسهولة الرجوع إليه بالتقارير الدورية.</li>
+            </ul>
+        </section>
+
+        <!-- Behavior -->
+        <section class="section-card" id="behavior">
+            <h2 class="section-title"><i data-lucide="heart-handshake" class="section-icon"></i> 7. التوجيه السلوكي ورصد الملاحظات</h2>
+            <p>
+                نظام حديث يهدف إلى تعزيز السلوك الإيجابي ورصد أي ملاحظات سلوكية وتنبيهية وتوصيلها فوراً لأولياء الأمور.
+            </p>
+            <ul style="margin-right: 20px; margin-top: 15px; display: grid; gap: 10px;">
+                <li><strong>الملاحظات الإيجابية:</strong> كشكر الطالب على تميزه أو مشاركته الفعالة (وتنعكس تلقائياً على فرص ظهوره بلوحة الشرف).</li>
+                <li><strong>الملاحظات التنبيهية:</strong> كعدم إحضار الكتب أو إثارة الشغب في الصف.</li>
+                <li><strong>متابعة ولي الأمر:</strong> تظهر هذه الملاحظات فورياً لولي الأمر عند دخوله حسابه لمتابعة تقويم ابنه السلوكي أولاً بأول.</li>
+            </ul>
+        </section>
+
+        <!-- Tuition -->
+        <section class="section-card" id="tuition">
+            <h2 class="section-title"><i data-lucide="wallet" class="section-icon"></i> 8. نظام الأقساط والمدفوعات والطباعة</h2>
+            <p>
+                النظام المالي للمنصة يتيح مراقبة الرسوم الدراسية بدقة وطباعة المستندات بشكل رسمي.
+            </p>
+            <ul style="margin-right: 20px; margin-top: 15px; display: grid; gap: 10px;">
+                <li><strong>تسجيل المبالغ:</strong> إمكانية تحديد القسط الإجمالي وتحديث المبالغ المدفوعة والمتبقية لكل طالب.</li>
+                <li><strong>طباعة إيصال دفع رسمي:</strong> يحتوي على زر لطباعة الإيصال للعميل.</li>
+                <li><strong>تعديل ذكي للطباعة (Print Stylesheet):</strong> عند الضغط على طباعة، يقوم النظام تلقائياً بإخفاء القوائم الجانبية، الهيدر، والأزرار الملونة لتقديم مستند أبيض وأسود نظيف وخالٍ من الألوان لتوفير حبر الطابعة.</li>
+            </ul>
+            <div class="alert-box alert-danger">
+                🔒 تمنع المنصة بشكل حتمي وصارم حسابات الطلاب من محاولة طباعة البيانات أو الإيصالات المالية لحفظ خصوصية التعاملات المالية للمدرسة.
+            </div>
+        </section>
+
+        <!-- Documents -->
+        <section class="section-card" id="documents">
+            <h2 class="section-title"><i data-lucide="files" class="section-icon"></i> 9. مكتبة المرفقات والملفات التعليمية</h2>
+            <p>
+                بوابة رفع وتنزيل الملفات والمرفقات الأكاديمية (مثل ملخصات الدروس، الواجبات بصيغة PDF، المناهج الدراسية).
+            </p>
+            <ul style="margin-right: 20px; margin-top: 15px; display: grid; gap: 10px;">
+                <li><strong>المعلم:</strong> يرفع الملف ويحدد الصف والمادة وعنوان المرفق مع رابط التنزيل.</li>
+                <li><strong>الطالب/ولي الأمر:</strong> يظهر له المرفق المخصص لصفه الدراسي فقط مع زر تنزيل مباشر للحفظ على جهازه أو هاتفه.</li>
+            </ul>
+        </section>
+
+        <!-- Settings -->
+        <section class="section-card" id="settings">
+            <h2 class="section-title"><i data-lucide="settings" class="section-icon"></i> 10. إعدادات المنصة وهيكلة الجدول</h2>
+            <p>
+                مساحة تحكم المدير ببيانات وهوية المدرسة والجدول الدراسي اليومي.
+            </p>
+            <table class="info-table">
+                <thead>
+                    <tr>
+                        <th>بند الإعدادات</th>
+                        <th>الوصف والوظيفة</th>
+                        <th>أثر التغيير الفوري</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>اسم وشعار المدرسة</td>
+                        <td>تحديث شعار المدرسة واسمها باللغتين العربية والانجليزية.</td>
+                        <td>يتغير فوراً في الهيدر العلوي، بطاقات الطلاب، وإيصالات الدفع المطبوعة.</td>
+                    </tr>
+                    <tr>
+                        <td>إدارة الفسحة والفطور</td>
+                        <td>تحديد مواعيد وتوقيتات الفسحة المدرسية ووجبة الفطور.</td>
+                        <td>تنزل وتظهر مباشرة في جدول الحصص اليومي للطلاب والمدرسين.</td>
+                    </tr>
+                    <tr>
+                        <td>إدارة الحسابات والمستخدمين</td>
+                        <td>إضافة مستخدمين جدد (مدراء، معلمين، طلاب).</td>
+                        <td>يتيح لهم تسجيل الدخول الفوري وتخصيص صلاحياتهم حسب أدوارهم.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Mobile -->
+        <section class="section-card" id="mobile">
+            <h2 class="section-title"><i data-lucide="smartphone" class="section-icon"></i> 11. تطبيق الهاتف المحمول (APK / PWA)</h2>
+            <p>
+                تم تكييف المنصة هندسياً وتقنياً لتتحول إلى تطبيق هاتف ذكي يعمل بكفاءة وسرعة فائقة:
+            </p>
+            <ul style="margin-right: 20px; margin-top: 15px; display: grid; gap: 10px;">
+                <li><strong>زر التنزيل المباشر:</strong> في الواجهة العلوية للمنصة، يوجد زر أحمر نابض "تحميل التطبيق (APK) 📱" يقوم بتنزيل ملف التثبيت المباشر للهاتف فوراً وبامتداده الصحيح دون ملفات مضغوطة.</li>
+                <li><strong>إشعارات موسطة ومريحة:</strong> تظهر نوافذ التنبيهات العائمة في منتصف شاشة الهاتف تماماً لمنع التشوه البصري وتسهيل التفاعل.</li>
+                <li><strong>توفير البيانات والسرعة:</strong> التطبيق مهيأ للعمل بنظام كاش محلي (Service Worker) لتوفير سرعة استجابة عالية عند تحميل الواجهات والتبويبات.</li>
+            </ul>
+        </section>
+    </main>
+
+    <!-- Print Button -->
+    <button class="print-btn" onclick="window.print()">
+        <i data-lucide="printer"></i>
+        <span>طباعة الدليل أو حفظه كـ PDF</span>
+    </button>
+
+    <script>
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // Highlight active link in sidebar on scroll
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.menu-item');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 60) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.querySelector('a').getAttribute('href').slice(1) === current) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

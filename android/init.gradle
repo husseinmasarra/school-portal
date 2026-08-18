@@ -1,0 +1,20 @@
+import javax.net.ssl.*
+import java.security.cert.X509Certificate
+
+def trustAllCerts = [
+    checkClientTrusted: { def certs, def authType -> },
+    checkServerTrusted: { def certs, def authType -> },
+    getAcceptedIssuers: { -> [] as X509Certificate[] }
+] as X509TrustManager
+
+try {
+    def sc = SSLContext.getInstance("SSL")
+    sc.init(null, [trustAllCerts] as TrustManager[], new java.security.SecureRandom())
+    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory())
+    HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+        boolean verify(String hostname, SSLSession session) { return true }
+    })
+    System.out.println("Bypassed JVM SSL verification successfully inside Gradle initialization!")
+} catch (Exception e) {
+    e.printStackTrace()
+}

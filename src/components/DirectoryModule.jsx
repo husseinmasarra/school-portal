@@ -75,6 +75,42 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [stuMinistryClearance, setStuMinistryClearance] = useState('');
   const [studentToPrint, setStudentToPrint] = useState(null);
   const [addAnotherSibling, setAddAnotherSibling] = useState(false);
+  const [siblingsList, setSiblingsList] = useState([]);
+
+  const addSiblingRow = () => {
+    const nextRand = Math.floor(100 + Math.random() * 900);
+    const suggestedUsername = stuName ? `${stuName.toLowerCase().replace(/\s+/g, '')}_sib${siblingsList.length + 1}.${nextRand}` : `student.${Date.now().toString().slice(-4)}`;
+    setSiblingsList([...siblingsList, {
+      id: Math.random().toString(),
+      name: '',
+      nameEn: '',
+      grade: safeGrades[0]?.name || 'الصف الأول الابتدائي',
+      gradeEn: safeGrades[0]?.nameEn || 'Grade 1',
+      classRoom: 'أ',
+      tuitionTotal: (safeGrades[0]?.tuitionFee || 1500).toString(),
+      tuitionDiscount: '0',
+      username: suggestedUsername,
+      password: Math.floor(100000 + Math.random() * 900000).toString(),
+      ministryClearance: ''
+    }]);
+  };
+
+  const removeSiblingRow = (id) => {
+    setSiblingsList(siblingsList.filter(s => s.id !== id));
+  };
+
+  const updateSiblingField = (index, field, val) => {
+    const updated = [...siblingsList];
+    updated[index][field] = val;
+    if (field === 'grade') {
+      const foundGrd = safeGrades.find(g => g.name === val);
+      if (foundGrd) {
+        updated[index].gradeEn = foundGrd.nameEn || val;
+        updated[index].tuitionTotal = (foundGrd.tuitionFee || 1500).toString();
+      }
+    }
+    setSiblingsList(updated);
+  };
 
   // Edit Student Modal State
   const [showEditStudentModal, setShowEditStudentModal] = useState(null);
@@ -232,17 +268,60 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     e.preventDefault();
     if (!stuName || !stuUsername) return;
 
-    // Verify Ministry Clearance Number uniqueness
+    // 1. Verify primary student Ministry Clearance Number uniqueness
     if (stuMinistryClearance.trim()) {
       const isDuplicate = (students || []).some(
         s => s.ministryClearance && s.ministryClearance.trim() === stuMinistryClearance.trim()
       );
       if (isDuplicate) {
-        alert(isAr ? '❌ رقم الإفادة هذا مسجل بالفعل لطالب آخر! يرجى استخدام رقم إفادة فريد.' : 'This Ministry Clearance number is already assigned to another student!');
+        alert(isAr ? '❌ رقم الإفادة للطالب الرئيسي مسجل بالفعل لطالب آخر!' : 'Primary student Ministry Clearance number is already assigned!');
         return;
       }
     }
 
+    // 2. Verify primary student Username uniqueness
+    const usernameDuplicate = (students || []).some(
+      s => s.username && s.username.toLowerCase().trim() === stuUsername.toLowerCase().trim()
+    );
+    if (usernameDuplicate) {
+      alert(isAr ? '❌ اسم المستخدم للطالب الرئيسي غير متاح!' : 'Primary student username is not available!');
+      return;
+    }
+
+    // 3. Verify siblings validations
+    for (let i = 0; i < siblingsList.length; i++) {
+      const sib = siblingsList[i];
+      if (!sib.name.trim()) {
+        alert(isAr ? `❌ يرجى إدخال اسم الأخ/الأخت المضاف رقم ${i + 1}` : `Please enter name for sibling #${i + 1}`);
+        return;
+      }
+      if (!sib.username.trim()) {
+        alert(isAr ? `❌ يرجى إدخال اسم مستخدم للأخ/الأخت رقم ${i + 1}` : `Please enter username for sibling #${i + 1}`);
+        return;
+      }
+
+      // Verify sibling username uniqueness
+      const sibUsernameDuplicate = (students || []).some(
+        s => s.username && s.username.toLowerCase().trim() === sib.username.toLowerCase().trim()
+      ) || siblingsList.some((s, idx) => idx !== i && s.username.toLowerCase().trim() === sib.username.toLowerCase().trim()) || sib.username.toLowerCase().trim() === stuUsername.toLowerCase().trim();
+      if (sibUsernameDuplicate) {
+        alert(isAr ? `❌ اسم المستخدم للأخ/الأخت "${sib.name}" غير متاح أو مكرر!` : `Username for sibling "${sib.name}" is already taken or duplicate!`);
+        return;
+      }
+
+      // Verify sibling ministry clearance uniqueness
+      if (sib.ministryClearance.trim()) {
+        const sibMCIsDuplicate = (students || []).some(
+          s => s.ministryClearance && s.ministryClearance.trim() === sib.ministryClearance.trim()
+        ) || siblingsList.some((s, idx) => idx !== i && s.ministryClearance && s.ministryClearance.trim() === sib.ministryClearance.trim()) || sib.ministryClearance.trim() === stuMinistryClearance.trim();
+        if (sibMCIsDuplicate) {
+          alert(isAr ? `❌ رقم الإفادة للأخ/الأخت "${sib.name}" مسجل بالفعل أو مكرر!` : `Ministry Clearance for sibling "${sib.name}" is duplicate!`);
+          return;
+        }
+      }
+    }
+
+    // 4. Save primary student
     addStudent({
       name: stuName,
       nameEn: stuNameEn || stuName,
@@ -264,26 +343,42 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       frozen: false
     });
 
-    if (addAnotherSibling) {
-      // Sibling mode: clear student specific data, preserve parent info!
-      setStuName('');
-      setStuNameEn('');
-      setStuUsername('');
-      setStuMinistryClearance('');
-      setStuPassword(Math.floor(100000 + Math.random() * 900000).toString());
-      setSuccessMsg(isAr ? 'تم حفظ التلميذ! يرجى إدخال بيانات التلميذ الآخر لنفس ولي الأمر.' : 'Student registered! Enter sibling data now.');
-    } else {
-      setStuName('');
-      setStuNameEn('');
-      setStuUsername('');
-      setStuParentName('');
-      setStuParentPhone('');
-      setStuMotherPhone('');
-      setStuMinistryClearance('');
-      setStuTuitionDiscount('0');
-      setShowAddStudentModal(false);
-      setSuccessMsg(isAr ? 'تم إضافة الطالب وتوثيق رقم إفادة الوزارة بنجاح!' : 'Student added successfully!');
-    }
+    // 5. Save all added siblings
+    siblingsList.forEach(sib => {
+      addStudent({
+        name: sib.name,
+        nameEn: sib.nameEn || sib.name,
+        username: sib.username,
+        password: sib.password,
+        grade: sib.grade,
+        gradeEn: sib.gradeEn,
+        classRoom: sib.classRoom,
+        avatar: stuAvatar,
+        tuitionTotal: Number(sib.tuitionTotal),
+        tuitionPaid: 0,
+        tuitionDiscount: Number(sib.tuitionDiscount),
+        phone: stuParentPhone || '+961 03 123 456',
+        parentPhone: stuParentPhone || '+961 03 123 456',
+        motherPhone: stuMotherPhone,
+        parentName: stuParentName || `والد الطالب ${stuName}`,
+        parentNameEn: stuParentName || `Parent of ${stuNameEn || stuName}`,
+        ministryClearance: sib.ministryClearance.trim(),
+        frozen: false
+      });
+    });
+
+    // 6. Reset Form
+    setStuName('');
+    setStuNameEn('');
+    setStuUsername('');
+    setStuParentName('');
+    setStuParentPhone('');
+    setStuMotherPhone('');
+    setStuMinistryClearance('');
+    setStuTuitionDiscount('0');
+    setSiblingsList([]);
+    setShowAddStudentModal(false);
+    setSuccessMsg(isAr ? 'تم إضافة الطالب وإخوته وتوثيق بيانات العائلة بنجاح!' : 'Students added successfully!');
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
@@ -989,17 +1084,174 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               </div>
             </div>
 
-            {/* Sibling Student Preserver Checkbox */}
-            <div className="pt-1.5 border-t border-slate-100">
-              <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-[#0F172A]">
-                <input 
-                  type="checkbox" 
-                  checked={addAnotherSibling} 
-                  onChange={() => setAddAnotherSibling(!addAnotherSibling)} 
-                  className="w-4 h-4 accent-[#0284C7] rounded cursor-pointer"
-                />
-                <span>{isAr ? 'إضافة تلميذ آخر لنفس ولي الأمر (الإبقاء على بيانات ولي الأمر)' : 'Save and add sibling student'}</span>
-              </label>
+            {/* Dynamic Sibling Addition Section */}
+            <div className="pt-3 border-t border-slate-100 space-y-3 text-right">
+              <button
+                type="button"
+                onClick={addSiblingRow}
+                className="w-full py-2 bg-sky-50 dark:bg-sky-950/20 hover:bg-sky-100 text-[#0284C7] dark:text-sky-400 border border-dashed border-[#0284C7]/30 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <span>➕ {isAr ? 'إضافة أخ / أخت (تلميذ إضافي لنفس ولي الأمر)' : 'Add Brother/Sister (Additional Sibling Student)'}</span>
+              </button>
+
+              {siblingsList.length > 0 && (
+                <div className="space-y-3 p-3 rounded-2xl border border-sky-100 bg-sky-50/10 dark:bg-sky-950/5 text-right">
+                  <h4 className="text-xs font-black text-[#0284C7] flex items-center gap-1.5 justify-end">
+                    <span>👥 {isAr ? 'بيانات الإخوة الإضافيين المضافين للطلب:' : 'Additional Siblings Details:'}</span>
+                  </h4>
+                  
+                  {siblingsList.map((sib, index) => (
+                    <div key={sib.id} className="relative p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3 shadow-xs">
+                      {/* Header with remove button */}
+                      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-1.5">
+                        <button
+                          type="button"
+                          onClick={() => removeSiblingRow(sib.id)}
+                          className="text-[10px] font-bold text-red-500 hover:text-red-700 cursor-pointer"
+                        >
+                          {isAr ? 'حذف هذا الأخ 🗑️' : 'Remove Sibling'}
+                        </button>
+                        <span className="text-[10px] font-black text-slate-500">{isAr ? `الأخ المضاف #${index + 1}` : `Sibling #${index + 1}`}</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-right">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'اسم الأخ/الأخت الكامل *' : 'Sibling Name *'}</label>
+                          <input 
+                            type="text" 
+                            required 
+                            value={sib.name} 
+                            onChange={(e) => updateSiblingField(index, 'name', e.target.value)} 
+                            placeholder={isAr ? "مثال: يوسف محمد علي..." : "Sibling name..."} 
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#0284C7] text-right" 
+                          />
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'اسم الأخ/الأخت (English)' : 'Sibling English Name'}</label>
+                          <input 
+                            type="text" 
+                            value={sib.nameEn} 
+                            onChange={(e) => updateSiblingField(index, 'nameEn', e.target.value)} 
+                            placeholder="Youssef Mohamed..." 
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#0284C7] text-right" 
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-right">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{t('grade')}</label>
+                          <select
+                            value={sib.grade}
+                            onChange={(e) => updateSiblingField(index, 'grade', e.target.value)}
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white rounded-xl px-2.5 py-1.5 text-xs focus:outline-none cursor-pointer font-bold"
+                          >
+                            {safeGrades.map((g) => (
+                              <option key={g.id} value={g.name}>
+                                {isAr ? g.name : g.nameEn}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'الشعبة' : 'Classroom'}</label>
+                          <select
+                            value={sib.classRoom}
+                            onChange={(e) => updateSiblingField(index, 'classRoom', e.target.value)}
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white rounded-xl px-2.5 py-1.5 text-xs focus:outline-none cursor-pointer font-bold"
+                          >
+                            {safeClassrooms.map((c) => (
+                              <option key={c.id} value={c.sectionName}>
+                                {c.gradeName ? `${c.gradeName} - ` : ''}{isAr ? c.sectionName : c.sectionNameEn}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-right">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{t('totalTuition')} ($ USD)</label>
+                          <input 
+                            type="number" 
+                            value={sib.tuitionTotal} 
+                            onChange={(e) => updateSiblingField(index, 'tuitionTotal', e.target.value)} 
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white font-mono rounded-xl px-2.5 py-1.5 text-xs focus:outline-none text-right" 
+                          />
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'الخصومات ($ USD)' : 'Discount ($ USD)'}</label>
+                          <input 
+                            type="number" 
+                            value={sib.tuitionDiscount} 
+                            onChange={(e) => updateSiblingField(index, 'tuitionDiscount', e.target.value)} 
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-emerald-600 font-mono rounded-xl px-2.5 py-1.5 text-xs focus:outline-none text-right" 
+                          />
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'رقم إفادة الوزارة' : 'Clearance No.'}</label>
+                          <input 
+                            type="text" 
+                            value={sib.ministryClearance} 
+                            onChange={(e) => updateSiblingField(index, 'ministryClearance', e.target.value)} 
+                            placeholder={isAr ? "رقم إفادة فريد..." : "Unique clearance..."}
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white font-mono rounded-xl px-2.5 py-1.5 text-xs focus:outline-none text-right" 
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100 dark:border-slate-800 text-right">
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] text-slate-500 block">{t('username')}</span>
+                          <input 
+                            type="text" 
+                            required 
+                            value={sib.username} 
+                            onChange={(e) => updateSiblingField(index, 'username', e.target.value)} 
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-[#0F172A] dark:text-white font-mono rounded-lg px-2 py-1 text-[11px] focus:outline-none text-right" 
+                          />
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] text-slate-500 block">{t('password')}</span>
+                          <input 
+                            type="text" 
+                            required 
+                            value={sib.password} 
+                            onChange={(e) => updateSiblingField(index, 'password', e.target.value)} 
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-red-500 font-bold font-mono rounded-lg px-2 py-1 text-[11px] focus:outline-none text-right" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Combined Family Tuition Panel */}
+              <div className="p-4 bg-sky-50/50 dark:bg-sky-950/20 border-2 border-sky-200 dark:border-sky-900 rounded-2xl flex items-center justify-between text-right">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📊</span>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-700 dark:text-slate-300">{isAr ? 'الحساب المالي المجمع للمسجلين:' : 'Total Family Tuition:'}</h4>
+                    <p className="text-[10px] text-slate-500 font-bold">{isAr ? `طالب رئيسي + ${siblingsList.length} إخوة` : `1 Primary + ${siblingsList.length} Siblings`}</p>
+                  </div>
+                </div>
+                <div className="text-left font-mono">
+                  <span className="text-sm font-black text-[#0284C7] dark:text-sky-400 block">
+                    ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0))} USD
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-extrabold block">
+                    {isAr ? 'الخصم الإجمالي:' : 'Total Discount:'} -${(Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
+                  </span>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-200 border-t border-slate-200 dark:border-slate-800 pt-0.5 block">
+                    {isAr ? 'صافي القسط المطلوب:' : 'Net Total:'} ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0)) - (Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">

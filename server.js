@@ -102,10 +102,30 @@ app.get('/api/db/load', authenticateToken, async (req, res) => {
     if (dbCollection) {
       // Load from Cloud MongoDB
       const record = await dbCollection.findOne({ _id: 'school_data_payload' });
-      if (record && record.data) {
+      if (record && record.data && Object.keys(record.data).length > 0) {
         res.json(record.data);
       } else {
-        res.json({});
+        // Fallback seed: check if local database.json exists on disk
+        if (fs.existsSync(dbPath)) {
+          console.log('[Database] MongoDB is empty. Seeding from local database.json...');
+          try {
+            const localDataRaw = fs.readFileSync(dbPath, 'utf8');
+            const localData = JSON.parse(localDataRaw);
+            
+            // Seed the MongoDB collection so it persists
+            await dbCollection.updateOne(
+              { _id: 'school_data_payload' },
+              { $set: { data: localData, updatedAt: new Date() } },
+              { upsert: true }
+            );
+            res.json(localData);
+          } catch (parseErr) {
+            console.error('[Database] Failed to parse local database.json during seeding:', parseErr);
+            res.json({});
+          }
+        } else {
+          res.json({});
+        }
       }
     } else {
       // Fallback: Load local database file

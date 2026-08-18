@@ -45,6 +45,14 @@ export const FinanceModule = () => {
   const [salaryToast, setSalaryToast] = useState('');
   const todayStr = new Date().toISOString().split('T')[0];
 
+  // Financial Reports States
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportType, setReportType] = useState('monthly'); // 'monthly' | 'annual'
+  const [reportMonth, setReportMonth] = useState(() => (new Date().getMonth() + 1).toString());
+  const [reportYear, setReportYear] = useState(() => new Date().getFullYear().toString());
+  const [isPrintingReport, setIsPrintingReport] = useState(false);
+  const [paymentHistory, setPaymentHistory] = useState({});
+
   // Interactive Card Modals
   const [showRevenueModal, setShowRevenueModal] = useState(false);
   const [showProfitModal, setShowProfitModal] = useState(false);
@@ -54,6 +62,19 @@ export const FinanceModule = () => {
   const [expTitle, setExpTitle] = useState('');
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('مستلزمات تعليمية');
+
+  React.useEffect(() => {
+    if (showReportModal) {
+      try {
+        const stored = localStorage.getItem('school_payment_history');
+        if (stored) {
+          setPaymentHistory(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error('Failed to load payment history:', e);
+      }
+    }
+  }, [showReportModal]);
 
   // Add Staff Modal
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
@@ -307,6 +328,13 @@ export const FinanceModule = () => {
             }`}
           >
             <span>{lang === 'ar' ? 'الرسوم البيانية والتحليل 📈' : 'Analytics & Charts 📈'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowReportModal(true)}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <span>📁 {lang === 'ar' ? 'التقارير المالية المطبوعة 🖨️' : 'Printable Financial Reports 🖨️'}</span>
           </button>
         </div>
       </div>
@@ -1066,6 +1094,374 @@ export const FinanceModule = () => {
         </div>,
         document.body
       )}
+
+      {/* ── Helper Report Filtration Logic ── */}
+      {(() => {
+        const getFilteredReportData = () => {
+          // 1. Revenues
+          const reportPayments = [];
+          Object.entries(paymentHistory || {}).forEach(([stuId, historyList]) => {
+            const stu = students.find(s => s.id === stuId);
+            const name = stu ? (lang === 'ar' ? stu.name : stu.nameEn) : `طالب #${stuId}`;
+            const grade = stu ? (lang === 'ar' ? stu.grade : stu.gradeEn) : '';
+            (historyList || []).forEach(h => {
+              const dObj = new Date(h.date);
+              if (dObj.getFullYear() === Number(reportYear)) {
+                if (reportType === 'annual' || (dObj.getMonth() + 1) === Number(reportMonth)) {
+                  reportPayments.push({
+                    id: h.id || Math.random().toString(),
+                    name,
+                    grade,
+                    date: h.date,
+                    amount: Number(h.amountUSD || 0),
+                    method: h.method || 'fresh_cash'
+                  });
+                }
+              }
+            });
+          });
+
+          // 2. Expenses
+          const reportExp = (expenses || []).filter(e => {
+            const dObj = new Date(e.date || todayStr);
+            const matchYear = dObj.getFullYear() === Number(reportYear);
+            if (reportType === 'annual') return matchYear;
+            return matchYear && (dObj.getMonth() + 1) === Number(reportMonth);
+          });
+
+          // 3. Staff Salaries
+          const reportStaff = (staffEmployees || []).filter(s => {
+            if (!s.lastSalaryPaidDate) return false;
+            const dObj = new Date(s.lastSalaryPaidDate);
+            const matchYear = dObj.getFullYear() === Number(reportYear);
+            if (reportType === 'annual') return matchYear;
+            return matchYear && (dObj.getMonth() + 1) === Number(reportMonth);
+          }).map(s => ({
+            id: s.id,
+            title: `${lang === 'ar' ? 'صرف راتب للموظف' : 'Salary Payout:'} ${s.name}`,
+            category: lang === 'ar' ? 'رواتب موظفين' : 'Staff Salary',
+            date: s.lastSalaryPaidDate,
+            amount: Number(s.monthlySalary || 800)
+          }));
+
+          // 4. Teacher Salaries
+          const reportTch = (teachers || []).filter(t => {
+            if (!t.lastSalaryPaidDate) return false;
+            const dObj = new Date(t.lastSalaryPaidDate);
+            const matchYear = dObj.getFullYear() === Number(reportYear);
+            if (reportType === 'annual') return matchYear;
+            return matchYear && (dObj.getMonth() + 1) === Number(reportMonth);
+          }).map(t => ({
+            id: t.id,
+            title: `${lang === 'ar' ? 'صرف راتب للمعلم' : 'Salary Payout:'} ${t.name}`,
+            category: lang === 'ar' ? 'رواتب معلمين' : 'Teacher Salary',
+            date: t.lastSalaryPaidDate,
+            amount: Number(t.monthlySalary || 1000)
+          }));
+
+          // 5. Advances
+          const reportAdv = [];
+          Object.entries(employeeAdvances || {}).forEach(([empId, advList]) => {
+            const empObj = staffEmployees.find(e => e.id === empId) || teachers.find(t => t.id === empId);
+            const name = empObj ? empObj.name : `موظف #${empId}`;
+            (advList || []).forEach(a => {
+              const dObj = new Date(a.date || todayStr);
+              if (dObj.getFullYear() === Number(reportYear)) {
+                if (reportType === 'annual' || (dObj.getMonth() + 1) === Number(reportMonth)) {
+                  reportAdv.push({
+                    id: a.id || Math.random().toString(),
+                    title: `${lang === 'ar' ? 'سلفة مالية للموظف' : 'Advance to:'} ${name}`,
+                    category: lang === 'ar' ? 'سلف موظفين' : 'Employee Advances',
+                    date: a.date,
+                    amount: Number(a.amount || 0)
+                  });
+                }
+              }
+            });
+          });
+
+          const allOutgoings = [
+            ...reportExp.map(e => ({ id: e.id, title: e.title, category: e.category || (lang === 'ar' ? 'مصروف عام' : 'General'), date: e.date, amount: Number(e.amount || 0) })),
+            ...reportStaff,
+            ...reportTch,
+            ...reportAdv
+          ];
+
+          const sumRevenues = reportPayments.reduce((s, p) => s + p.amount, 0);
+          const sumExpenses = allOutgoings.reduce((s, o) => s + o.amount, 0);
+          const netProfitLoss = sumRevenues - sumExpenses;
+          const margin = sumRevenues > 0 ? Math.round((netProfitLoss / sumRevenues) * 100) : 0;
+
+          return {
+            reportPayments,
+            allOutgoings,
+            sumRevenues,
+            sumExpenses,
+            netProfitLoss,
+            margin
+          };
+        };
+
+        const { reportPayments, allOutgoings, sumRevenues, sumExpenses, netProfitLoss, margin } = showReportModal ? getFilteredReportData() : { reportPayments: [], allOutgoings: [], sumRevenues: 0, sumExpenses: 0, netProfitLoss: 0, margin: 0 };
+
+        return showReportModal && createPortal(
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 overflow-y-auto">
+            <div id="print-financial-report-area" className="w-full max-w-5xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 text-[#0F172A] dark:text-white shadow-2xl relative text-right rtl">
+              
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 print:hidden">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📊</span>
+                  <h3 className="text-base font-black text-[#0A5C36] dark:text-[#52b788]">
+                    {lang === 'ar' ? 'التقارير الحسابية والمالية التفصيلية' : 'Accounting & Financial Reports'}
+                  </h3>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowReportModal(false);
+                    setIsPrintingReport(false);
+                  }} 
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-black cursor-pointer"
+                >
+                  ✕ {lang === 'ar' ? 'إغلاق' : 'Close'}
+                </button>
+              </div>
+
+              {/* Print Settings & Filtering Panel */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4 print:hidden">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{lang === 'ar' ? 'نوع التقرير:' : 'Report Type:'}</span>
+                    <div className="flex bg-slate-200 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-300 dark:border-slate-700">
+                      <button
+                        type="button"
+                        onClick={() => setReportType('monthly')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${reportType === 'monthly' ? 'bg-[#0A5C36] text-white shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                      >
+                        {lang === 'ar' ? 'تقرير شهري' : 'Monthly'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReportType('annual')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${reportType === 'annual' ? 'bg-[#0A5C36] text-white shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                      >
+                        {lang === 'ar' ? 'تقرير سنوي' : 'Annual'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {reportType === 'monthly' && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-slate-500 block font-bold">{lang === 'ar' ? 'الشهر' : 'Month'}</span>
+                        <select
+                          value={reportMonth}
+                          onChange={(e) => setReportMonth(e.target.value)}
+                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-right text-[#0F172A]"
+                        >
+                          {['كانون الثاني (1)', 'شباط (2)', 'آذار (3)', 'نيسان (4)', 'أيار (5)', 'حزيران (6)', 'تموز (7)', 'آب (8)', 'أيلول (9)', 'تشرين الأول (10)', 'تشرين الثاني (11)', 'كانون الأول (12)'].map((m, i) => (
+                            <option key={i} value={i + 1}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-500 block font-bold">{lang === 'ar' ? 'السنة' : 'Year'}</span>
+                      <select
+                        value={reportYear}
+                        onChange={(e) => setReportYear(e.target.value)}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-right text-[#0F172A]"
+                      >
+                        {[2025, 2026, 2027, 2028].map(y => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsPrintingReport(true);
+                      setTimeout(() => {
+                        window.print();
+                      }, 150);
+                    }}
+                    className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    🖨️ {lang === 'ar' ? 'طباعة هذا التقرير' : 'Print This Report'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Official Printable Report View */}
+              <div className="space-y-6">
+                {/* Document Header */}
+                <div className="text-center border-b-2 border-slate-900 dark:border-white pb-4 space-y-1">
+                  <h2 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                    {lang === 'ar' ? 'مدرسة النور للتعليم والدعم الأكاديمي' : 'Al-Noor Educational Support School'}
+                  </h2>
+                  <h1 className="text-xl font-black text-slate-900 dark:text-white underline decoration-double">
+                    {reportType === 'monthly'
+                      ? (lang === 'ar' ? `التقرير المالي والحسابي لشهر: ${['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'][Number(reportMonth) - 1]} لعام ${reportYear}` : `Financial Report for ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][Number(reportMonth) - 1]} ${reportYear}`)
+                      : (lang === 'ar' ? `التقرير المالي والحسابي السنوي لعام: ${reportYear}` : `Annual Financial Report for ${reportYear}`)
+                    }
+                  </h1>
+                  <p className="text-[10px] text-slate-500 font-mono">
+                    {lang === 'ar' ? `تاريخ الإصدار: ${new Date().toLocaleDateString('ar-LB')}` : `Date of Issue: ${new Date().toLocaleDateString()}`} | {lang === 'ar' ? 'العملة المعتمدة: دولار أمريكي ($ USD)' : 'Currency: US Dollars ($ USD)'}
+                  </p>
+                </div>
+
+                {/* Financial Dashboard Summary */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl font-mono text-center">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block">{lang === 'ar' ? 'إجمالي الإيرادات (المقبوضات)' : 'Total Revenues'}</span>
+                    <span className="text-base font-black text-[#0A5C36] dark:text-emerald-400">${sumRevenues.toLocaleString()} USD</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block">{lang === 'ar' ? 'إجمالي التكاليف (المصاريف)' : 'Total Expenses'}</span>
+                    <span className="text-base font-black text-red-600 dark:text-red-400">${sumExpenses.toLocaleString()} USD</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block">{lang === 'ar' ? 'صافي الربح / الخسارة' : 'Net Profit / Loss'}</span>
+                    <span className={`text-base font-black ${netProfitLoss >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {netProfitLoss >= 0 ? `+$${netProfitLoss.toLocaleString()}` : `-$${Math.abs(netProfitLoss).toLocaleString()}`} USD
+                    </span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block">{lang === 'ar' ? 'هامش الربح التشغيلي' : 'Profit Margin'}</span>
+                    <span className={`text-base font-black ${netProfitLoss >= 0 ? 'text-[#0A5C36] dark:text-[#52b788]' : 'text-red-500'}`}>{margin}%</span>
+                  </div>
+                </div>
+
+                {/* Side-by-side Tables */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                  
+                  {/* 1. Revenues Column */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-[#0A5C36] dark:text-[#52b788] border-b border-[#0A5C36]/20 pb-1 flex justify-between items-center">
+                      <span>${sumRevenues.toLocaleString()} USD</span>
+                      <span>📥 {lang === 'ar' ? 'المقبوضات والإيرادات (الأقساط):' : 'Revenues / Tuition Paid:'}</span>
+                    </h4>
+                    {reportPayments.length === 0 ? (
+                      <p className="text-[10px] text-slate-400 text-center py-4">{lang === 'ar' ? 'لا توجد دفعات مقبوضة في هذه الفترة.' : 'No receipts in this period.'}</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[10px] text-slate-700 dark:text-slate-300 border border-collapse border-slate-200 dark:border-slate-800 text-right">
+                          <thead>
+                            <tr className="bg-slate-100 dark:bg-slate-950 font-bold border-b border-slate-200 dark:border-slate-800">
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'تاريخ الدفعة' : 'Date'}</th>
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'اسم التلميذ / الصف' : 'Student / Grade'}</th>
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'طريقة السداد' : 'Method'}</th>
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'المبلغ' : 'Amount'}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {reportPayments.map((p, idx) => (
+                              <tr key={p.id + idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-950/20">
+                                <td className="p-2 border border-slate-200 dark:border-slate-800 font-mono">{p.date}</td>
+                                <td className="p-2 border border-slate-200 dark:border-slate-800 font-bold">
+                                  {p.name}
+                                  <span className="text-[8px] text-slate-500 font-normal block">{p.grade}</span>
+                                </td>
+                                <td className="p-2 border border-slate-200 dark:border-slate-800 font-bold">
+                                  {p.method === 'fresh_cash' ? (lang === 'ar' ? 'نقدي (دولار)' : 'Fresh Cash') : (lang === 'ar' ? 'حوالة (OMT/Whish)' : 'OMT / Whish')}
+                                </td>
+                                <td className="p-2 border border-slate-200 dark:border-slate-800 font-bold font-mono text-[#0A5C36]">${p.amount}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2. Expenses Column */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-red-600 dark:text-red-400 border-b border-red-500/20 pb-1 flex justify-between items-center">
+                      <span>${sumExpenses.toLocaleString()} USD</span>
+                      <span>📤 {lang === 'ar' ? 'المدفوعات والمصاريف (رواتب/سلف/تشغيل):' : 'Outgoings / Expenses:'}</span>
+                    </h4>
+                    {allOutgoings.length === 0 ? (
+                      <p className="text-[10px] text-slate-400 text-center py-4">{lang === 'ar' ? 'لا توجد مصاريف أو رواتب مصروفة في هذه الفترة.' : 'No expenses in this period.'}</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[10px] text-slate-700 dark:text-slate-300 border border-collapse border-slate-200 dark:border-slate-800 text-right">
+                          <thead>
+                            <tr className="bg-slate-100 dark:bg-slate-950 font-bold border-b border-slate-200 dark:border-slate-800">
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'تاريخ الصرف' : 'Date'}</th>
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'بيان المصروف / الراتب' : 'Expense Detail'}</th>
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'التصنيف' : 'Category'}</th>
+                              <th className="p-2 border border-slate-200 dark:border-slate-800">{lang === 'ar' ? 'المبلغ' : 'Amount'}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allOutgoings.map((o, idx) => (
+                              <tr key={o.id + idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-950/20">
+                                <td className="p-2 border border-slate-200 dark:border-slate-800 font-mono">{o.date}</td>
+                                <td className="p-2 border border-slate-200 dark:border-slate-800 font-bold">{o.title}</td>
+                                <td className="p-2 border border-slate-200 dark:border-slate-800">
+                                  <span className="px-1.5 py-0.5 rounded-md bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 font-semibold text-[8px]">{o.category}</span>
+                                </td>
+                                <td className="p-2 border border-slate-200 dark:border-slate-800 font-bold font-mono text-red-600">${o.amount}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Printed Signatures Section */}
+                <div className="pt-10 grid grid-cols-2 gap-10 text-center text-xs font-bold border-t border-dashed border-slate-300 dark:border-slate-800">
+                  <div className="space-y-12">
+                    <p>{lang === 'ar' ? 'توقيع وختم محاسب المدرسة' : 'Accountant Signature & Stamp'}</p>
+                    <div className="border-b border-slate-400 w-48 mx-auto"></div>
+                  </div>
+                  <div className="space-y-12">
+                    <p>{lang === 'ar' ? 'اعتماد المدير العام للمدرسة' : 'General Manager Approval'}</p>
+                    <div className="border-b border-slate-400 w-48 mx-auto"></div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Dynamic style for print layout override */}
+              {isPrintingReport && (
+                <style dangerouslySetInnerHTML={{__html: `
+                  @media print {
+                    body * {
+                      visibility: hidden !important;
+                    }
+                    #print-financial-report-area, #print-financial-report-area * {
+                      visibility: visible !important;
+                    }
+                    #print-financial-report-area {
+                      position: absolute !important;
+                      left: 0 !important;
+                      top: 0 !important;
+                      width: 100% !important;
+                      direction: rtl !important;
+                      text-align: right !important;
+                      background: white !important;
+                      color: black !important;
+                      border: none !important;
+                      padding: 10px !important;
+                    }
+                    .print\\:hidden {
+                      display: none !important;
+                    }
+                  }
+                `}} />
+              )}
+            </div>
+          </div>,
+          document.body
+        );
+      })()}
 
     </div>
   );

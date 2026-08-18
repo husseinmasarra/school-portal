@@ -94,6 +94,15 @@ const MainContent = () => {
     };
   }, []);
 
+  // Auto Reset scroll position to top of page on navigation / activeTab switch
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0;
+    }
+  }, [activeTab]);
+
   if (!currentUser) {
     return <LoginView />;
   }

@@ -68,6 +68,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [stuClassRoom, setStuClassRoom] = useState(() => safeClassrooms[0]?.sectionName || 'أ');
   const [stuTuitionTotal, setStuTuitionTotal] = useState(() => (safeGrades[0]?.tuitionFee || 1500).toString());
   const [stuTuitionDiscount, setStuTuitionDiscount] = useState('0');
+  const [stuAdminFees, setStuAdminFees] = useState('0');
   const [stuAvatar, setStuAvatar] = useState(defaultAvatars[0]);
   const [stuParentName, setStuParentName] = useState('');
   const [stuParentPhone, setStuParentPhone] = useState('');
@@ -89,6 +90,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       classRoom: 'أ',
       tuitionTotal: (safeGrades[0]?.tuitionFee || 1500).toString(),
       tuitionDiscount: '0',
+      adminFees: '0',
       username: suggestedUsername,
       password: Math.floor(100000 + Math.random() * 900000).toString(),
       ministryClearance: ''
@@ -124,6 +126,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [editStuTuitionTotal, setEditStuTuitionTotal] = useState('');
   const [editStuTuitionPaid, setEditStuTuitionPaid] = useState('');
   const [editStuTuitionDiscount, setEditStuTuitionDiscount] = useState('0');
+  const [editStuAdminFees, setEditStuAdminFees] = useState('0');
   const [editStuParentName, setEditStuParentName] = useState('');
   const [editStuParentPhone, setEditStuParentPhone] = useState('');
   const [editStuMotherPhone, setEditStuMotherPhone] = useState('');
@@ -219,6 +222,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     setEditStuTuitionTotal(student.tuitionTotal?.toString() || '0');
     setEditStuTuitionPaid(student.tuitionPaid?.toString() || '0');
     setEditStuTuitionDiscount(student.tuitionDiscount?.toString() || '0');
+    setEditStuAdminFees(student.adminFees?.toString() || '0');
     setEditStuParentName(student.parentName || '');
     setEditStuParentPhone(student.phone || student.parentPhone || '');
     setEditStuMotherPhone(student.motherPhone || '');
@@ -251,6 +255,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       tuitionTotal: Number(editStuTuitionTotal),
       tuitionPaid: Number(editStuTuitionPaid),
       tuitionDiscount: Number(editStuTuitionDiscount),
+      adminFees: Number(editStuAdminFees || 0),
       phone: editStuParentPhone,
       parentPhone: editStuParentPhone,
       motherPhone: editStuMotherPhone,
@@ -334,6 +339,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       tuitionTotal: Number(stuTuitionTotal),
       tuitionPaid: 0,
       tuitionDiscount: Number(stuTuitionDiscount),
+      adminFees: Number(stuAdminFees || 0),
       phone: stuParentPhone || '+961 03 123 456',
       parentPhone: stuParentPhone || '+961 03 123 456',
       motherPhone: stuMotherPhone,
@@ -357,6 +363,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
         tuitionTotal: Number(sib.tuitionTotal),
         tuitionPaid: 0,
         tuitionDiscount: Number(sib.tuitionDiscount),
+        adminFees: Number(sib.adminFees || 0),
         phone: stuParentPhone || '+961 03 123 456',
         parentPhone: stuParentPhone || '+961 03 123 456',
         motherPhone: stuMotherPhone,
@@ -376,6 +383,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     setStuMotherPhone('');
     setStuMinistryClearance('');
     setStuTuitionDiscount('0');
+    setStuAdminFees('0');
     setSiblingsList([]);
     setShowAddStudentModal(false);
     setSuccessMsg(isAr ? 'تم إضافة الطالب وإخوته وتوثيق بيانات العائلة بنجاح!' : 'Students added successfully!');
@@ -1021,7 +1029,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             </div>
 
             {/* Dynamic Grades and Classrooms Select */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{t('grade')}</label>
                 <select
@@ -1081,6 +1089,11 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'الخصومات ($ USD)' : 'Discount ($ USD)'}</label>
                 <input type="number" value={stuTuitionDiscount} onChange={(e) => setStuTuitionDiscount(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-emerald-600 font-mono rounded-xl px-3 py-2 text-xs focus:outline-none" />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'المصاريف الإدارية ($ USD)' : 'Admin Fees ($ USD)'}</label>
+                <input type="number" value={stuAdminFees} onChange={(e) => setStuAdminFees(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-amber-600 font-mono rounded-xl px-3 py-2 text-xs focus:outline-none" />
               </div>
             </div>
 
@@ -1171,7 +1184,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-right">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-right">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{t('totalTuition')} ($ USD)</label>
                           <input 
@@ -1189,6 +1202,16 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                             value={sib.tuitionDiscount} 
                             onChange={(e) => updateSiblingField(index, 'tuitionDiscount', e.target.value)} 
                             className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-emerald-600 font-mono rounded-xl px-2.5 py-1.5 text-xs focus:outline-none text-right" 
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'المصاريف الإدارية ($ USD)' : 'Admin Fees ($ USD)'}</label>
+                          <input 
+                            type="number" 
+                            value={sib.adminFees || '0'} 
+                            onChange={(e) => updateSiblingField(index, 'adminFees', e.target.value)} 
+                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-amber-600 font-mono rounded-xl px-2.5 py-1.5 text-xs focus:outline-none text-right" 
                           />
                         </div>
                         
@@ -1241,14 +1264,17 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                   </div>
                 </div>
                 <div className="text-left font-mono">
-                  <span className="text-sm font-black text-[#0284C7] dark:text-sky-400 block">
-                    ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0))} USD
+                  <span className="text-sm font-black text-[#0284C7] dark:text-sky-400 block" title={isAr ? 'إجمالي الأقساط' : 'Total Tuition'}>
+                    {isAr ? 'القسط:' : 'Tuition:'} ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0))} USD
+                  </span>
+                  <span className="text-[10px] text-amber-600 font-extrabold block" title={isAr ? 'إجمالي المصاريف الإدارية' : 'Total Admin Fees'}>
+                    {isAr ? 'المصاريف الإدارية:' : 'Admin Fees:'} +${(Number(stuAdminFees || 0) + siblingsList.reduce((acc, s) => acc + Number(s.adminFees || 0), 0))} USD
                   </span>
                   <span className="text-[10px] text-emerald-600 font-extrabold block">
                     {isAr ? 'الخصم الإجمالي:' : 'Total Discount:'} -${(Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
                   </span>
                   <span className="text-xs font-black text-slate-800 dark:text-slate-200 border-t border-slate-200 dark:border-slate-800 pt-0.5 block">
-                    {isAr ? 'صافي القسط المطلوب:' : 'Net Total:'} ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0)) - (Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
+                    {isAr ? 'صافي المبلغ المطلوب:' : 'Net Total:'} ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0)) + (Number(stuAdminFees || 0) + siblingsList.reduce((acc, s) => acc + Number(s.adminFees || 0), 0)) - (Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
                   </span>
                 </div>
               </div>
@@ -1928,7 +1954,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             </div>
 
             {/* Tuition Fees & Discount */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{isAr ? 'إجمالي القسط السنوي ($)' : 'Total Tuition ($)'}</label>
                 <input type="number" value={editStuTuitionTotal} onChange={(e) => setEditStuTuitionTotal(e.target.value)} className="w-full bg-[#F8FAFC] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white font-mono rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 text-right" />
@@ -1937,6 +1963,11 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{isAr ? 'الخصومات الممنوحة ($)' : 'Discounts ($)'}</label>
                 <input type="number" value={editStuTuitionDiscount} onChange={(e) => setEditStuTuitionDiscount(e.target.value)} className="w-full bg-[#F8FAFC] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 text-emerald-600 dark:text-emerald-400 font-mono rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 text-right" />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{isAr ? 'المصاريف الإدارية ($)' : 'Admin Fees ($)'}</label>
+                <input type="number" value={editStuAdminFees} onChange={(e) => setEditStuAdminFees(e.target.value)} className="w-full bg-[#F8FAFC] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 text-amber-600 dark:text-amber-400 font-mono rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 text-right" />
               </div>
 
               <div className="space-y-1">

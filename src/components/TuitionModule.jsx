@@ -46,9 +46,10 @@ export const TuitionModule = () => {
 
   // Admin Financial Metrics in USD
   const totalTuitionUSD   = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionTotal) || 600), 0);
+  const totalAdminFeesUSD = safeStudents.reduce((sum, s) => sum + (Number(s?.adminFees) || 0), 0);
   const totalDiscountUSD  = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionDiscount) || 0), 0);
   const totalPaidUSD      = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionPaid) || 0), 0);
-  const totalRemainingUSD = Math.max(0, totalTuitionUSD - totalDiscountUSD - totalPaidUSD);
+  const totalRemainingUSD = Math.max(0, totalTuitionUSD + totalAdminFeesUSD - totalDiscountUSD - totalPaidUSD);
 
   const savePaymentHistory = (updated) => {
     setPaymentHistory(updated);
@@ -83,10 +84,11 @@ export const TuitionModule = () => {
 
     // 3. Compute new remaining amount for the receipt
     const totalTuition = Number(selectedStudentForPay.tuitionTotal) || 600;
+    const adminFees = Number(selectedStudentForPay.adminFees) || 0;
     const discount = Number(selectedStudentForPay.tuitionDiscount) || 0;
     const oldPaid = Number(selectedStudentForPay.tuitionPaid) || 0;
     const newPaid = oldPaid + amountUSD;
-    const remainingUSD = Math.max(0, totalTuition - discount - newPaid);
+    const remainingUSD = Math.max(0, totalTuition + adminFees - discount - newPaid);
 
     // 4. Open official receipt modal
     const receipt = {
@@ -119,9 +121,10 @@ export const TuitionModule = () => {
 
   const handleSendIndividualReminder = (stu) => {
     const totalUSD = Number(stu.tuitionTotal) || 600;
+    const adminUSD = Number(stu.adminFees) || 0;
     const discountUSD = Number(stu.tuitionDiscount) || 0;
     const paidUSD = Number(stu.tuitionPaid) || 0;
-    const remUSD = Math.max(0, totalUSD - discountUSD - paidUSD);
+    const remUSD = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
 
     addMessage({
       title: `تذكير مالي - قسط الطالب ${stu.name} ($ USD)`,
@@ -138,9 +141,10 @@ export const TuitionModule = () => {
 
   const handleSendWhatsAppReminder = (stu) => {
     const totalUSD = Number(stu.tuitionTotal) || 600;
+    const adminUSD = Number(stu.adminFees) || 0;
     const discountUSD = Number(stu.tuitionDiscount || 0);
     const paidUSD = Number(stu.tuitionPaid || 0);
-    const remUSD = Math.max(0, totalUSD - discountUSD - paidUSD);
+    const remUSD = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
     const parentPhone = stu.parentPhone || stu.phone || '+961 70 000 000';
     const msg = isAr
       ? `السلام عليكم ولي أمر التلميذ(ة) ${stu.name} المحترم 🌸\nنود تذكيركم بضرورة تسديد القسط المدرسي المتبقي وقدره $${remUSD} USD (ما يعادل ${(remUSD * LBP_RATE).toLocaleString()} ل.ل.).\nيرجى السداد لتصفية الحساب. شاكرين تعاونكم الكريم.`
@@ -155,6 +159,7 @@ export const TuitionModule = () => {
       'الصف والدراسة',
       'القسط الأساسي ($ USD)',
       'الخصومات ($ USD)',
+      'المصاريف الإدارية ($ USD)',
       'المبلغ المقبوض ($ USD)',
       'المتبقي المستحق ($ USD)',
       'اسم ولي الأمر',
@@ -164,9 +169,10 @@ export const TuitionModule = () => {
 
     const dataRows = safeStudents.map(s => {
       const total = Number(s.tuitionTotal || 600);
+      const adminFees = Number(s.adminFees || 0);
       const discount = Number(s.tuitionDiscount || 0);
       const paid = Number(s.tuitionPaid || 0);
-      const remaining = Math.max(0, total - discount - paid);
+      const remaining = Math.max(0, total + adminFees - discount - paid);
       const status = remaining === 0 ? 'مسدد بالكامل' : 'يوجد قسط متبقي';
       return [
         s.id,
@@ -271,7 +277,7 @@ export const TuitionModule = () => {
                       amountUSD: currentStudent.tuitionPaid,
                       amountLBP: (currentStudent.tuitionPaid || 0) * LBP_RATE,
                       method: 'fresh_cash',
-                      remainingUSD: Math.max(0, (currentStudent.tuitionTotal || 600) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0))
+                      remainingUSD: Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0))
                     };
                     setShowReceiptModal(receipt);
                   }}
@@ -292,11 +298,16 @@ export const TuitionModule = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{t('totalTuition')}</span>
               <span className="text-xl font-black text-[#0F172A] mt-1 block font-mono">${(currentStudent.tuitionTotal || 600).toLocaleString()} USD</span>
               <span className="text-[10px] text-slate-400 block pt-0.5 font-mono">≈ {((currentStudent.tuitionTotal || 600) * LBP_RATE).toLocaleString()} ل.ل.</span>
+            </div>
+            <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
+              <span className="text-xs text-slate-500 block">{isAr ? 'المصاريف الإدارية' : 'Admin Fees'}</span>
+              <span className="text-xl font-black text-amber-600 mt-1 block font-mono">+${(currentStudent.adminFees || 0).toLocaleString()} USD</span>
+              <span className="text-[10px] text-slate-400 block pt-0.5 font-mono">≈ {((currentStudent.adminFees || 0) * LBP_RATE).toLocaleString()} ل.ل.</span>
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{isAr ? 'الخصومات والمنح' : 'Discounts'}</span>
@@ -310,8 +321,8 @@ export const TuitionModule = () => {
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-red-300">
               <span className="text-xs text-red-600 block font-bold">{t('remainingAmount')}</span>
-              <span className="text-xl font-black text-red-600 mt-1 block font-mono">${Math.max(0, (currentStudent.tuitionTotal || 600) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)).toLocaleString()} USD</span>
-              <span className="text-[10px] text-slate-500 block pt-0.5 font-mono">≈ {(Math.max(0, (currentStudent.tuitionTotal || 600) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)) * LBP_RATE).toLocaleString()} ل.ل.</span>
+              <span className="text-xl font-black text-red-600 mt-1 block font-mono">${Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)).toLocaleString()} USD</span>
+              <span className="text-[10px] text-slate-500 block pt-0.5 font-mono">≈ {(Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)) * LBP_RATE).toLocaleString()} ل.ل.</span>
             </div>
           </div>
         </div>
@@ -383,9 +394,10 @@ export const TuitionModule = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {safeStudents.map((stu) => {
               const totalUSD    = Number(stu.tuitionTotal) || 600;
+              const adminUSD    = Number(stu.adminFees) || 0;
               const discountUSD = Number(stu.tuitionDiscount) || 0;
               const paidUSD     = Number(stu.tuitionPaid) || 0;
-              const remUSD      = Math.max(0, totalUSD - discountUSD - paidUSD);
+              const remUSD      = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
               const history     = paymentHistory[stu.id] || [];
 
               return (
@@ -405,13 +417,17 @@ export const TuitionModule = () => {
                   </div>
 
                   {/* Financial Figures */}
-                  <div className="text-xs space-y-1 bg-white p-3 rounded-xl border border-slate-100 font-mono">
+                  <div className="text-xs space-y-1 bg-white p-3 rounded-xl border border-slate-100 font-mono text-right">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('totalTuition')}:</span>
+                      <span className="text-slate-500 font-sans">{t('totalTuition')}:</span>
                       <span className="font-bold text-[#0F172A]">${totalUSD} USD</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{isAr ? 'الخصومات الممنوحة:' : 'Discount:'}:</span>
+                      <span className="text-slate-500 font-sans">{isAr ? 'المصاريف الإدارية:' : 'Admin Fees:'}</span>
+                      <span className="font-bold text-amber-600">+${adminUSD} USD</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500 font-sans">{isAr ? 'الخصومات الممنوحة:' : 'Discount:'}</span>
                       <span className="font-bold text-emerald-600">-${discountUSD} USD</span>
                     </div>
                     <div className="flex justify-between">

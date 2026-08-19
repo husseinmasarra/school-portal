@@ -3,7 +3,7 @@
   "appName": "مدرسة الدعم التعليمي",
   "webDir": "dist",
   "server": {
-    "url": "http://192.168.1.102:5173",
+    "url": "https://school-portal-fo87.onrender.com/",
     "cleartext": true,
     "androidScheme": "https"
   }

@@ -587,7 +587,7 @@ export const ReportsModule = () => {
               <div className="space-y-1">
                 <label className="text-slate-600 dark:text-slate-300">المادة الدراسية:</label>
                 <select
-                  value={newMark.subjectName}
+                  value={newMark.subjectName || (subjects && subjects[0]?.name) || ''}
                   onChange={(e) => setNewMark({ ...newMark, subjectName: e.target.value })}
                   className="w-full bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] p-3 rounded-xl text-xs font-bold text-[#0F172A] dark:text-white focus:outline-none"
                 >

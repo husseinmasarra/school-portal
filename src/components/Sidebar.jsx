@@ -83,12 +83,16 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
       >
         {/* Top Brand Header */}
         <div className="p-6 border-b border-sky-600/50 dark:border-zinc-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div 
+            onClick={() => handleNavClick('dashboard')}
+            className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
+            title={isAr ? 'العودة للوحة التحكم الرئيسية' : 'Go to Dashboard'}
+          >
             <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-lg border border-white shrink-0 overflow-hidden">
               <img 
-                src={siteSettings?.schoolLogo || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=120&auto=format&fit=crop&q=80"} 
+                src="/logo.png" 
                 alt="Logo" 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-contain" 
               />
             </div>
 

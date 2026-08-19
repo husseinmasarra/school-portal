@@ -109,7 +109,10 @@ export const ExamsModule = () => {
     e.preventDefault();
     if (!examTitle) return;
 
-    const sub = safeSubjects.find((s) => s.id === subjectId) || safeSubjects[0];
+    const finalSubId = subjectId && safeSubjects.some(s => s.id === subjectId) 
+      ? subjectId 
+      : (safeSubjects[0]?.id || '');
+    const sub = safeSubjects.find((s) => s.id === finalSubId) || safeSubjects[0];
 
     const newEx = addExam({
       title: examTitle,
@@ -126,6 +129,7 @@ export const ExamsModule = () => {
 
     setExamTitle('');
     setExamTitleEn('');
+    setSubjectId('');
     setShowAddModal(false);
   };
 
@@ -350,7 +354,7 @@ export const ExamsModule = () => {
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم المادة' : 'Subject'}</label>
-              <select value={subjectId} onChange={(e) => setSubjectId(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none">
+              <select value={subjectId || safeSubjects[0]?.id || ''} onChange={(e) => setSubjectId(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none">
                 {safeSubjects.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}

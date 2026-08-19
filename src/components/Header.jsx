@@ -194,12 +194,16 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
               <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div 
+              onClick={() => typeof setActiveTab === 'function' && setActiveTab('dashboard')}
+              className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer hover:opacity-90 transition-opacity"
+              title={lang === 'ar' ? 'العودة للوحة التحكم الرئيسية' : 'Go to Dashboard'}
+            >
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white p-0.5 sm:p-1 flex items-center justify-center shadow border border-[#0284C7] shrink-0 overflow-hidden">
                 <img 
-                  src={siteSettings?.schoolLogo || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=120&auto=format&fit=crop&q=80"} 
+                  src="/logo.png" 
                   alt="Logo" 
-                  className="w-full h-full object-cover" 
+                  className="w-full h-full object-contain" 
                 />
               </div>
 

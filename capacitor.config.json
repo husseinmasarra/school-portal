@@ -1,6 +1,6 @@
 {
   "appId": "com.educational.schoolportal",
-  "appName": "مدرسة الدعم التعليمي",
+  "appName": "مركز الدعم التعليمي",
   "webDir": "dist",
   "server": {
     "url": "https://school-portal-fo87.onrender.com/",

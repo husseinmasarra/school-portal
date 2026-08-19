@@ -47,9 +47,10 @@ export const TuitionModule = () => {
   // Admin Financial Metrics in USD
   const totalTuitionUSD   = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionTotal) || 600), 0);
   const totalAdminFeesUSD = safeStudents.reduce((sum, s) => sum + (Number(s?.adminFees) || 0), 0);
+  const totalTransportFeesUSD = safeStudents.reduce((sum, s) => sum + (s?.hasTransport ? (Number(s?.transportFee) || 0) : 0), 0);
   const totalDiscountUSD  = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionDiscount) || 0), 0);
   const totalPaidUSD      = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionPaid) || 0), 0);
-  const totalRemainingUSD = Math.max(0, totalTuitionUSD + totalAdminFeesUSD - totalDiscountUSD - totalPaidUSD);
+  const totalRemainingUSD = Math.max(0, totalTuitionUSD + totalAdminFeesUSD + totalTransportFeesUSD - totalDiscountUSD - totalPaidUSD);
 
   const savePaymentHistory = (updated) => {
     setPaymentHistory(updated);
@@ -85,10 +86,11 @@ export const TuitionModule = () => {
     // 3. Compute new remaining amount for the receipt
     const totalTuition = Number(selectedStudentForPay.tuitionTotal) || 600;
     const adminFees = Number(selectedStudentForPay.adminFees) || 0;
+    const transportFee = selectedStudentForPay.hasTransport ? (Number(selectedStudentForPay.transportFee) || 0) : 0;
     const discount = Number(selectedStudentForPay.tuitionDiscount) || 0;
     const oldPaid = Number(selectedStudentForPay.tuitionPaid) || 0;
     const newPaid = oldPaid + amountUSD;
-    const remainingUSD = Math.max(0, totalTuition + adminFees - discount - newPaid);
+    const remainingUSD = Math.max(0, totalTuition + adminFees + transportFee - discount - newPaid);
 
     // 4. Open official receipt modal
     const receipt = {
@@ -122,9 +124,10 @@ export const TuitionModule = () => {
   const handleSendIndividualReminder = (stu) => {
     const totalUSD = Number(stu.tuitionTotal) || 600;
     const adminUSD = Number(stu.adminFees) || 0;
+    const transportUSD = stu.hasTransport ? (Number(stu.transportFee) || 0) : 0;
     const discountUSD = Number(stu.tuitionDiscount) || 0;
     const paidUSD = Number(stu.tuitionPaid) || 0;
-    const remUSD = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
+    const remUSD = Math.max(0, totalUSD + adminUSD + transportUSD - discountUSD - paidUSD);
 
     addMessage({
       title: `تذكير مالي - قسط الطالب ${stu.name} ($ USD)`,
@@ -142,9 +145,10 @@ export const TuitionModule = () => {
   const handleSendWhatsAppReminder = (stu) => {
     const totalUSD = Number(stu.tuitionTotal) || 600;
     const adminUSD = Number(stu.adminFees) || 0;
+    const transportUSD = stu.hasTransport ? (Number(stu.transportFee) || 0) : 0;
     const discountUSD = Number(stu.tuitionDiscount || 0);
     const paidUSD = Number(stu.tuitionPaid || 0);
-    const remUSD = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
+    const remUSD = Math.max(0, totalUSD + adminUSD + transportUSD - discountUSD - paidUSD);
     const parentPhone = stu.parentPhone || stu.phone || '+961 70 000 000';
     const msg = isAr
       ? `السلام عليكم ولي أمر التلميذ(ة) ${stu.name} المحترم 🌸\nنود تذكيركم بضرورة تسديد القسط المدرسي المتبقي وقدره $${remUSD} USD.\nيرجى السداد لتصفية الحساب. شاكرين تعاونكم الكريم.`
@@ -170,9 +174,10 @@ export const TuitionModule = () => {
     const dataRows = safeStudents.map(s => {
       const total = Number(s.tuitionTotal || 600);
       const adminFees = Number(s.adminFees || 0);
+      const transportFee = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
       const discount = Number(s.tuitionDiscount || 0);
       const paid = Number(s.tuitionPaid || 0);
-      const remaining = Math.max(0, total + adminFees - discount - paid);
+      const remaining = Math.max(0, total + adminFees + transportFee - discount - paid);
       const status = remaining === 0 ? 'مسدد بالكامل' : 'يوجد قسط متبقي';
       return [
         s.id,
@@ -266,6 +271,7 @@ export const TuitionModule = () => {
               {currentRole !== 'student' && (
                 <button
                   onClick={() => {
+                    const transportFee = currentStudent.hasTransport ? (Number(currentStudent.transportFee) || 0) : 0;
                     const receipt = {
                       receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
                       date: new Date().toISOString().split('T')[0],
@@ -274,7 +280,7 @@ export const TuitionModule = () => {
                       amountUSD: currentStudent.tuitionPaid,
                       amountLBP: 0,
                       method: 'fresh_cash',
-                      remainingUSD: Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0))
+                      remainingUSD: Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) + transportFee - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0))
                     };
                     setShowReceiptModal(receipt);
                   }}
@@ -295,10 +301,14 @@ export const TuitionModule = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-4">
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{t('totalTuition')}</span>
               <span className="text-xl font-black text-[#0F172A] mt-1 block font-mono">${(currentStudent.tuitionTotal || 600).toLocaleString()} USD</span>
+            </div>
+            <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
+              <span className="text-xs text-slate-500 block">{isAr ? 'رسوم النقل' : 'Bus Fee'}</span>
+              <span className="text-xl font-black text-sky-600 mt-1 block font-mono">${(currentStudent.hasTransport ? (Number(currentStudent.transportFee) || 0) : 0).toLocaleString()} USD</span>
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{isAr ? 'المصاريف الإدارية' : 'Admin Fees'}</span>
@@ -314,7 +324,7 @@ export const TuitionModule = () => {
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-red-300">
               <span className="text-xs text-red-600 block font-bold">{t('remainingAmount')}</span>
-              <span className="text-xl font-black text-red-600 mt-1 block font-mono">${Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)).toLocaleString()} USD</span>
+              <span className="text-xl font-black text-red-600 mt-1 block font-mono">${Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) + (currentStudent.hasTransport ? (Number(currentStudent.transportFee) || 0) : 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)).toLocaleString()} USD</span>
             </div>
           </div>
         </div>

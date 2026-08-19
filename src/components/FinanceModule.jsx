@@ -104,7 +104,7 @@ export const FinanceModule = () => {
 
   // Calculations with safe default fallback values
   const totalRevenue = (students || []).reduce((sum, s) => sum + Number(s?.tuitionPaid || 0), 0);
-  const totalTuitionUSD = (students || []).reduce((sum, s) => sum + Number(s?.tuitionTotal || 1600), 0);
+  const totalTuitionUSD = (students || []).reduce((sum, s) => sum + Number(s?.tuitionTotal || 1600) + (s?.hasTransport ? Number(s?.transportFee || 0) : 0), 0);
   const totalRemainingUSD = Math.max(0, totalTuitionUSD - totalRevenue);
   
   const totalStaffSalariesPaid = (staffEmployees || []).filter(e => e.salaryPaid).reduce((sum, e) => sum + Number(e.monthlySalary || 0), 0);

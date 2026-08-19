@@ -72,12 +72,17 @@ export const BusModule = () => {
 
   const handleAssignStudentSubmit = (e) => {
     e.preventDefault();
-    if (!selectedStudentForBus || !targetBusIdForAssign) return;
+    const finalStudentId = selectedStudentForBus || (safeStudents[0]?.id || '');
+    const finalBusId = targetBusIdForAssign || (safeBuses[0]?.id || '');
 
-    assignStudentToBus(selectedStudentForBus, targetBusIdForAssign);
+    if (!finalStudentId || !finalBusId) return;
+
+    assignStudentToBus(finalStudentId, finalBusId);
     setAssignToast(true);
     setTimeout(() => setAssignToast(false), 3000);
     setShowAssignModal(false);
+    setSelectedStudentForBus('');
+    setTargetBusIdForAssign('');
   };
 
   return (
@@ -314,7 +319,7 @@ export const BusModule = () => {
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-700">{isAr ? 'اختر الطالب:' : 'Select Student:'}</label>
               <select
-                value={selectedStudentForBus}
+                value={selectedStudentForBus || safeStudents[0]?.id || ''}
                 onChange={(e) => setSelectedStudentForBus(e.target.value)}
                 className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer"
               >
@@ -329,7 +334,7 @@ export const BusModule = () => {
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-700">{isAr ? 'اختر الحافلة:' : 'Select Bus:'}</label>
               <select
-                value={targetBusIdForAssign}
+                value={targetBusIdForAssign || safeBuses[0]?.id || ''}
                 onChange={(e) => setTargetBusIdForAssign(e.target.value)}
                 className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer"
               >

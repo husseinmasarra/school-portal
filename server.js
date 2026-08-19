@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { MongoClient } from 'mongodb';
 
@@ -11,10 +12,21 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
+// Rate limiting to mitigate DoS / brute‑force attempts
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+}));
 
-const SYNC_SECURITY_TOKEN = 'sp-secure-wifi-sync-token-2026';
+const SYNC_SECURITY_TOKEN = process.env.SYNC_SECURITY_TOKEN || 'sp-secure-wifi-sync-token-2026';
 
 // 1. Validate security token for database endpoints
 const authenticateToken = (req, res, next) => {
@@ -49,6 +61,15 @@ const dbPath = path.join(__dirname, 'src', 'database.json');
 app.post('/api/db/save', authenticateToken, async (req, res) => {
   try {
     const data = req.body;
+    // ---- Simple payload validation ----
+    if (typeof data !== 'object' || data === null) {
+      return res.status(400).json({ error: 'Invalid payload: expected JSON object.' });
+    }
+    // Reject keys that could be used for MongoDB operator injection
+    const hasIllegalKey = Object.keys(data).some(k => k.startsWith('$'));
+    if (hasIllegalKey) {
+      return res.status(400).json({ error: 'Payload contains prohibited keys.' });
+    }
 
     if (dbCollection) {
       // Save to Cloud MongoDB

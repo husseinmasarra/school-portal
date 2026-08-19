@@ -70,6 +70,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [stuTuitionTotal, setStuTuitionTotal] = useState(() => (safeGrades[0]?.tuitionFee || 1500).toString());
   const [stuTuitionDiscount, setStuTuitionDiscount] = useState('0');
   const [stuAdminFees, setStuAdminFees] = useState('0');
+  const [stuHasTransport, setStuHasTransport] = useState(false);
+  const [stuTransportFee, setStuTransportFee] = useState('0');
   const [stuAvatar, setStuAvatar] = useState(defaultAvatars[0]);
   const [stuParentName, setStuParentName] = useState('');
   const [stuParentPhone, setStuParentPhone] = useState('');
@@ -128,6 +130,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [editStuTuitionPaid, setEditStuTuitionPaid] = useState('');
   const [editStuTuitionDiscount, setEditStuTuitionDiscount] = useState('0');
   const [editStuAdminFees, setEditStuAdminFees] = useState('0');
+  const [editStuHasTransport, setEditStuHasTransport] = useState(false);
+  const [editStuTransportFee, setEditStuTransportFee] = useState('0');
   const [editStuParentName, setEditStuParentName] = useState('');
   const [editStuParentPhone, setEditStuParentPhone] = useState('');
   const [editStuMotherPhone, setEditStuMotherPhone] = useState('');
@@ -224,6 +228,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     setEditStuTuitionPaid(student.tuitionPaid?.toString() || '0');
     setEditStuTuitionDiscount(student.tuitionDiscount?.toString() || '0');
     setEditStuAdminFees(student.adminFees?.toString() || '0');
+    setEditStuHasTransport(!!student.hasTransport);
+    setEditStuTransportFee(student.transportFee?.toString() || '0');
     setEditStuParentName(student.parentName || '');
     setEditStuParentPhone(student.phone || student.parentPhone || '');
     setEditStuMotherPhone(student.motherPhone || '');
@@ -257,6 +263,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       tuitionPaid: Number(editStuTuitionPaid),
       tuitionDiscount: Number(editStuTuitionDiscount),
       adminFees: Number(editStuAdminFees || 0),
+      hasTransport: editStuHasTransport,
+      transportFee: Number(editStuTransportFee || 0),
       phone: editStuParentPhone,
       parentPhone: editStuParentPhone,
       motherPhone: editStuMotherPhone,
@@ -341,6 +349,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       tuitionPaid: 0,
       tuitionDiscount: Number(stuTuitionDiscount),
       adminFees: Number(stuAdminFees || 0),
+      hasTransport: stuHasTransport,
+      transportFee: Number(stuTransportFee || 0),
       phone: stuParentPhone || '+961 03 123 456',
       parentPhone: stuParentPhone || '+961 03 123 456',
       motherPhone: stuMotherPhone,
@@ -365,6 +375,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
         tuitionPaid: 0,
         tuitionDiscount: Number(sib.tuitionDiscount),
         adminFees: Number(sib.adminFees || 0),
+        hasTransport: !!sib.hasTransport,
+        transportFee: Number(sib.transportFee || 0),
         phone: stuParentPhone || '+961 03 123 456',
         parentPhone: stuParentPhone || '+961 03 123 456',
         motherPhone: stuMotherPhone,
@@ -385,6 +397,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     setStuMinistryClearance('');
     setStuTuitionDiscount('0');
     setStuAdminFees('0');
+    setStuHasTransport(false);
+    setStuTransportFee('0');
     setSiblingsList([]);
     setShowAddStudentModal(false);
     setSuccessMsg(isAr ? 'تم إضافة الطالب وإخوته وتوثيق بيانات العائلة بنجاح!' : 'Students added successfully!');
@@ -691,7 +705,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                       });
 
                       return uniqueGradeStudents.map((stu) => {
-                        const totalUSD    = Number(stu.tuitionTotal) || 600;
+                        const transportUSD = stu.hasTransport ? (Number(stu.transportFee) || 0) : 0;
+                        const totalUSD    = (Number(stu.tuitionTotal) || 600) + transportUSD;
                         const discountUSD = Number(stu.tuitionDiscount) || 0;
                         const paidUSD     = Number(stu.tuitionPaid) || 0;
                         const remUSD      = Math.max(0, totalUSD - discountUSD - paidUSD);
@@ -816,7 +831,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                 </h5>
                                 <div className="space-y-3 divide-y divide-sky-100/40 dark:divide-slate-800/40">
                                   {siblings.map((sib, idx) => {
-                                    const sibTotal    = Number(sib.tuitionTotal) || 600;
+                                    const sibTransport = sib.hasTransport ? (Number(sib.transportFee) || 0) : 0;
+                                    const sibTotal    = (Number(sib.tuitionTotal) || 600) + sibTransport;
                                     const sibDiscount = Number(sib.tuitionDiscount) || 0;
                                     const sibPaid     = Number(sib.tuitionPaid) || 0;
                                     const sibRem      = Math.max(0, sibTotal - sibDiscount - sibPaid);
@@ -1704,6 +1720,12 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                   <span className="text-slate-500 dark:text-slate-400 font-sans">{isAr ? 'إجمالي القسط الأساسي:' : 'Total Tuition:'}</span>
                   <span className="font-extrabold">${showStudentDetailModal.tuitionTotal || 600} USD</span>
                 </div>
+                {showStudentDetailModal.hasTransport && (
+                  <div className="flex justify-between font-mono">
+                    <span className="text-slate-500 dark:text-slate-400 font-sans">{isAr ? 'رسوم النقل (الباص):' : 'Bus Transport Fee:'}</span>
+                    <span className="font-extrabold text-sky-600">+${showStudentDetailModal.transportFee || 0} USD</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-mono">
                   <span className="text-slate-500 dark:text-slate-400 font-sans">{isAr ? 'الخصومات الممنوحة:' : 'Tuition Discount:'}</span>
                   <span className="font-extrabold text-emerald-600">-${showStudentDetailModal.tuitionDiscount || 0} USD</span>
@@ -1715,7 +1737,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                 <div className="flex justify-between font-mono border-t border-slate-200 dark:border-slate-800 pt-1">
                   <span className="text-red-500 font-sans font-bold">{isAr ? 'المتبقي المستحق:' : 'Remaining Balance:'}</span>
                   <span className="font-black text-red-600 text-sm">
-                    ${Math.max(0, (showStudentDetailModal.tuitionTotal || 600) - (showStudentDetailModal.tuitionDiscount || 0) - (showStudentDetailModal.tuitionPaid || 0))} USD
+                    ${Math.max(0, (showStudentDetailModal.tuitionTotal || 600) + (showStudentDetailModal.hasTransport ? (showStudentDetailModal.transportFee || 0) : 0) - (showStudentDetailModal.tuitionDiscount || 0) - (showStudentDetailModal.tuitionPaid || 0))} USD
                   </span>
                 </div>
               </div>
@@ -2018,6 +2040,35 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{isAr ? 'المبلغ المدفوع ($)' : 'Paid Amount ($)'}</label>
                 <input type="number" value={editStuTuitionPaid} onChange={(e) => setEditStuTuitionPaid(e.target.value)} className="w-full bg-[#F8FAFC] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white font-mono rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 text-right" />
               </div>
+            </div>
+
+            {/* Edit Transportation Details (Bus) */}
+            <div className="bg-sky-50/20 dark:bg-slate-900/50 p-4.5 rounded-2xl border border-sky-100/50 dark:border-slate-800 space-y-3.5 text-right">
+              <div className="flex items-center justify-end">
+                <label className="text-xs font-bold text-[#0284C7] dark:text-sky-400 flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={editStuHasTransport}
+                    onChange={(e) => setEditStuHasTransport(e.target.checked)}
+                    className="w-4 h-4 accent-[#0284C7] rounded"
+                  />
+                  <span>{isAr ? 'هل يريد الطالب التسجيل في باص/نقل المدرسة؟' : 'Register for School Bus/Transport?'}</span>
+                </label>
+              </div>
+
+              {editStuHasTransport && (
+                <div className="space-y-1 max-w-xs ml-auto text-right">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{isAr ? 'قيمة رسوم النقل ($ USD)' : 'Transportation Fee ($ USD)'} <span className="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    required
+                    value={editStuTransportFee}
+                    onChange={(e) => setEditStuTransportFee(e.target.value)}
+                    placeholder="50..."
+                    className="w-full bg-[#F8FAFC] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white font-mono rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7] text-right"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">

@@ -485,24 +485,7 @@ export const SettingsModule = () => {
           </div>
         </div>
 
-        {/* Exchange Rate */}
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
-          <label className="text-xs font-bold text-amber-800 flex items-center gap-1.5 mb-2">
-            💱 سعر صرف الدولار الأمريكي (USD) مقابل الليرة اللبنانية (LBP)
-          </label>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-black text-amber-700">1 USD =</span>
-            <input
-              type="number"
-              value={exchangeRate}
-              onChange={(e) => setExchangeRate(Number(e.target.value))}
-              min="1"
-              className="w-40 bg-white border border-amber-300 text-amber-800 rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-amber-500"
-            />
-            <span className="text-sm font-black text-amber-700">ل.ل.</span>
-          </div>
-          <p className="text-[10px] text-amber-600 mt-1">يُستخدم سعر الصرف هذا في حسابات الأقساط وإيصالات الدفع وكل التقارير المالية.</p>
-        </div>
+
 
         <div className="flex justify-end pt-3 border-t border-slate-100">
           <button type="submit" className="btn-mustard flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer">

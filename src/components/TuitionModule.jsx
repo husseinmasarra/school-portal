@@ -97,7 +97,7 @@ export const TuitionModule = () => {
       studentName: isAr ? selectedStudentForPay.name : selectedStudentForPay.nameEn,
       grade: isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn,
       amountUSD: amountUSD,
-      amountLBP: amountUSD * LBP_RATE,
+      amountLBP: 0,
       method: payMethod,
       remainingUSD: remainingUSD
     };
@@ -129,7 +129,7 @@ export const TuitionModule = () => {
     addMessage({
       title: `تذكير مالي - قسط الطالب ${stu.name} ($ USD)`,
       titleEn: `Financial Reminder - Tuition for ${stu.nameEn} ($ USD)`,
-      content: `نود تذكيركم بوجود قسط متبقي بقيمة $${remUSD.toLocaleString()} USD (ما يعادل ${(remUSD * LBP_RATE).toLocaleString()} ل.ل.). نرجو السداد عبر Fresh USD أو OMT / Whish.`,
+      content: `نود تذكيركم بوجود قسط متبقي بقيمة $${remUSD.toLocaleString()} USD. نرجو السداد عبر Fresh USD أو OMT / Whish.`,
       contentEn: `Reminder: Student remaining tuition balance is $${remUSD.toLocaleString()} USD. Please settle via Fresh USD or OMT / Whish.`,
       targetType: 'student',
       targetValue: stu.name,
@@ -147,7 +147,7 @@ export const TuitionModule = () => {
     const remUSD = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
     const parentPhone = stu.parentPhone || stu.phone || '+961 70 000 000';
     const msg = isAr
-      ? `السلام عليكم ولي أمر التلميذ(ة) ${stu.name} المحترم 🌸\nنود تذكيركم بضرورة تسديد القسط المدرسي المتبقي وقدره $${remUSD} USD (ما يعادل ${(remUSD * LBP_RATE).toLocaleString()} ل.ل.).\nيرجى السداد لتصفية الحساب. شاكرين تعاونكم الكريم.`
+      ? `السلام عليكم ولي أمر التلميذ(ة) ${stu.name} المحترم 🌸\nنود تذكيركم بضرورة تسديد القسط المدرسي المتبقي وقدره $${remUSD} USD.\nيرجى السداد لتصفية الحساب. شاكرين تعاونكم الكريم.`
       : `Dear parent of ${stu.nameEn || stu.name}, this is a reminder to settle the remaining tuition balance of $${remUSD} USD. Thank you for your cooperation!`;
     openWhatsAppMessage(parentPhone, msg);
   };
@@ -236,9 +236,6 @@ export const TuitionModule = () => {
                   <span className="text-sm font-extrabold text-[#0284C7] font-mono">${totalRemainingUSD.toLocaleString()} USD</span>
                 </div>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono px-2">
-                💱 سعر الصرف: 1 USD = {LBP_RATE.toLocaleString()} ل.ل.
-              </span>
             </div>
           </div>
         )}
@@ -275,7 +272,7 @@ export const TuitionModule = () => {
                       studentName: isAr ? currentStudent.name : currentStudent.nameEn,
                       grade: isAr ? currentStudent.grade : currentStudent.gradeEn,
                       amountUSD: currentStudent.tuitionPaid,
-                      amountLBP: (currentStudent.tuitionPaid || 0) * LBP_RATE,
+                      amountLBP: 0,
                       method: 'fresh_cash',
                       remainingUSD: Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0))
                     };
@@ -302,27 +299,22 @@ export const TuitionModule = () => {
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{t('totalTuition')}</span>
               <span className="text-xl font-black text-[#0F172A] mt-1 block font-mono">${(currentStudent.tuitionTotal || 600).toLocaleString()} USD</span>
-              <span className="text-[10px] text-slate-400 block pt-0.5 font-mono">≈ {((currentStudent.tuitionTotal || 600) * LBP_RATE).toLocaleString()} ل.ل.</span>
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{isAr ? 'المصاريف الإدارية' : 'Admin Fees'}</span>
               <span className="text-xl font-black text-amber-600 mt-1 block font-mono">+${(currentStudent.adminFees || 0).toLocaleString()} USD</span>
-              <span className="text-[10px] text-slate-400 block pt-0.5 font-mono">≈ {((currentStudent.adminFees || 0) * LBP_RATE).toLocaleString()} ل.ل.</span>
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{isAr ? 'الخصومات والمنح' : 'Discounts'}</span>
               <span className="text-xl font-black text-emerald-600 mt-1 block font-mono">-${(currentStudent.tuitionDiscount || 0).toLocaleString()} USD</span>
-              <span className="text-[10px] text-slate-400 block pt-0.5 font-mono">≈ {((currentStudent.tuitionDiscount || 0) * LBP_RATE).toLocaleString()} ل.ل.</span>
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
               <span className="text-xs text-slate-500 block">{t('paidAmount')}</span>
               <span className="text-xl font-black text-[#0284C7] mt-1 block font-mono">${(currentStudent.tuitionPaid || 0).toLocaleString()} USD</span>
-              <span className="text-[10px] text-sky-600 block pt-0.5 font-mono">≈ {((currentStudent.tuitionPaid || 0) * LBP_RATE).toLocaleString()} ل.ل.</span>
             </div>
             <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-red-300">
               <span className="text-xs text-red-600 block font-bold">{t('remainingAmount')}</span>
               <span className="text-xl font-black text-red-600 mt-1 block font-mono">${Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)).toLocaleString()} USD</span>
-              <span className="text-[10px] text-slate-500 block pt-0.5 font-mono">≈ {(Math.max(0, (currentStudent.tuitionTotal || 600) + (currentStudent.adminFees || 0) - (currentStudent.tuitionDiscount || 0) - (currentStudent.tuitionPaid || 0)) * LBP_RATE).toLocaleString()} ل.ل.</span>
             </div>
           </div>
         </div>
@@ -361,7 +353,7 @@ export const TuitionModule = () => {
                         <div className="truncate">
                           <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{isAr ? stu.name : stu.nameEn}</h4>
                           <span className="text-[10px] text-red-500 font-extrabold block font-mono">
-                            ${remUSD} USD ≈ {(remUSD * LBP_RATE).toLocaleString()} ل.ل.
+                            ${remUSD} USD
                           </span>
                         </div>
                       </div>
@@ -438,7 +430,6 @@ export const TuitionModule = () => {
                       <span className="text-red-500 font-sans font-bold">{t('remainingAmount')}:</span>
                       <span className="font-black text-red-600 text-sm">${remUSD} USD</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 text-center pt-0.5">≈ {(remUSD * LBP_RATE).toLocaleString()} ل.ل.</div>
                   </div>
 
                   {/* Payment History Log */}
@@ -484,7 +475,7 @@ export const TuitionModule = () => {
                         studentName: isAr ? stu.name : stu.nameEn,
                         grade: isAr ? stu.grade : stu.gradeEn,
                         amountUSD: paidUSD,
-                        amountLBP: paidUSD * LBP_RATE,
+                        amountLBP: 0,
                         method: 'fresh_cash',
                         remainingUSD: remUSD
                       };
@@ -532,7 +523,7 @@ export const TuitionModule = () => {
                 className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-[#0284C7]" />
               {payAmount && (
                 <span className="text-[10px] text-[#0284C7] font-mono font-bold block pt-0.5">
-                  ≈ {(Number(payAmount) * LBP_RATE).toLocaleString()} ل.ل. (سيتم الخصم مباشرة من المتبقي!)
+                  ⚡ سيتم الخصم مباشرة من المبلغ المتبقي المستحق!
                 </span>
               )}
             </div>

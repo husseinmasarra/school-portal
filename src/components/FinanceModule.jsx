@@ -376,7 +376,7 @@ export const FinanceModule = () => {
           </div>
           <p className="text-2xl font-black text-[#0A5C36] font-mono">${(totalRevenue || 0).toLocaleString()} USD</p>
           <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-            <span className="font-mono">≈ {((totalRevenue || 0) * LBP_RATE).toLocaleString()} L.L.</span>
+            <span className="font-bold text-[#0A5C36]/75">{lang === 'ar' ? 'الرسوم المدرسية والرسوم الإدارية' : 'School tuition & admin fees'}</span>
             <span className="text-[#0A5C36] font-bold hover:underline flex items-center gap-0.5">
               <span>معاينة الإيرادات</span>
               <ArrowRight className="w-3 h-3 rtl:rotate-180" />
@@ -401,7 +401,7 @@ export const FinanceModule = () => {
           </div>
           <p className="text-2xl font-black text-red-600 font-mono">${(totalExpenses || 0).toLocaleString()} USD</p>
           <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-            <span className="font-mono">≈ {((totalExpenses || 0) * LBP_RATE).toLocaleString()} L.L.</span>
+            <span className="font-bold text-red-500/75">{lang === 'ar' ? 'رواتب الكادر والمصاريف العامة' : 'Staff payroll & general expenses'}</span>
             <span className="text-red-600 font-bold hover:underline flex items-center gap-0.5">
               <span>عرض كشف المصاريف ({expenses.length})</span>
               <ArrowRight className="w-3 h-3 rtl:rotate-180" />
@@ -426,7 +426,7 @@ export const FinanceModule = () => {
           </div>
           <p className="text-2xl font-black text-[#0A5C36] font-mono">${(netProfit || 0).toLocaleString()} USD</p>
           <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-            <span className="font-mono">≈ {((netProfit || 0) * LBP_RATE).toLocaleString()} L.L.</span>
+            <span className="font-bold text-emerald-600/75">{lang === 'ar' ? 'صافي هامش الربح التشغيلي' : 'Net operating profit margin'}</span>
             <span className="text-[#0A5C36] font-bold hover:underline flex items-center gap-0.5">
               <span>تحليل الموقف المالي</span>
               <ArrowRight className="w-3 h-3 rtl:rotate-180" />
@@ -866,7 +866,7 @@ export const FinanceModule = () => {
                 <span className="text-2xl font-black text-[#0A5C36] font-mono">${totalRevenue.toLocaleString()} USD</span>
               </div>
               <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold">
-                ≈ {(totalRevenue * LBP_RATE).toLocaleString()} L.L.
+                {lang === 'ar' ? 'دولار نقدي' : 'Fresh USD'}
               </span>
             </div>
 

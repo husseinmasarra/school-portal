@@ -749,62 +749,62 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                           </div>
 
                           {/* Credentials & Contact Details */}
-                          <div className="bg-slate-50 p-2.5 rounded-2xl text-[11px] space-y-1 border border-slate-100 font-mono">
+                          <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-2xl text-[11px] space-y-1 border border-slate-100 dark:border-slate-800 font-mono">
                             <div className="flex justify-between">
-                              <span className="text-slate-500 font-sans">🔑 اسم الدخول:</span>
-                              <span className="font-bold text-[#0284C7]">{stu.username}</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-sans">🔑 اسم الدخول:</span>
+                              <span className="font-bold text-[#0284C7] dark:text-sky-400">{stu.username}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-slate-500 font-sans">🔒 كلمة المرور:</span>
-                              <span className="font-bold text-red-600 font-extrabold">{stu.password}</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-sans">🔒 كلمة المرور:</span>
+                              <span className="font-bold text-red-600 dark:text-red-400 font-extrabold">{stu.password}</span>
                             </div>
                             {stu.parentPhone && (
                               <div className="flex justify-between">
-                                <span className="text-slate-500 font-sans">📞 هاتف الأب:</span>
-                                <span className="font-bold text-slate-700">{stu.parentPhone}</span>
+                                <span className="text-slate-500 dark:text-slate-400 font-sans">📞 هاتف الأب:</span>
+                                <span className="font-bold text-slate-700 dark:text-slate-300">{stu.parentPhone}</span>
                               </div>
                             )}
                             {stu.motherPhone && (
                               <div className="flex justify-between">
-                                <span className="text-slate-500 font-sans">👩 هاتف الأم:</span>
-                                <span className="font-bold text-slate-700">{stu.motherPhone}</span>
+                                <span className="text-slate-500 dark:text-slate-400 font-sans">👩 هاتف الأم:</span>
+                                <span className="font-bold text-slate-700 dark:text-slate-300">{stu.motherPhone}</span>
                               </div>
                             )}
                             {stu.ministryClearance && (
                               <div className="flex justify-between">
-                                <span className="text-slate-500 font-sans">🔖 إفادة الوزارة:</span>
-                                <span className="font-extrabold text-amber-600">{stu.ministryClearance}</span>
+                                <span className="text-slate-500 dark:text-slate-400 font-sans">🔖 إفادة الوزارة:</span>
+                                <span className="font-extrabold text-amber-600 dark:text-amber-400">{stu.ministryClearance}</span>
                               </div>
                             )}
                           </div>
 
                           {/* Tuition Snapshot */}
-                          <div className="text-[10px] grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
+                          <div className="text-[10px] grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl text-center border border-slate-100 dark:border-slate-800">
                             <div>
-                              <span className="text-slate-500 block">القسط</span>
-                              <span className="font-bold block text-slate-700 font-mono">${totalUSD}</span>
+                              <span className="text-slate-500 dark:text-slate-400 block">القسط</span>
+                              <span className="font-bold block text-slate-700 dark:text-slate-300 font-mono">${totalUSD}</span>
                             </div>
                             <div>
-                              <span className="text-slate-500 block">الخصم</span>
-                              <span className="font-bold block text-emerald-600 font-mono">-${discountUSD}</span>
+                              <span className="text-slate-500 dark:text-slate-400 block">الخصم</span>
+                              <span className="font-bold block text-emerald-600 dark:text-emerald-400 font-mono">-${discountUSD}</span>
                             </div>
                             <div>
-                              <span className="text-red-500 font-bold block">المتبقي</span>
-                              <span className="font-black block text-red-600 font-mono">${remUSD}</span>
+                              <span className="text-red-500 dark:text-red-400 font-bold block">المتبقي</span>
+                              <span className="font-black block text-red-600 dark:text-red-400 font-mono">${remUSD}</span>
                             </div>
                           </div>
 
                           {/* Freeze Account Toggle (Admin Only) */}
                           {currentRole === 'admin' && (
-                            <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                              <label className="flex items-center gap-2 cursor-pointer select-none text-[11px] font-bold text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-all w-full justify-center">
+                            <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                              <label className="flex items-center gap-2 cursor-pointer select-none text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all w-full justify-center">
                                 <input 
                                   type="checkbox" 
                                   checked={!!stu.frozen} 
                                   onChange={() => updateStudent(stu.id, { frozen: !stu.frozen })}
                                   className="w-3.5 h-3.5 accent-red-600 rounded cursor-pointer shrink-0"
                                 />
-                                <span className={stu.frozen ? "text-red-600 font-black" : "text-slate-600 font-bold"}>
+                                <span className={stu.frozen ? "text-red-600 dark:text-red-400 font-black" : "text-slate-600 dark:text-slate-300 font-bold"}>
                                   {stu.frozen ? '❄️ حساب مجمد (إلغاء التجميد)' : 'تجميد حساب الطالب'}
                                 </span>
                               </label>
@@ -947,23 +947,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               </button>
             </div>
 
-            {/* Photo Avatar Upload */}
-            <div className="space-y-2 bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
-              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <Camera className="w-4 h-4 text-[#0284C7]" />
-                <span>{isAr ? 'رفع صورة الطالب من جهازك:' : 'Upload student photo:'}</span>
-              </label>
 
-              <div className="flex items-center gap-3">
-                <img src={stuAvatar} alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-[#0284C7]" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleStudentAvatarUpload}
-                  className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#0284C7] file:text-white hover:file:bg-[#0369A1] cursor-pointer"
-                />
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">

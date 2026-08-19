@@ -12,6 +12,17 @@ export const ReportsModule = () => {
   const isAr = lang === 'ar';
   const safeStudents = students || [];
 
+  const getLevantFormattedDate = () => {
+    const today = new Date();
+    const day = today.getDate();
+    const year = today.getFullYear();
+    const levantMonths = [
+      'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
+      'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'
+    ];
+    return `${day} ${levantMonths[today.getMonth()]} ${year}`;
+  };
+
   const [reportType, setReportType] = useState('academic'); // academic, financial, attendance, daily_log
   const [stuId, setStuId] = useState(selectedStudentId || safeStudents[0]?.id);
 
@@ -211,9 +222,7 @@ export const ReportsModule = () => {
                   🎓
                 </div>
                 <div>
-                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">الجمهورية اللبنانية - وزارة التربية والتعليم العالي</span>
-                  <h1 className="text-xl font-black text-[#0284C7] dark:text-[#38BDF8]">مدرسة الدعم التعليمي واللغات الرسمية</h1>
-                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block">Smart Educational Academy & Portal</span>
+                  <h1 className="text-xl font-black text-[#0284C7] dark:text-[#38BDF8]">{isAr ? 'مدرسة الدعم التعليمي' : 'Educational Support School'}</h1>
                 </div>
               </div>
 
@@ -222,7 +231,7 @@ export const ReportsModule = () => {
                   كشف درجات وشهادة تقويم رسمية 📜
                 </div>
                 <p className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400 block pt-1">رقم المستند: SCH-2026/9842</p>
-                <p className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400 block">التاريخ: 22 يوليو 2026</p>
+                <p className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400 block">التاريخ: {getLevantFormattedDate()}</p>
               </div>
             </div>
 
@@ -240,7 +249,6 @@ export const ReportsModule = () => {
               <div className="space-y-1">
                 <span className="text-xs font-bold text-[#0284C7] dark:text-[#38BDF8] block">الصف والشعبة:</span>
                 <span className="text-sm font-black text-[#0F172A] dark:text-white block">{selectedStudent.grade} ({selectedStudent.classRoom || 'أ'})</span>
-                <span className="text-xs block font-mono font-extrabold text-slate-600 dark:text-slate-400">رقم السجل: {selectedStudent.id}</span>
               </div>
 
               <div className="space-y-1">
@@ -338,9 +346,7 @@ export const ReportsModule = () => {
             <div className="pt-6 border-t-2 border-[#0284C7] dark:border-[#334155] grid grid-cols-3 gap-6 items-end text-xs text-[#0F172A] dark:text-white">
               <div className="text-center space-y-4">
                 <span className="font-extrabold text-[#0284C7] dark:text-[#38BDF8] text-xs block">توقيع مربي الصف ومعلم المادة:</span>
-                <div className="h-10 flex items-center justify-center font-serif text-sm font-black border-b border-dashed border-[#0284C7] dark:border-[#334155] mx-4 text-[#0F172A] dark:text-white">
-                  أ. مريم صالح
-                </div>
+                <div className="h-10 border-b border-dashed border-[#0284C7] dark:border-[#334155] mx-4"></div>
               </div>
 
               {/* Clean Official Signature & School Seal Space */}
@@ -350,10 +356,8 @@ export const ReportsModule = () => {
               </div>
 
               <div className="text-center space-y-4">
-                <span className="font-extrabold text-[#0284C7] dark:text-[#38BDF8] text-xs block">توقيع مدير المدرسة الرسمية:</span>
-                <div className="h-10 flex items-center justify-center font-serif text-sm font-black border-b border-dashed border-[#0284C7] dark:border-[#334155] mx-4 text-[#0F172A] dark:text-white">
-                  د. حسام الدين
-                </div>
+                <span className="font-extrabold text-[#0284C7] dark:text-[#38BDF8] text-xs block">توقيع مدير المدرسة:</span>
+                <div className="h-10 border-b border-dashed border-[#0284C7] dark:border-[#334155] mx-4"></div>
               </div>
             </div>
 

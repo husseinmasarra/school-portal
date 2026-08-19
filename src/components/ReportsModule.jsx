@@ -6,11 +6,22 @@ export const ReportsModule = () => {
   const { 
     lang, t, currentRole, students = [], subjects = [], selectedStudentId,
     dailyMarks = [], addDailyMark, deleteDailyMark,
-    getStudentSubjectScores, getStudentOverallGpa
+    getStudentSubjectScores, getStudentOverallGpa, behaviorRecords = []
   } = useApp();
 
   const isAr = lang === 'ar';
   const safeStudents = students || [];
+
+  const getDynamicAcademicYear = () => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1;
+    if (currentMonth >= 9) {
+      return `${currentYear} - ${currentYear + 1}`;
+    } else {
+      return `${currentYear - 1} - ${currentYear}`;
+    }
+  };
 
   const getLevantFormattedDate = () => {
     const today = new Date();
@@ -38,7 +49,58 @@ export const ReportsModule = () => {
 
   const selectedStudent = safeStudents.find((s) => s.id === stuId) || safeStudents[0];
   const dynamicSubjectScores = getStudentSubjectScores ? getStudentSubjectScores(selectedStudent?.id) : [];
-  const computedGpa = getStudentOverallGpa ? getStudentOverallGpa(selectedStudent?.id) : 95.6;
+  const computedGpa = getStudentOverallGpa ? getStudentOverallGpa(selectedStudent?.id) : 0;
+
+  const computedClassroomRank = (() => {
+    if (!selectedStudent) return 'N/A';
+    const peers = safeStudents.filter(
+      (s) => s.grade === selectedStudent.grade && (s.classRoom === selectedStudent.classRoom || (!s.classRoom && !selectedStudent.classRoom))
+    );
+    if (peers.length <= 1) return isAr ? 'الأول (1)' : '1st (1)';
+    const peerGpas = peers.map((p) => ({
+      id: p.id,
+      gpa: Number(getStudentOverallGpa ? getStudentOverallGpa(p.id) : 0)
+    }));
+    peerGpas.sort((a, b) => b.gpa - a.gpa);
+    const rankIndex = peerGpas.findIndex((x) => x.id === selectedStudent.id) + 1;
+    const ordinalNamesAr = {
+      1: 'الأول', 2: 'الثاني', 3: 'الثالث', 4: 'الرابع', 5: 'الخامس',
+      6: 'السادس', 7: 'السابع', 8: 'الثامن', 9: 'التاسع', 10: 'العاشر'
+    };
+    const rankWord = isAr ? (ordinalNamesAr[rankIndex] || `${rankIndex}`) : `${rankIndex}`;
+    return `${rankWord} (${rankIndex})`;
+  })();
+
+  const computedGradeRank = (() => {
+    if (!selectedStudent) return 'N/A';
+    const peers = safeStudents.filter((s) => s.grade === selectedStudent.grade);
+    if (peers.length <= 1) return isAr ? 'الأول (1)' : '1st (1)';
+    const peerGpas = peers.map((p) => ({
+      id: p.id,
+      gpa: Number(getStudentOverallGpa ? getStudentOverallGpa(p.id) : 0)
+    }));
+    peerGpas.sort((a, b) => b.gpa - a.gpa);
+    const rankIndex = peerGpas.findIndex((x) => x.id === selectedStudent.id) + 1;
+    const ordinalNamesAr = {
+      1: 'الأول', 2: 'الثاني', 3: 'الثالث', 4: 'الرابع', 5: 'الخامس',
+      6: 'السادس', 7: 'السابع', 8: 'الثامن', 9: 'التاسع', 10: 'العاشر'
+    };
+    const rankWord = isAr ? (ordinalNamesAr[rankIndex] || `${rankIndex}`) : `${rankIndex}`;
+    return `${rankWord} (${rankIndex})`;
+  })();
+
+  const computedBehaviorScore = (() => {
+    let score = 100;
+    const records = (behaviorRecords || []).filter(r => r.studentId === selectedStudent?.id);
+    records.forEach(r => {
+      if (r.type === 'سلبي' || r.type?.toLowerCase() === 'negative' || r.type === 'إرشاد وسلوك') {
+        score -= 5;
+      } else if (r.type === 'إيجابي' || r.type?.toLowerCase() === 'positive') {
+        score += 2;
+      }
+    });
+    return Math.max(0, Math.min(100, score));
+  })();
 
   if (!selectedStudent) {
     return (
@@ -212,14 +274,14 @@ export const ReportsModule = () => {
         {/* Academic Report Section - Harmonized Official Report Certificate */}
         {reportType === 'academic' && (
           <div 
-            className="printable-document bg-white dark:bg-[#0F172A] border-4 border-double border-[#0284C7] rounded-3xl p-6 sm:p-10 space-y-6 shadow-2xl relative my-4 text-[#0F172A] dark:text-white"
+            className="printable-document bg-white dark:bg-[#0F172A] border-0 rounded-3xl p-6 sm:p-10 space-y-6 shadow-2xl relative my-4 text-[#0F172A] dark:text-white"
           >
             
             {/* 🏫 Official School Crest & Header */}
             <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-[#0284C7] pb-5 text-center sm:text-right gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0284C7] to-sky-500 text-white flex items-center justify-center font-black text-2xl shadow-md border-2 border-white">
-                  🎓
+                <div className="w-14 h-14 rounded-2xl bg-white overflow-hidden shadow-md border-2 border-[#0284C7] flex items-center justify-center">
+                  <img src="/logo.png" alt="School Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h1 className="text-xl font-black text-[#0284C7] dark:text-[#38BDF8]">{isAr ? 'مدرسة الدعم التعليمي' : 'Educational Support School'}</h1>
@@ -253,7 +315,7 @@ export const ReportsModule = () => {
 
               <div className="space-y-1">
                 <span className="text-xs font-bold text-[#0284C7] dark:text-[#38BDF8] block">العام الدراسي والمرحلة:</span>
-                <span className="text-sm font-black text-[#0F172A] dark:text-white block">2025 - 2026 (الفصل الثاني)</span>
+                <span className="text-sm font-black text-[#0F172A] dark:text-white block">{getDynamicAcademicYear()} (الفصل الثاني)</span>
                 <span className="text-xs block font-bold text-emerald-600 dark:text-emerald-400">الحالة: منتظم ومجتاز 🟢</span>
               </div>
             </div>
@@ -322,25 +384,27 @@ export const ReportsModule = () => {
               </div>
             </div>
 
-            {/* 🏅 Final Result KPI Summary Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono pt-2">
-              <div className="bg-sky-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-sky-200 dark:border-[#334155] text-center space-y-1">
-                <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">المعدل العام التراكمي:</span>
-                <span className="text-xl font-black text-[#0284C7] dark:text-[#38BDF8] block">{selectedStudent.gpa || 95.6}%</span>
-              </div>
-              <div className="bg-purple-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-purple-200 dark:border-[#334155] text-center space-y-1">
-                <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">الترتيب على الشعبة:</span>
-                <span className="text-xl font-black text-purple-700 dark:text-purple-400 block">الأول (1) 🏆</span>
-              </div>
-              <div className="bg-indigo-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-indigo-200 dark:border-[#334155] text-center space-y-1">
-                <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">الترتيب على المرحلة:</span>
-                <span className="text-xl font-black text-indigo-700 dark:text-indigo-400 block">الثالث (3) 🌟</span>
-              </div>
-              <div className="bg-emerald-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-emerald-200 dark:border-[#334155] text-center space-y-1">
-                <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">درجة الانضباط والسلوك:</span>
-                <span className="text-xl font-black text-emerald-700 dark:text-emerald-400 block">100 / 100 🟢</span>
-              </div>
-            </div>
+             {/* 🏅 Final Result KPI Summary Cards */}
+             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono pt-2">
+               <div className="bg-sky-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-sky-200 dark:border-[#334155] text-center space-y-1">
+                 <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">المعدل العام التراكمي:</span>
+                 <span className="text-xl font-black text-[#0284C7] dark:text-[#38BDF8] block">
+                   {Number(computedGpa) > 0 ? `${computedGpa}%` : (isAr ? 'لا يوجد درجات' : 'N/A')}
+                 </span>
+               </div>
+               <div className="bg-purple-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-purple-200 dark:border-[#334155] text-center space-y-1">
+                 <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">الترتيب على الشعبة:</span>
+                 <span className="text-xl font-black text-purple-700 dark:text-purple-400 block">{computedClassroomRank} 🏆</span>
+               </div>
+               <div className="bg-indigo-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-indigo-200 dark:border-[#334155] text-center space-y-1">
+                 <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">الترتيب على المرحلة:</span>
+                 <span className="text-xl font-black text-indigo-700 dark:text-indigo-400 block">{computedGradeRank} 🌟</span>
+               </div>
+               <div className="bg-emerald-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-emerald-200 dark:border-[#334155] text-center space-y-1">
+                 <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">درجة الانضباط والسلوك:</span>
+                 <span className="text-xl font-black text-emerald-700 dark:text-emerald-400 block">{computedBehaviorScore} / 100 🟢</span>
+               </div>
+             </div>
 
             {/* ✍️ Official Signatures & School Seal Space */}
             <div className="pt-6 border-t-2 border-[#0284C7] dark:border-[#334155] grid grid-cols-3 gap-6 items-end text-xs text-[#0F172A] dark:text-white">

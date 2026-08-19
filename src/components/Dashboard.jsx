@@ -36,7 +36,8 @@ export const Dashboard = ({ setActiveTab }) => {
     agenda = [],
     selectedStudentId,
     getHonorRollStudents,
-    masterTimetable = []
+    masterTimetable = [],
+    getStudentOverallGpa
   } = useApp();
 
   const isAr = lang === 'ar';
@@ -815,7 +816,11 @@ export const Dashboard = ({ setActiveTab }) => {
             <div className="bg-white/90 border border-amber-300/50 p-3.5 rounded-2xl text-center space-y-1 shadow-sm hover:scale-105 transition-all">
               <span className="text-3xl block">🏆</span>
               <h4 className="text-xs font-black text-amber-900">{isAr ? 'متفوق الصف' : 'Top Student'}</h4>
-              <span className="text-[10px] text-slate-500 font-bold block">{isAr ? 'معدل 94.5% ممتاز' : 'GPA 94.5%'}</span>
+              <span className="text-[10px] text-slate-500 font-bold block">
+                {isAr 
+                  ? `معدل ${Number(getStudentOverallGpa ? getStudentOverallGpa(activeStudent?.id) : 0) > 0 ? `${getStudentOverallGpa(activeStudent?.id)}%` : '94.5%'} ممتاز` 
+                  : `GPA ${Number(getStudentOverallGpa ? getStudentOverallGpa(activeStudent?.id) : 0) > 0 ? `${getStudentOverallGpa(activeStudent?.id)}%` : '94.5%'}`}
+              </span>
             </div>
 
             <div className="bg-white/90 border border-[#0284C7]/30 p-3.5 rounded-2xl text-center space-y-1 shadow-sm hover:scale-105 transition-all">

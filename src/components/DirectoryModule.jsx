@@ -931,7 +931,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <form
             onSubmit={handleAddStudentSubmit}
-            className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-4xl w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative"
+            className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-4xl w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative max-h-[85vh] overflow-y-auto custom-scrollbar"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
@@ -1829,7 +1829,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex justify-center items-start overflow-y-auto p-4 sm:p-6">
           <form
             onSubmit={handleEditStudentSubmit}
-            className="bg-white dark:bg-[#1E293B] border-2 border-amber-500 rounded-3xl p-6 max-w-4xl w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] dark:text-slate-100 relative my-auto text-right"
+            className="bg-white dark:bg-[#1E293B] border-2 border-amber-500 rounded-3xl p-6 max-w-4xl w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] dark:text-slate-100 relative my-auto text-right max-h-[85vh] overflow-y-auto custom-scrollbar"
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">

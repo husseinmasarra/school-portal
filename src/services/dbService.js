@@ -108,6 +108,7 @@ export function getRealQRCodeURL(studentId, schoolName) {
 export const initialSchoolSettings = {
   schoolName: "مدرسة الدعم التعليمي",
   schoolNameEn: "Educational Support School",
+  schoolLogo: "/logo.png",
   academicYear: "2026/2027",
   country: "لبنان",
   phone: "+961 01 888 999",

@@ -145,7 +145,7 @@ export const StudentCardPage = () => {
             <div className="bg-[#032541] px-3.5 py-2 text-white flex items-center justify-between shadow-md">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-white p-0.5 flex items-center justify-center shadow shrink-0 overflow-hidden">
-                  <img src={siteSettings?.schoolLogo || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=120&auto=format&fit=crop&q=80"} alt="Logo" className="w-full h-full object-cover" />
+                  <img src={siteSettings?.schoolLogo || "/logo.png"} alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h3 className="text-[11px] font-black leading-tight text-white">{isAr ? (siteSettings?.schoolName || t('schoolName')) : (siteSettings?.schoolNameEn || t('schoolName'))}</h3>
@@ -164,11 +164,9 @@ export const StudentCardPage = () => {
               
               {/* Photo & Identity Details */}
               <div className="flex items-center gap-3">
-                <img
-                  src={student.avatar}
-                  alt={student.name}
-                  className="w-16 h-16 rounded-xl object-cover border-2 border-[#EF4444] shadow-lg"
-                />
+                <div className="w-14 h-14 rounded-xl bg-white text-[#0284C7] font-black text-xl flex items-center justify-center border-2 border-[#EF4444] shadow-lg shrink-0">
+                  {(student.name || 'ط')[0]}
+                </div>
 
                 <div className="space-y-0.5">
                   <h4 className="text-xs font-black text-white">{isAr ? student.name : student.nameEn}</h4>

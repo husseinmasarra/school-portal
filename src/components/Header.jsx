@@ -250,14 +250,9 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
                 title={lang === 'ar' ? 'اضغط لتغيير صورة الحساب الشخصي' : 'Click to change profile picture'}
               >
                 <div className="relative">
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-8 h-8 rounded-xl object-cover border-2 border-[#EF4444] shadow"
-                  />
-                  <span className="absolute -bottom-1 -right-1 p-0.5 bg-[#EF4444] text-white rounded-full">
-                    <Camera className="w-2 h-2" />
-                  </span>
+                  <div className="w-8 h-8 rounded-xl bg-white text-[#0284C7] font-black text-xs flex items-center justify-center border-2 border-[#EF4444] shadow">
+                    {(currentUser.name || 'م')[0]}
+                  </div>
                 </div>
 
                 <div className="text-right rtl:text-right ltr:text-left text-xs">

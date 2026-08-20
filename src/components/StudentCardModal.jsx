@@ -47,7 +47,7 @@ export const StudentCardModal = ({ student, onClose }) => {
             <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-600 px-3.5 py-2 text-white flex items-center justify-between shadow-md">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-slate-950/80 border border-white/30 flex items-center justify-center shadow shrink-0 overflow-hidden">
-                  <img src={siteSettings?.schoolLogo || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=120&auto=format&fit=crop&q=80"} alt="Logo" className="w-full h-full object-cover" />
+                  <img src={siteSettings?.schoolLogo || "/logo.png"} alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h4 className="text-[11px] font-black leading-tight text-white">{siteSettings?.schoolName || t('schoolName')}</h4>
@@ -65,11 +65,9 @@ export const StudentCardModal = ({ student, onClose }) => {
               
               {/* Photo & Main Details */}
               <div className="flex items-center gap-3">
-                <img
-                  src={student.avatar}
-                  alt={student.name}
-                  className="w-16 h-16 rounded-xl object-cover border-2 border-blue-400 shadow-md shrink-0 bg-slate-900"
-                />
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-800 text-white font-black text-xl flex items-center justify-center border-2 border-blue-400 shadow-md shrink-0">
+                  {(student.name || 'ط')[0]}
+                </div>
 
                 <div className="space-y-0.5 flex-1 min-w-0">
                   <h3 className="text-xs sm:text-sm font-black text-white truncate leading-tight">

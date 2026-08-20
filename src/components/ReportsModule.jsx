@@ -268,11 +268,9 @@ export const ReportsModule = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <img
-                        src={s.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80'}
-                        alt={s.name}
-                        className={`w-9 h-9 rounded-full object-cover shrink-0 border ${isSelected ? 'border-[#0284C7]' : 'border-slate-300'}`}
-                      />
+                      <div className={`w-9 h-9 rounded-full font-black text-xs flex items-center justify-center shrink-0 border ${isSelected ? 'border-[#0284C7] bg-[#0284C7] text-white' : 'border-slate-300 bg-slate-100 text-slate-700'}`}>
+                        {(s.name || 'ط')[0]}
+                      </div>
                       <div className="truncate">
                         <h4 className={`text-xs font-extrabold truncate ${isSelected ? 'text-[#0284C7]' : 'text-slate-800'}`}>
                           {isAr ? s.name : s.nameEn}
@@ -446,7 +444,9 @@ export const ReportsModule = () => {
             {/* 👤 Student Information Summary Box */}
             <div className="bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#0284C7]/30 dark:border-[#334155] rounded-2xl p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs text-[#0F172A] dark:text-white">
               <div className="flex items-center gap-3 col-span-2">
-                <img src={selectedStudent.avatar} alt={selectedStudent.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-[#0284C7] shadow-sm" />
+                <div className="w-14 h-14 rounded-2xl font-black text-xl bg-[#0284C7]/10 text-[#0284C7] border-2 border-[#0284C7] flex items-center justify-center shadow-sm shrink-0">
+                  {(selectedStudent.name || 'ط')[0]}
+                </div>
                 <div>
                   <span className="text-xs font-bold text-[#0284C7] dark:text-[#38BDF8] block">اسم الطالب الرباعي:</span>
                   <h3 className="text-base font-black text-[#0F172A] dark:text-white">{selectedStudent.name}</h3>

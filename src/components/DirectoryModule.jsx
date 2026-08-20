@@ -762,13 +762,13 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                           {/* Student Header */}
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-3 min-w-0">
-                              <img 
-                                src={stu.avatar || defaultAvatars[0]} 
-                                alt={stu.name} 
-                                className={`w-11 h-11 rounded-full object-cover shrink-0 border-2 ${
-                                  stu.frozen ? 'border-red-500' : 'border-[#0284C7]'
-                                }`} 
-                              />
+                              <div 
+                                className={`w-11 h-11 rounded-full font-black text-sm flex items-center justify-center shrink-0 border-2 shadow-xs ${
+                                  stu.frozen ? 'border-red-500 bg-red-100 text-red-700' : 'border-[#0284C7] bg-[#0284C7]/10 text-[#0284C7]'
+                                }`}
+                              >
+                                {(stu.name || 'ط')[0]}
+                              </div>
                               <div className="truncate">
                                 <h4 className="text-xs font-black text-[#0F172A] truncate flex items-center gap-1.5">
                                   <span>{isAr ? stu.name : stu.nameEn}</span>
@@ -928,11 +928,9 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     return (
                       <tr key={tch.id} className="hover:bg-[#F8FAFC] transition-all">
                         <td className="p-3 font-bold flex items-center gap-2">
-                          <img
-                            src={tch.avatar}
-                            alt={tch.name}
-                            className="w-9 h-9 rounded-full object-cover border border-[#0284C7]"
-                          />
+                          <div className="w-9 h-9 rounded-full font-black text-xs bg-[#0284C7]/10 text-[#0284C7] border border-[#0284C7] flex items-center justify-center shrink-0">
+                            {(tch.name || 'م')[0]}
+                          </div>
                           <div>
                             <div>{isAr ? tch.name : tch.nameEn}</div>
                             <div className="text-[10px] text-slate-400 font-mono">ID: {tch.id}</div>
@@ -1371,23 +1369,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               </button>
             </div>
 
-            {/* Photo Avatar Upload */}
-            <div className="space-y-2 bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
-              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <Camera className="w-4 h-4 text-[#0284C7]" />
-                <span>{isAr ? 'رفع صورة المعلم من جهازك:' : 'Upload teacher photo:'}</span>
-              </label>
 
-              <div className="flex items-center gap-3">
-                <img src={tchAvatar} alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-[#0284C7]" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleTeacherAvatarUpload}
-                  className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#0284C7] file:text-white hover:file:bg-[#0369A1] cursor-pointer"
-                />
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">

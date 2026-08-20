@@ -859,6 +859,17 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                         {currentRole === 'admin' && (
                                           <>
                                             <button
+                                              onClick={() => updateStudent(sib.id, { frozen: !sib.frozen })}
+                                              className={`p-1 rounded-lg cursor-pointer transition-colors ${
+                                                sib.frozen 
+                                                  ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse' 
+                                                  : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200'
+                                              }`}
+                                              title={sib.frozen ? 'الحساب مجمد (إلغاء التجميد)' : 'تجميد حساب الطالب'}
+                                            >
+                                              <span className="text-xs">❄️</span>
+                                            </button>
+                                            <button
                                               onClick={() => handleOpenEditStudentModal(sib)}
                                               className="p-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg cursor-pointer"
                                               title="تعديل الحساب"
@@ -888,6 +899,24 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                         <span className="font-bold text-red-600">{sib.password}</span>
                                       </div>
                                     </div>
+
+                                    {/* Freeze Account Button Bar */}
+                                    {currentRole === 'admin' && (
+                                      <div className="pt-1 flex items-center justify-between border-t border-slate-100">
+                                        <button
+                                          type="button"
+                                          onClick={() => updateStudent(sib.id, { frozen: !sib.frozen })}
+                                          className={`w-full py-1 px-2 rounded-lg text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-all ${
+                                            sib.frozen
+                                              ? 'bg-red-600 text-white shadow-xs animate-pulse'
+                                              : 'bg-slate-100 hover:bg-cyan-50 text-slate-600 hover:text-cyan-700 border border-slate-200'
+                                          }`}
+                                        >
+                                          <span>❄️</span>
+                                          <span>{sib.frozen ? 'الحساب مجمد (اضغط لإلغاء التجميد)' : 'تجميد حساب الطالب'}</span>
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               })}
@@ -1759,7 +1788,23 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+              {currentRole === 'admin' && (
+                <button
+                  onClick={() => {
+                    updateStudent(showStudentDetailModal.id, { frozen: !showStudentDetailModal.frozen });
+                    setShowStudentDetailModal({ ...showStudentDetailModal, frozen: !showStudentDetailModal.frozen });
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer transition-all ${
+                    showStudentDetailModal.frozen
+                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-md'
+                      : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-300'
+                  }`}
+                >
+                  <span>❄️</span>
+                  <span>{showStudentDetailModal.frozen ? 'الحساب مجمد (إلغاء التجميد)' : 'تجميد هذا الحساب'}</span>
+                </button>
+              )}
               <button onClick={() => setShowStudentDetailModal(null)} className="px-5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold cursor-pointer">{t('close')}</button>
             </div>
           </div>

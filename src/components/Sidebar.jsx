@@ -90,7 +90,7 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           >
             <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-lg border border-white shrink-0 overflow-hidden">
               <img 
-                src="/logo.png" 
+                src="/logo.png?v=2026" 
                 alt="Logo" 
                 className="w-full h-full object-contain" 
               />

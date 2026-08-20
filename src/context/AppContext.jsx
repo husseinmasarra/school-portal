@@ -118,12 +118,12 @@ export const AppProvider = ({ children }) => {
   const [siteSettings, setSiteSettings] = useState(() => {
     const saved = localStorage.getItem('school_settings');
     const parsed = saved ? JSON.parse(saved) : initialSchoolSettings;
-    return { 
+    const cleanSettings = { 
       recessStartTime: "09:10",
       recessEndTime: "09:30",
       recessLabel: "استراحة ووجبة فطور",
       ...parsed, 
-      schoolLogo: "/logo.png",
+      schoolLogo: "/logo.png?v=2026",
       schoolName: "مركز الدعم التعليمي", 
       schoolNameEn: "Educational Support Center", 
       academicYear: "2026/2027",
@@ -131,6 +131,8 @@ export const AppProvider = ({ children }) => {
       schoolEndTime: "12:00",
       workingHoursStr: "من 07:30 صباحاً حتى 12:00 ظهراً"
     };
+    localStorage.setItem('school_settings', JSON.stringify(cleanSettings));
+    return cleanSettings;
   });
 
   const [currentUser, setCurrentUser] = useState(() => {

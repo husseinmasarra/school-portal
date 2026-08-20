@@ -708,7 +708,7 @@ export const TuitionModule = () => {
             <div className="flex items-center justify-between border-b-2 border-slate-200 pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center border border-[#0284C7] shadow-sm overflow-hidden shrink-0">
-                  <img src={siteSettings?.schoolLogo || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=120&auto=format&fit=crop&q=80"} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                  <img src="/logo.png?v=2026" alt="Logo" className="w-full h-full object-cover rounded-lg" />
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-[#0284C7] leading-tight">

@@ -201,7 +201,7 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
             >
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white p-0.5 sm:p-1 flex items-center justify-center shadow border border-[#0284C7] shrink-0 overflow-hidden">
                 <img 
-                  src="/logo.png" 
+                  src="/logo.png?v=2026" 
                   alt="Logo" 
                   className="w-full h-full object-contain" 
                 />

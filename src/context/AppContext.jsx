@@ -1080,13 +1080,37 @@ export const AppProvider = ({ children }) => {
     setStudents((prev) => {
       const updated = prev.filter((s) => s.id !== id);
       localStorage.setItem('school_students', JSON.stringify(updated));
+      dbSaveCollection('school_students', updated);
       return updated;
     });
 
     setSystemUsers((prev) => {
-      const updatedUsers = prev.filter((u) => u.id !== id);
+      const updatedUsers = prev.filter((u) => u.id !== id && u.studentId !== id);
       localStorage.setItem('school_system_users', JSON.stringify(updatedUsers));
+      dbSaveCollection('school_system_users', updatedUsers);
       return updatedUsers;
+    });
+
+    // Cascade clean related records for complete interconnected integrity
+    setDailyMarks((prev) => {
+      const updated = prev.filter((m) => m.studentId !== id);
+      localStorage.setItem('school_daily_marks', JSON.stringify(updated));
+      dbSaveCollection('school_daily_marks', updated);
+      return updated;
+    });
+
+    setAttendance((prev) => {
+      const updated = prev.filter((a) => a.studentId !== id);
+      localStorage.setItem('school_attendance', JSON.stringify(updated));
+      dbSaveCollection('school_attendance', updated);
+      return updated;
+    });
+
+    setBehaviorRecords((prev) => {
+      const updated = prev.filter((b) => b.studentId !== id);
+      localStorage.setItem('school_behavior', JSON.stringify(updated));
+      dbSaveCollection('school_behavior', updated);
+      return updated;
     });
   };
 
@@ -1157,12 +1181,14 @@ export const AppProvider = ({ children }) => {
     setTeachers((prev) => {
       const updated = prev.filter((t) => t.id !== id);
       localStorage.setItem('school_teachers', JSON.stringify(updated));
+      dbSaveCollection('school_teachers', updated);
       return updated;
     });
 
     setSystemUsers((prev) => {
       const updatedUsers = prev.filter((u) => u.id !== id);
       localStorage.setItem('school_system_users', JSON.stringify(updatedUsers));
+      dbSaveCollection('school_system_users', updatedUsers);
       return updatedUsers;
     });
   };

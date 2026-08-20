@@ -123,6 +123,7 @@ export const AppProvider = ({ children }) => {
       recessEndTime: "09:30",
       recessLabel: "استراحة ووجبة فطور",
       ...parsed, 
+      schoolLogo: "/logo.png",
       schoolName: "مركز الدعم التعليمي", 
       schoolNameEn: "Educational Support Center", 
       academicYear: "2026/2027",

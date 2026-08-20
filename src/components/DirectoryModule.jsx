@@ -713,7 +713,6 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
         }, {});
 
         const gradeKeys = Object.keys(studentsByGrade);
-
         if (gradeKeys.length === 0) {
           return (
             <div className="bg-white border border-[#E2E8F0] rounded-3xl p-10 text-center text-slate-400 space-y-2">
@@ -740,8 +739,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     </h3>
                   </div>
 
-                  {/* Student Cards Grid (Grouped by Family / Siblings) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Student Cards Grid (Uniform Height & Visual Distinction) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
                     {(() => {
                       const renderedFamilyPhones = new Set();
 
@@ -756,7 +755,9 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                           return s.parentPhone && s.parentPhone.trim() === phoneKey;
                         });
 
-                        // Calculate Unified Combined Financial Totals for the Family
+                        const isMultiSiblingFamily = familyMembers.length > 1;
+
+                        // Calculate Combined Financial Totals for the Family
                         const combinedTotalUSD = familyMembers.reduce((sum, s) => {
                           const trans = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
                           return sum + (Number(s.tuitionTotal) || 600) + trans;
@@ -766,102 +767,92 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                         const combinedPaidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
                         const combinedRemUSD      = Math.max(0, combinedTotalUSD - combinedDiscountUSD - combinedPaidUSD);
 
-                        const isMultiSiblingFamily = familyMembers.length > 1;
-
                         return (
                           <div 
                             key={primaryStu.id} 
-                            className={`bg-white border-2 p-4.5 rounded-3xl shadow-xs transition-all relative space-y-3.5 hover:shadow-md ${
-                              isMultiSiblingFamily ? 'border-[#0284C7]/60 bg-gradient-to-b from-sky-50/20 to-white' : 'border-[#E2E8F0] hover:border-[#0284C7]/40'
+                            className={`bg-white border-2 p-4.5 rounded-3xl shadow-xs transition-all relative flex flex-col justify-between h-[410px] hover:shadow-md ${
+                              isMultiSiblingFamily 
+                                ? 'border-amber-400/80 bg-gradient-to-b from-amber-50/20 via-white to-white ring-1 ring-amber-400/20' 
+                                : 'border-[#E2E8F0] hover:border-[#0284C7]/40'
                             }`}
                           >
-                            {/* Family Header Banner */}
-                            <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-10 h-10 rounded-2xl bg-[#0284C7] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
-                                  {isMultiSiblingFamily ? '👨‍👩‍👧‍👦' : (primaryStu.name || 'ط')[0]}
+                            {/* Card Header with Distinct Visual Badge */}
+                            <div className="space-y-2 shrink-0">
+                              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`w-9 h-9 rounded-2xl font-black text-xs flex items-center justify-center shrink-0 shadow-xs ${
+                                    isMultiSiblingFamily ? 'bg-amber-500 text-white' : 'bg-[#0284C7] text-white'
+                                  }`}>
+                                    {isMultiSiblingFamily ? '👨‍👩‍👧‍👦' : (primaryStu.name || 'ط')[0]}
+                                  </div>
+                                  <div className="truncate">
+                                    <h4 className="text-xs font-black text-[#0F172A] truncate flex items-center gap-1.5">
+                                      <span>{isMultiSiblingFamily ? (primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`) : (isAr ? primaryStu.name : primaryStu.nameEn)}</span>
+                                    </h4>
+                                    <span className="text-[10px] text-slate-500 font-mono block">
+                                      📞 {primaryStu.parentPhone || 'غير مسجل'}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="truncate">
-                                  <h4 className="text-xs font-black text-[#0F172A] truncate flex items-center gap-1.5">
-                                    <span>{isMultiSiblingFamily ? (primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`) : (isAr ? primaryStu.name : primaryStu.nameEn)}</span>
-                                    {isMultiSiblingFamily && (
-                                      <span className="bg-sky-100 text-[#0284C7] text-[9px] px-2 py-0.5 rounded-full font-black border border-sky-300 shrink-0">
-                                        👥 {familyMembers.length} إخوة
-                                      </span>
-                                    )}
-                                  </h4>
-                                  <span className="text-[10px] text-slate-500 font-mono block pt-0.5">
-                                    📞 {primaryStu.parentPhone || 'غير مسجل'} {primaryStu.motherPhone ? `| 👩 ${primaryStu.motherPhone}` : ''}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
 
-                            {/* 💰 Unified Combined Financial Summary for Family */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl text-center space-y-1">
-                              <span className="text-[10px] font-black text-[#0284C7] block">
-                                💰 {isMultiSiblingFamily ? `مجموع التحصيل المالي الموّحد للعائلة (${familyMembers.length} إخوة)` : 'الملخص المالي للطالب'}
-                              </span>
-                              <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono pt-0.5">
-                                <div className="bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-100">
-                                  <span className="text-slate-500 block text-[9px]">القسط:</span>
-                                  <span className="font-extrabold text-[#0F172A]">${combinedTotalUSD}</span>
-                                </div>
-                                <div className="bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-100">
-                                  <span className="text-slate-500 block text-[9px]">الخصم:</span>
-                                  <span className="font-extrabold text-emerald-600">-${combinedDiscountUSD}</span>
-                                </div>
-                                <div className="bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-100">
-                                  <span className="text-red-500 block text-[9px] font-bold">المتبقي:</span>
-                                  <span className="font-black text-red-600">${combinedRemUSD}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Detailed Siblings Roster & Individual Account Credentials */}
-                            <div className="space-y-2.5 pt-1">
-                              {isMultiSiblingFamily && (
-                                <span className="text-[10px] font-black text-[#0284C7] block border-b border-slate-100 pb-1">
-                                  📋 الإخوة بالمنظومة (حساب مستقل لكل أخ):
+                                {/* Distinct Visual Badge */}
+                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-black shrink-0 border ${
+                                  isMultiSiblingFamily 
+                                    ? 'bg-amber-100 text-amber-800 border-amber-300' 
+                                    : 'bg-sky-50 text-[#0284C7] border-sky-200'
+                                }`}>
+                                  {isMultiSiblingFamily ? `👥 عائلة (${familyMembers.length} إخوة)` : `👤 طالب فردي`}
                                 </span>
-                              )}
+                              </div>
 
+                              {/* 💰 Unified Financial Summary Box */}
+                              <div className="bg-slate-50 border border-slate-200 p-2 rounded-2xl text-center space-y-0.5">
+                                <span className="text-[9px] font-black text-[#0284C7] block">
+                                  💰 {isMultiSiblingFamily ? `المالية الموّحدة للعائلة (${familyMembers.length} إخوة)` : 'الملخص المالي'}
+                                </span>
+                                <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
+                                  <div className="bg-white p-1 rounded-lg border border-slate-100">
+                                    <span className="text-slate-400 block text-[8px]">القسط:</span>
+                                    <span className="font-extrabold text-[#0F172A]">${combinedTotalUSD}</span>
+                                  </div>
+                                  <div className="bg-white p-1 rounded-lg border border-slate-100">
+                                    <span className="text-slate-400 block text-[8px]">الخصم:</span>
+                                    <span className="font-extrabold text-emerald-600">-${combinedDiscountUSD}</span>
+                                  </div>
+                                  <div className="bg-white p-1 rounded-lg border border-slate-100">
+                                    <span className="text-red-500 block text-[8px] font-bold">المتبقي:</span>
+                                    <span className="font-black text-red-600">${combinedRemUSD}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Scrollable Siblings/Students Container (Ensures ALL cards have identical 410px height!) */}
+                            <div className="flex-1 overflow-y-auto space-y-2 my-2 pr-1 custom-scrollbar">
                               {familyMembers.map((sib) => {
-                                const sibTransport = sib.hasTransport ? (Number(sib.transportFee) || 0) : 0;
-                                const sibTotal    = (Number(sib.tuitionTotal) || 600) + sibTransport;
-                                const sibDiscount = Number(sib.tuitionDiscount) || 0;
-                                const sibPaid     = Number(sib.tuitionPaid) || 0;
-                                const sibRem      = Math.max(0, sibTotal - sibDiscount - sibPaid);
-
                                 return (
-                                  <div key={sib.id} className="bg-[#F8FAFC] dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl space-y-2">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <div className="flex items-center gap-2 min-w-0">
-                                        <div className="w-7 h-7 rounded-full bg-[#0284C7]/10 text-[#0284C7] font-black text-xs flex items-center justify-center shrink-0 border border-[#0284C7]">
+                                  <div key={sib.id} className="bg-[#F8FAFC] border border-slate-200 p-2 rounded-xl space-y-1.5 text-xs">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        <div className="w-6 h-6 rounded-full bg-[#0284C7]/10 text-[#0284C7] font-black text-[10px] flex items-center justify-center shrink-0 border border-[#0284C7]">
                                           {(sib.name || 'ط')[0]}
                                         </div>
                                         <div className="truncate">
-                                          <h5 className="text-[11px] font-black text-[#0F172A] dark:text-white flex items-center gap-1 truncate">
+                                          <h5 className="text-[11px] font-black text-[#0F172A] flex items-center gap-1 truncate">
                                             <span>{isAr ? sib.name : sib.nameEn}</span>
-                                            <span className="bg-sky-50 dark:bg-slate-880 text-[#0284C7] text-[9px] px-1.5 py-0.2 rounded font-black border border-sky-100 shrink-0">
+                                            <span className="bg-sky-50 text-[#0284C7] text-[8px] px-1 py-0.2 rounded font-bold border border-sky-100 shrink-0">
                                               {sib.grade} ({sib.classRoom || 'أ'})
                                             </span>
-                                            {sib.frozen && (
-                                              <span className="bg-red-600 text-white text-[8px] px-1 rounded font-black shrink-0">
-                                                ❄️ مجمد
-                                              </span>
-                                            )}
                                           </h5>
-                                          <span className="text-[9px] text-slate-400 font-mono">ID: {sib.id}</span>
                                         </div>
                                       </div>
 
-                                      {/* Actions for this specific sibling */}
+                                      {/* Actions for this specific student */}
                                       <div className="flex items-center gap-1 shrink-0">
                                         <button
                                           onClick={() => setShowStudentDetailModal(sib)}
                                           className="p-1 bg-sky-50 hover:bg-sky-100 text-[#0284C7] rounded-lg cursor-pointer"
-                                          title="معاينة تفاصيل هذا الطالب"
+                                          title="معاينة بيانات الحساب"
                                         >
                                           <Eye className="w-3.5 h-3.5" />
                                         </button>
@@ -870,14 +861,14 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                             <button
                                               onClick={() => handleOpenEditStudentModal(sib)}
                                               className="p-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg cursor-pointer"
-                                              title="تعديل هذا الطالب"
+                                              title="تعديل الحساب"
                                             >
                                               <Edit3 className="w-3.5 h-3.5" />
                                             </button>
                                             <button
                                               onClick={() => deleteStudent(sib.id)}
                                               className="p-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer"
-                                              title="حذف هذا الطالب"
+                                              title="حذف الحساب"
                                             >
                                               <Trash2 className="w-3.5 h-3.5" />
                                             </button>
@@ -886,44 +877,17 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                       </div>
                                     </div>
 
-                                    {/* Separate Account Credentials for this Sibling */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] font-mono bg-white dark:bg-slate-950 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
-                                      <div className="space-y-0.5">
-                                        <div className="flex justify-between">
-                                          <span className="text-slate-500 font-sans">🔑 الحساب:</span>
-                                          <span className="font-bold text-[#0284C7]">{sib.username}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-slate-500 font-sans">🔒 المرور:</span>
-                                          <span className="font-bold text-red-600">{sib.password}</span>
-                                        </div>
+                                    {/* Credentials Line */}
+                                    <div className="grid grid-cols-2 gap-1 text-[9px] font-mono bg-white p-1.5 rounded-lg border border-slate-100">
+                                      <div className="truncate">
+                                        <span className="text-slate-400 font-sans">🔑 الحساب: </span>
+                                        <span className="font-bold text-[#0284C7]">{sib.username}</span>
                                       </div>
-                                      <div className="space-y-0.5 border-t sm:border-t-0 sm:border-r rtl:sm:border-r-0 rtl:sm:border-l border-slate-100 dark:border-slate-800 pt-1 sm:pt-0 sm:pr-2 rtl:sm:pr-0 rtl:sm:pl-2">
-                                        <div className="flex justify-between">
-                                          <span className="text-slate-500 font-sans">💰 قسطه:</span>
-                                          <span className="font-bold text-slate-700 dark:text-slate-300">${sibTotal}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-slate-500 font-sans">🔴 المتبقي:</span>
-                                          <span className="font-extrabold text-red-600">${sibRem}</span>
-                                        </div>
+                                      <div className="truncate text-left ltr:text-right">
+                                        <span className="text-slate-400 font-sans">🔒 المرور: </span>
+                                        <span className="font-bold text-red-600">{sib.password}</span>
                                       </div>
                                     </div>
-
-                                    {/* Freeze Account Toggle for this Sibling */}
-                                    {currentRole === 'admin' && (
-                                      <div className="pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                        <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-red-600">
-                                          <input 
-                                            type="checkbox" 
-                                            checked={!!sib.frozen} 
-                                            onChange={() => updateStudent(sib.id, { frozen: !sib.frozen })}
-                                            className="w-3 h-3 accent-red-600 rounded cursor-pointer shrink-0"
-                                          />
-                                          <span>{sib.frozen ? '❄️ إلغاء تجميد حساب الطالب' : 'تجميد هذا الحساب'}</span>
-                                        </label>
-                                      </div>
-                                    )}
                                   </div>
                                 );
                               })}
@@ -1702,7 +1666,9 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
           <div className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
-                <img src={showStudentDetailModal.avatar} alt={showStudentDetailModal.name} className="w-12 h-12 rounded-full object-cover border-2 border-[#0284C7]" />
+                <div className="w-12 h-12 rounded-full font-black text-base bg-[#0284C7]/10 text-[#0284C7] border-2 border-[#0284C7] flex items-center justify-center shrink-0">
+                  {(showStudentDetailModal.name || 'ط')[0]}
+                </div>
                 <div>
                   <h3 className="text-base font-bold text-[#0284C7]">{isAr ? showStudentDetailModal.name : showStudentDetailModal.nameEn}</h3>
                   <p className="text-xs text-slate-500">{isAr ? showStudentDetailModal.grade : showStudentDetailModal.gradeEn} ({showStudentDetailModal.classRoom})</p>
@@ -1716,15 +1682,22 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               </button>
             </div>
 
+            {/* 🔑 PROMINENT ACCOUNT CREDENTIALS BOX */}
+            <div className="bg-gradient-to-r from-sky-50 via-blue-50 to-sky-50 dark:bg-slate-900 p-3.5 rounded-2xl border-2 border-[#0284C7]/40 space-y-2 text-right">
+              <span className="text-[11px] font-black text-[#0284C7] block">🔐 بيانات حساب الطالب لخاصة بالدخول للمنظومة:</span>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-sky-200 text-right">
+                  <span className="text-slate-500 block font-bold text-[10px]">🔑 اسم الحساب (اسم الدخول):</span>
+                  <span className="font-mono font-black text-sm text-[#0284C7] dir-ltr block pt-0.5">{showStudentDetailModal.username}</span>
+                </div>
+                <div className="bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-sky-200 text-right">
+                  <span className="text-slate-500 block font-bold text-[10px]">🔒 كلمة المرور:</span>
+                  <span className="font-mono font-black text-sm text-red-600 dir-ltr block pt-0.5">{showStudentDetailModal.password}</span>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3 text-xs text-right">
-              <div className="bg-[#F8FAFC] dark:bg-slate-900 p-3 rounded-xl border border-[#E2E8F0] dark:border-slate-800">
-                <span className="text-slate-500 dark:text-slate-400 block font-semibold">{t('username')}:</span>
-                <span className="font-mono font-bold text-[#0284C7] dark:text-sky-400">{showStudentDetailModal.username}</span>
-              </div>
-              <div className="bg-[#F8FAFC] dark:bg-slate-900 p-3 rounded-xl border border-[#E2E8F0] dark:border-slate-800">
-                <span className="text-slate-500 dark:text-slate-400 block font-semibold">{t('password')}:</span>
-                <span className="font-mono font-bold text-red-600 dark:text-red-400">{showStudentDetailModal.password}</span>
-              </div>
               <div className="bg-[#F8FAFC] dark:bg-slate-900 p-3 rounded-xl border border-[#E2E8F0] dark:border-slate-800 col-span-2">
                 <span className="text-slate-500 dark:text-slate-400 block font-semibold">{t('parentName')}:</span>
                 <span className="font-bold text-[#0F172A] dark:text-slate-100">{isAr ? showStudentDetailModal.parentName : showStudentDetailModal.parentNameEn}</span>

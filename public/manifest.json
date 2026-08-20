@@ -3,18 +3,18 @@
   "name": "مركز الدعم التعليمي - منصة الإدارة الرقمية الذكية",
   "icons": [
     {
-      "src": "/logo.png?v=2026",
+      "src": "./logo.png?v=3",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo.png?v=2026",
+      "src": "./logo.png?v=3",
       "type": "image/png",
       "sizes": "192x192"
     }
   ],
-  "start_url": "/",
+  "start_url": "./",
   "background_color": "#0284C7",
   "theme_color": "#0284C7",
   "display": "standalone",

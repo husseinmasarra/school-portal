@@ -22,6 +22,14 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
+      try {
+        const s = localStorage.getItem('school_settings');
+        if (s) {
+          const p = JSON.parse(s);
+          p.schoolLogo = '/emblem.png';
+          localStorage.setItem('school_settings', JSON.stringify(p));
+        }
+      } catch(e){}
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
         caches.keys().then(n => n.forEach(name => caches.delete(name)));

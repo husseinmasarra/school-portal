@@ -740,156 +740,198 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     </h3>
                   </div>
 
-                  {/* Student Cards Grid */}
+                  {/* Student Cards Grid (Grouped by Family / Siblings) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {gradeStudents.map((stu) => {
-                      const transportUSD = stu.hasTransport ? (Number(stu.transportFee) || 0) : 0;
-                      const totalUSD    = (Number(stu.tuitionTotal) || 600) + transportUSD;
-                      const discountUSD = Number(stu.tuitionDiscount) || 0;
-                      const paidUSD     = Number(stu.tuitionPaid) || 0;
-                      const remUSD      = Math.max(0, totalUSD - discountUSD - paidUSD);
+                    {(() => {
+                      const renderedFamilyPhones = new Set();
 
-                      // Find ALL siblings (even if they are in different grades!)
-                      const siblings = safeStudents.filter(s => s.id !== stu.id && s.parentPhone && s.parentPhone.trim() === stu.parentPhone.trim());
+                      return gradeStudents.map((primaryStu) => {
+                        const phoneKey = (primaryStu.parentPhone || primaryStu.phone || primaryStu.id).trim();
+                        if (renderedFamilyPhones.has(phoneKey)) return null;
+                        renderedFamilyPhones.add(phoneKey);
 
-                      return (
-                        <div 
-                          key={stu.id} 
-                          className={`bg-white border p-4.5 rounded-3xl shadow-xs transition-all relative space-y-3.5 hover:shadow-md hover:border-[#0284C7]/50 ${
-                            stu.frozen ? 'border-red-300 bg-red-50/20' : 'border-[#E2E8F0]'
-                          }`}
-                        >
-                          {/* Student Header */}
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div 
-                                className={`w-11 h-11 rounded-full font-black text-sm flex items-center justify-center shrink-0 border-2 shadow-xs ${
-                                  stu.frozen ? 'border-red-500 bg-red-100 text-red-700' : 'border-[#0284C7] bg-[#0284C7]/10 text-[#0284C7]'
-                                }`}
-                              >
-                                {(stu.name || 'ط')[0]}
+                        // Find ALL family members registered under this parent phone across all grades
+                        const familyMembers = safeStudents.filter(s => {
+                          if (!s.parentPhone && !primaryStu.parentPhone) return s.id === primaryStu.id;
+                          return s.parentPhone && s.parentPhone.trim() === phoneKey;
+                        });
+
+                        // Calculate Unified Combined Financial Totals for the Family
+                        const combinedTotalUSD = familyMembers.reduce((sum, s) => {
+                          const trans = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
+                          return sum + (Number(s.tuitionTotal) || 600) + trans;
+                        }, 0);
+
+                        const combinedDiscountUSD = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
+                        const combinedPaidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
+                        const combinedRemUSD      = Math.max(0, combinedTotalUSD - combinedDiscountUSD - combinedPaidUSD);
+
+                        const isMultiSiblingFamily = familyMembers.length > 1;
+
+                        return (
+                          <div 
+                            key={primaryStu.id} 
+                            className={`bg-white border-2 p-4.5 rounded-3xl shadow-xs transition-all relative space-y-3.5 hover:shadow-md ${
+                              isMultiSiblingFamily ? 'border-[#0284C7]/60 bg-gradient-to-b from-sky-50/20 to-white' : 'border-[#E2E8F0] hover:border-[#0284C7]/40'
+                            }`}
+                          >
+                            {/* Family Header Banner */}
+                            <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-2xl bg-[#0284C7] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
+                                  {isMultiSiblingFamily ? '👨‍👩‍👧‍👦' : (primaryStu.name || 'ط')[0]}
+                                </div>
+                                <div className="truncate">
+                                  <h4 className="text-xs font-black text-[#0F172A] truncate flex items-center gap-1.5">
+                                    <span>{isMultiSiblingFamily ? (primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`) : (isAr ? primaryStu.name : primaryStu.nameEn)}</span>
+                                    {isMultiSiblingFamily && (
+                                      <span className="bg-sky-100 text-[#0284C7] text-[9px] px-2 py-0.5 rounded-full font-black border border-sky-300 shrink-0">
+                                        👥 {familyMembers.length} إخوة
+                                      </span>
+                                    )}
+                                  </h4>
+                                  <span className="text-[10px] text-slate-500 font-mono block pt-0.5">
+                                    📞 {primaryStu.parentPhone || 'غير مسجل'} {primaryStu.motherPhone ? `| 👩 ${primaryStu.motherPhone}` : ''}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="truncate">
-                                <h4 className="text-xs font-black text-[#0F172A] truncate flex items-center gap-1.5">
-                                  <span>{isAr ? stu.name : stu.nameEn}</span>
-                                  {stu.frozen && (
-                                    <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded font-black shrink-0">
-                                      {isAr ? '❄️ مجمد' : 'Frozen'}
-                                    </span>
-                                  )}
-                                </h4>
-                                <span className="text-[10px] text-slate-500 font-mono block pt-0.5">
-                                  ID: {stu.id} | الشعبة ({stu.classRoom || 'أ'})
-                                </span>
-                              </div>
                             </div>
-                            
-                            {/* Actions Toolbar */}
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                onClick={() => setShowStudentDetailModal(stu)}
-                                className="p-1.5 bg-sky-50 hover:bg-sky-100 text-[#0284C7] rounded-xl cursor-pointer transition-colors"
-                                title="عرض التفاصيل الحسابية"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
 
-                              {currentRole === 'admin' && (
-                                <>
-                                  <button
-                                    onClick={() => handleOpenEditStudentModal(stu)}
-                                    className="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl cursor-pointer transition-colors"
-                                    title={isAr ? "تعديل ملف الطالب" : "Edit Student"}
-                                  >
-                                    <Edit3 className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => deleteStudent(stu.id)}
-                                    className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl cursor-pointer transition-colors"
-                                    title={t('delete')}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Credentials & Contact Details */}
-                          <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-2xl text-[11px] space-y-1 border border-slate-100 dark:border-slate-800 font-mono">
-                            <div className="flex justify-between">
-                              <span className="text-slate-500 dark:text-slate-400 font-sans">🔑 اسم الدخول:</span>
-                              <span className="font-bold text-[#0284C7] dark:text-sky-400">{stu.username}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-500 dark:text-slate-400 font-sans">🔒 كلمة المرور:</span>
-                              <span className="font-bold text-red-600 dark:text-red-400 font-extrabold">{stu.password}</span>
-                            </div>
-                            {stu.parentPhone && (
-                              <div className="flex justify-between">
-                                <span className="text-slate-500 dark:text-slate-400 font-sans">📞 هاتف الأب:</span>
-                                <span className="font-bold text-slate-700 dark:text-slate-300">{stu.parentPhone}</span>
-                              </div>
-                            )}
-                            {stu.motherPhone && (
-                              <div className="flex justify-between">
-                                <span className="text-slate-500 dark:text-slate-400 font-sans">👩 هاتف الأم:</span>
-                                <span className="font-bold text-slate-700 dark:text-slate-300">{stu.motherPhone}</span>
-                              </div>
-                            )}
-                            {stu.ministryClearance && (
-                              <div className="flex justify-between">
-                                <span className="text-slate-500 dark:text-slate-400 font-sans">🔖 إفادة الوزارة:</span>
-                                <span className="font-extrabold text-amber-600 dark:text-amber-400">{stu.ministryClearance}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Tuition Snapshot */}
-                          <div className="text-[10px] grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl text-center border border-slate-100 dark:border-slate-800">
-                            <div>
-                              <span className="text-slate-500 dark:text-slate-400 block">القسط</span>
-                              <span className="font-bold block text-slate-700 dark:text-slate-300 font-mono">${totalUSD}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-500 dark:text-slate-400 block">الخصم</span>
-                              <span className="font-bold block text-emerald-600 dark:text-emerald-400 font-mono">-${discountUSD}</span>
-                            </div>
-                            <div>
-                              <span className="text-red-500 dark:text-red-400 block">المتبقي</span>
-                              <span className="font-black block text-red-600 dark:text-red-400 font-mono">${remUSD}</span>
-                            </div>
-                          </div>
-
-                          {/* Siblings Badge */}
-                          {siblings.length > 0 && (
-                            <div className="bg-sky-50/50 dark:bg-slate-900/60 p-2 rounded-2xl border border-sky-100 dark:border-slate-800 text-[11px] flex items-center justify-between">
-                              <span className="text-slate-500 dark:text-slate-400 font-sans text-[10px]">👥 الأخ/الأخت بالمنظومة:</span>
-                              <span className="font-extrabold text-[#0284C7] dark:text-sky-400 text-[10px]">
-                                {siblings.map(s => s.name).join(' ، ')}
+                            {/* 💰 Unified Combined Financial Summary for Family */}
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl text-center space-y-1">
+                              <span className="text-[10px] font-black text-[#0284C7] block">
+                                💰 {isMultiSiblingFamily ? `مجموع التحصيل المالي الموّحد للعائلة (${familyMembers.length} إخوة)` : 'الملخص المالي للطالب'}
                               </span>
+                              <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono pt-0.5">
+                                <div className="bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-100">
+                                  <span className="text-slate-500 block text-[9px]">القسط:</span>
+                                  <span className="font-extrabold text-[#0F172A]">${combinedTotalUSD}</span>
+                                </div>
+                                <div className="bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-100">
+                                  <span className="text-slate-500 block text-[9px]">الخصم:</span>
+                                  <span className="font-extrabold text-emerald-600">-${combinedDiscountUSD}</span>
+                                </div>
+                                <div className="bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-100">
+                                  <span className="text-red-500 block text-[9px] font-bold">المتبقي:</span>
+                                  <span className="font-black text-red-600">${combinedRemUSD}</span>
+                                </div>
+                              </div>
                             </div>
-                          )}
 
-                          {/* Freeze Account Toggle (Admin Only) */}
-                          {currentRole === 'admin' && (
-                            <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                              <label className="flex items-center gap-2 cursor-pointer select-none text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all w-full justify-center">
-                                <input 
-                                  type="checkbox" 
-                                  checked={!!stu.frozen} 
-                                  onChange={() => updateStudent(stu.id, { frozen: !stu.frozen })}
-                                  className="w-3.5 h-3.5 accent-red-600 rounded cursor-pointer shrink-0"
-                                />
-                                <span className={stu.frozen ? "text-red-600 dark:text-red-400 font-black" : "text-slate-600 dark:text-slate-300 font-bold"}>
-                                  {stu.frozen ? '❄️ حساب مجمد (إلغاء التجميد)' : 'تجميد حساب الطالب'}
+                            {/* Detailed Siblings Roster & Individual Account Credentials */}
+                            <div className="space-y-2.5 pt-1">
+                              {isMultiSiblingFamily && (
+                                <span className="text-[10px] font-black text-[#0284C7] block border-b border-slate-100 pb-1">
+                                  📋 الإخوة بالمنظومة (حساب مستقل لكل أخ):
                                 </span>
-                              </label>
+                              )}
+
+                              {familyMembers.map((sib) => {
+                                const sibTransport = sib.hasTransport ? (Number(sib.transportFee) || 0) : 0;
+                                const sibTotal    = (Number(sib.tuitionTotal) || 600) + sibTransport;
+                                const sibDiscount = Number(sib.tuitionDiscount) || 0;
+                                const sibPaid     = Number(sib.tuitionPaid) || 0;
+                                const sibRem      = Math.max(0, sibTotal - sibDiscount - sibPaid);
+
+                                return (
+                                  <div key={sib.id} className="bg-[#F8FAFC] dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <div className="w-7 h-7 rounded-full bg-[#0284C7]/10 text-[#0284C7] font-black text-xs flex items-center justify-center shrink-0 border border-[#0284C7]">
+                                          {(sib.name || 'ط')[0]}
+                                        </div>
+                                        <div className="truncate">
+                                          <h5 className="text-[11px] font-black text-[#0F172A] dark:text-white flex items-center gap-1 truncate">
+                                            <span>{isAr ? sib.name : sib.nameEn}</span>
+                                            <span className="bg-sky-50 dark:bg-slate-880 text-[#0284C7] text-[9px] px-1.5 py-0.2 rounded font-black border border-sky-100 shrink-0">
+                                              {sib.grade} ({sib.classRoom || 'أ'})
+                                            </span>
+                                            {sib.frozen && (
+                                              <span className="bg-red-600 text-white text-[8px] px-1 rounded font-black shrink-0">
+                                                ❄️ مجمد
+                                              </span>
+                                            )}
+                                          </h5>
+                                          <span className="text-[9px] text-slate-400 font-mono">ID: {sib.id}</span>
+                                        </div>
+                                      </div>
+
+                                      {/* Actions for this specific sibling */}
+                                      <div className="flex items-center gap-1 shrink-0">
+                                        <button
+                                          onClick={() => setShowStudentDetailModal(sib)}
+                                          className="p-1 bg-sky-50 hover:bg-sky-100 text-[#0284C7] rounded-lg cursor-pointer"
+                                          title="معاينة تفاصيل هذا الطالب"
+                                        >
+                                          <Eye className="w-3.5 h-3.5" />
+                                        </button>
+                                        {currentRole === 'admin' && (
+                                          <>
+                                            <button
+                                              onClick={() => handleOpenEditStudentModal(sib)}
+                                              className="p-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg cursor-pointer"
+                                              title="تعديل هذا الطالب"
+                                            >
+                                              <Edit3 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                              onClick={() => deleteStudent(sib.id)}
+                                              className="p-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer"
+                                              title="حذف هذا الطالب"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Separate Account Credentials for this Sibling */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] font-mono bg-white dark:bg-slate-950 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                                      <div className="space-y-0.5">
+                                        <div className="flex justify-between">
+                                          <span className="text-slate-500 font-sans">🔑 الحساب:</span>
+                                          <span className="font-bold text-[#0284C7]">{sib.username}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-slate-500 font-sans">🔒 المرور:</span>
+                                          <span className="font-bold text-red-600">{sib.password}</span>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-0.5 border-t sm:border-t-0 sm:border-r rtl:sm:border-r-0 rtl:sm:border-l border-slate-100 dark:border-slate-800 pt-1 sm:pt-0 sm:pr-2 rtl:sm:pr-0 rtl:sm:pl-2">
+                                        <div className="flex justify-between">
+                                          <span className="text-slate-500 font-sans">💰 قسطه:</span>
+                                          <span className="font-bold text-slate-700 dark:text-slate-300">${sibTotal}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-slate-500 font-sans">🔴 المتبقي:</span>
+                                          <span className="font-extrabold text-red-600">${sibRem}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Freeze Account Toggle for this Sibling */}
+                                    {currentRole === 'admin' && (
+                                      <div className="pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                        <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-red-600">
+                                          <input 
+                                            type="checkbox" 
+                                            checked={!!sib.frozen} 
+                                            onChange={() => updateStudent(sib.id, { frozen: !sib.frozen })}
+                                            className="w-3 h-3 accent-red-600 rounded cursor-pointer shrink-0"
+                                          />
+                                          <span>{sib.frozen ? '❄️ إلغاء تجميد حساب الطالب' : 'تجميد هذا الحساب'}</span>
+                                        </label>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                          </div>
+                        );
+                      }).filter(Boolean);
+                    })()}
                   </div>
                 </div>
               );

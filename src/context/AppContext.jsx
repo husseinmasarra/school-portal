@@ -337,15 +337,15 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  // Aggregates real-time subject scores ONLY for subjects added by the user in system
+  // Aggregates real-time subject scores dynamically from dailyMarks and exam results
   const getStudentSubjectScores = (studentId) => {
     const studentMarks = (dailyMarks || []).filter((m) => m.studentId === studentId);
     
-    // STRICTLY use subjects added by user in system (no static fallbacks)
-    const activeSubjects = subjects || [];
+    // Ensure baseSubjects has system subjects or initial default subjects if empty
+    const baseSubjects = (subjects && subjects.length > 0) ? subjects : initialSubjects;
     const subjectMap = {};
 
-    activeSubjects.forEach((sub) => {
+    baseSubjects.forEach((sub) => {
       subjectMap[sub.name] = {
         id: sub.id,
         name: sub.name,
@@ -355,40 +355,96 @@ export const AppProvider = ({ children }) => {
         midterm: 0,
         final: 0,
         total: 0,
-        grade: 'ممتاز (A+)'
+        grade: 'غير مرصود'
       };
     });
 
-    studentMarks.forEach((m) => {
-      const sName = m.subjectName || m.subject;
-      // Match with active user subject
-      const targetSubjectKey = Object.keys(subjectMap).find(
-        (key) => key === sName || key.includes(sName) || sName.includes(key)
-      );
+    // Collect exam results for this student from exams collection
+    (exams || []).forEach((ex) => {
+      const res = (ex.results || []).find(r => String(r.studentId) === String(studentId));
+      if (res && res.score !== undefined && res.score !== null) {
+        const subName = ex.subject || ex.title || 'الرياضيات';
+        let coreSubName = subName;
+        if (subName.includes('(') && subName.includes(')')) {
+          const match = subName.match(/\(([^)]+)\)/);
+          if (match && match[1]) coreSubName = match[1].trim();
+        }
 
-      if (targetSubjectKey) {
-        const scoreNum = Number(m.score || 0);
+        let targetKey = Object.keys(subjectMap).find(
+          (key) => key === coreSubName || key.includes(coreSubName) || coreSubName.includes(key)
+        );
 
-        if (m.type === 'أعمال السنة' || m.type === 'daily_work' || m.type === 'homework') {
-          subjectMap[targetSubjectKey].hw = Math.min(20, (subjectMap[targetSubjectKey].hw || 0) + scoreNum);
-        } else if (m.type === 'اختبار قصير' || m.type === 'quiz') {
-          subjectMap[targetSubjectKey].quiz = Math.min(20, (subjectMap[targetSubjectKey].quiz || 0) + scoreNum);
-        } else if (m.type === 'منتصف الفصل' || m.type === 'midterm') {
-          subjectMap[targetSubjectKey].midterm = Math.min(20, (subjectMap[targetSubjectKey].midterm || 0) + scoreNum);
-        } else if (m.type === 'النهائي' || m.type === 'final') {
-          subjectMap[targetSubjectKey].final = Math.min(40, (subjectMap[targetSubjectKey].final || 0) + scoreNum);
+        if (!targetKey) {
+          targetKey = coreSubName;
+          subjectMap[targetKey] = {
+            id: `SUB-${Date.now().toString().slice(-4)}`,
+            name: targetKey,
+            nameEn: targetKey,
+            hw: 0, quiz: 0, midterm: 0, final: 0, total: 0, grade: 'غير مرصود'
+          };
+        }
+
+        const scoreNum = Number(res.score || 0);
+        if (scoreNum <= 20) {
+          subjectMap[targetKey].quiz = Math.max(subjectMap[targetKey].quiz || 0, scoreNum);
+        } else if (scoreNum <= 40) {
+          subjectMap[targetKey].final = Math.max(subjectMap[targetKey].final || 0, scoreNum);
         } else {
-          subjectMap[targetSubjectKey].hw = Math.min(20, (subjectMap[targetSubjectKey].hw || 0) + scoreNum);
+          subjectMap[targetKey].directTotal = Math.max(subjectMap[targetKey].directTotal || 0, scoreNum);
         }
       }
     });
 
+    // Process dailyMarks for this student
+    studentMarks.forEach((m) => {
+      const sName = m.subjectName || m.subject;
+      if (!sName) return;
+
+      let coreSubName = sName;
+      if (sName.includes('(') && sName.includes(')')) {
+        const match = sName.match(/\(([^)]+)\)/);
+        if (match && match[1]) coreSubName = match[1].trim();
+      }
+
+      let targetSubjectKey = Object.keys(subjectMap).find(
+        (key) => key === coreSubName || key.includes(coreSubName) || coreSubName.includes(key)
+      );
+
+      if (!targetSubjectKey) {
+        targetSubjectKey = coreSubName;
+        subjectMap[targetSubjectKey] = {
+          id: `SUB-${Date.now().toString().slice(-4)}`,
+          name: targetSubjectKey,
+          nameEn: targetSubjectKey,
+          hw: 0, quiz: 0, midterm: 0, final: 0, total: 0, grade: 'غير مرصود'
+        };
+      }
+
+      const scoreNum = Number(m.score || 0);
+
+      if (m.type === 'أعمال السنة' || m.type === 'daily_work' || m.type === 'homework') {
+        subjectMap[targetSubjectKey].hw = Math.min(20, (subjectMap[targetSubjectKey].hw || 0) + scoreNum);
+      } else if (m.type === 'اختبار قصير' || m.type === 'quiz') {
+        subjectMap[targetSubjectKey].quiz = Math.min(20, (subjectMap[targetSubjectKey].quiz || 0) + scoreNum);
+      } else if (m.type === 'منتصف الفصل' || m.type === 'midterm') {
+        subjectMap[targetSubjectKey].midterm = Math.min(20, (subjectMap[targetSubjectKey].midterm || 0) + scoreNum);
+      } else if (m.type === 'النهائي' || m.type === 'final') {
+        subjectMap[targetSubjectKey].final = Math.min(40, (subjectMap[targetSubjectKey].final || 0) + scoreNum);
+      } else {
+        subjectMap[targetSubjectKey].hw = Math.min(20, (subjectMap[targetSubjectKey].hw || 0) + scoreNum);
+      }
+    });
+
     return Object.values(subjectMap).map((sub) => {
-      const hwVal = sub.hw;
-      const quizVal = sub.quiz;
-      const midtermVal = sub.midterm;
-      const finalVal = sub.final;
-      const total = Math.min(100, Math.max(0, hwVal + quizVal + midtermVal + finalVal));
+      const hwVal = sub.hw || 0;
+      const quizVal = sub.quiz || 0;
+      const midtermVal = sub.midterm || 0;
+      const finalVal = sub.final || 0;
+      
+      let total = Math.min(100, Math.max(0, hwVal + quizVal + midtermVal + finalVal));
+      if (sub.directTotal && sub.directTotal > total) {
+        total = sub.directTotal;
+      }
 
       let grade = 'ممتاز (A+)';
       if (total >= 95) grade = 'تفوق ممتاز (A+)';
@@ -397,7 +453,8 @@ export const AppProvider = ({ children }) => {
       else if (total >= 80) grade = 'جيد جداً (B+)';
       else if (total >= 75) grade = 'جيد (B)';
       else if (total >= 70) grade = 'مقبول (C+)';
-      else grade = 'يحتاج متابعة (C)';
+      else if (total > 0) grade = 'يحتاج متابعة (C)';
+      else grade = 'غير مرصود';
 
       return {
         ...sub,
@@ -888,17 +945,55 @@ export const AppProvider = ({ children }) => {
   };
 
   const gradeExamResult = (examId, studentId, score, evaluation) => {
-    setExams((prev) =>
-      prev.map((ex) => {
+    let examSubject = 'الرياضيات';
+
+    setExams((prev) => {
+      const updated = prev.map((ex) => {
         if (ex.id === examId) {
+          examSubject = ex.subject || ex.title || 'الرياضيات';
           const existingResults = ex.results || [];
-          const updatedResults = existingResults.filter((r) => r.studentId !== studentId);
-          updatedResults.push({ studentId, score, evaluation });
+          const updatedResults = existingResults.filter((r) => String(r.studentId) !== String(studentId));
+          updatedResults.push({ studentId, score: Number(score), evaluation });
           return { ...ex, results: updatedResults };
         }
         return ex;
-      })
-    );
+      });
+      dbSaveCollection('school_exams', updated);
+      return updated;
+    });
+
+    // Extract core subject name if title is like "اختبار الرياضيات التقييمي - الشهر الأول (الرياضيات)"
+    let coreSubName = examSubject;
+    if (examSubject.includes('(') && examSubject.includes(')')) {
+      const match = examSubject.match(/\(([^)]+)\)/);
+      if (match && match[1]) coreSubName = match[1].trim();
+    }
+
+    // Automatically sync into dailyMarks for 100% interconnected report cards & GPA calculation
+    setDailyMarks((prev) => {
+      const existingIdx = prev.findIndex(m => String(m.studentId) === String(studentId) && (m.examId === examId || m.subjectName === coreSubName));
+      const markEntry = {
+        id: existingIdx >= 0 ? prev[existingIdx].id : `DM-${Date.now().toString().slice(-4)}`,
+        studentId,
+        subjectName: coreSubName,
+        subject: coreSubName,
+        examId,
+        score: Number(score),
+        maxScore: 100,
+        type: 'اختبار قصير',
+        notes: evaluation || 'اختبار تقييمي',
+        date: new Date().toISOString().split('T')[0]
+      };
+      let updated;
+      if (existingIdx >= 0) {
+        updated = [...prev];
+        updated[existingIdx] = markEntry;
+      } else {
+        updated = [markEntry, ...prev];
+      }
+      dbSaveCollection('school_daily_marks', updated);
+      return updated;
+    });
   };
 
   const addExpense = (exp) => {

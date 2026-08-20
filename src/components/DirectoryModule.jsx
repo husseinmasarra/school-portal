@@ -490,18 +490,22 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     }
   };
 
-  // Filter Logic
+  // Smart Search & Filter Logic
   const filteredStudents = safeStudents.filter((s) => {
-    const term = searchTerm.toLowerCase();
-    const matchesSearch = s.name.toLowerCase().includes(term) || 
+    const term = searchTerm.toLowerCase().trim();
+    const matchesSearch = !term || 
+                          (s.name || '').toLowerCase().includes(term) || 
                           (s.nameEn || '').toLowerCase().includes(term) ||
+                          (s.id || '').toLowerCase().includes(term) ||
                           (s.username || '').toLowerCase().includes(term) ||
+                          (s.grade || '').toLowerCase().includes(term) ||
+                          (s.classRoom || '').toLowerCase().includes(term) ||
                           (s.parentName || '').toLowerCase().includes(term) ||
                           (s.parentPhone || '').includes(term) ||
                           (s.phone || '').includes(term) ||
                           (s.motherPhone || '').includes(term) ||
                           (s.ministryClearance || '').toLowerCase().includes(term);
-    const matchesGrade = selectedGradeFilter === 'all' || s.grade.includes(selectedGradeFilter);
+    const matchesGrade = selectedGradeFilter === 'all' || (s.grade || '').includes(selectedGradeFilter);
     return matchesSearch && matchesGrade;
   });
 
@@ -619,39 +623,83 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
         </div>
       )}
 
-      {/* Sub-Navigation Tabs & Search Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-4 rounded-3xl shadow-sm text-[#0F172A]">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => setActiveTab('students')}
-            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'students' ? 'bg-[#0284C7] text-white shadow-md' : 'bg-[#F8FAFC] text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {isAr ? `دليل الطلاب (${safeStudents.length})` : `Students (${safeStudents.length})`}
-          </button>
+      {/* Sub-Navigation Tabs & Smart Search Bar */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-4 rounded-3xl shadow-sm text-[#0F172A]">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <button
+              onClick={() => setActiveTab('students')}
+              className={`flex-1 md:flex-none px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === 'students' ? 'bg-[#0284C7] text-white shadow-md' : 'bg-[#F8FAFC] text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <span>{isAr ? `دليل كروت الطلاب (${safeStudents.length})` : `Student Cards (${safeStudents.length})`}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('teachers')}
-            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'teachers' ? 'bg-[#0284C7] text-white shadow-md' : 'bg-[#F8FAFC] text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {isAr ? `كادر المعلمين (${safeTeachers.length})` : `Teachers (${safeTeachers.length})`}
-          </button>
+            <button
+              onClick={() => setActiveTab('teachers')}
+              className={`flex-1 md:flex-none px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === 'teachers' ? 'bg-[#0284C7] text-white shadow-md' : 'bg-[#F8FAFC] text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <span>{isAr ? `كادر المعلمين (${safeTeachers.length})` : `Teachers (${safeTeachers.length})`}</span>
+            </button>
+          </div>
+
+          {/* Smart Search Bar */}
+          <div className="relative w-full md:w-96">
+            <Search className="w-4 h-4 text-[#0284C7] absolute top-3 right-3 rtl:right-3 ltr:left-3 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={isAr ? '🔍 البحث الذكي (الاسم، المعرف ID، الصف، الشعبة، اسم الدخول...)' : 'Search by name, ID, grade, username...'}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-2xl px-9 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 transition-all shadow-inner"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute top-2.5 left-3 rtl:left-3 ltr:right-3 text-slate-400 hover:text-red-500 text-xs font-bold bg-slate-200 hover:bg-slate-300 w-5 h-5 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                title="مسح البحث"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Search Input Bar */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute top-3 right-3 rtl:right-3 ltr:left-3" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={isAr ? 'بحث باسم المستخدم أو المادة...' : 'Search directory...'}
-            className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-2xl px-9 py-2 text-xs focus:outline-none focus:border-[#0284C7]"
-          />
-        </div>
+        {/* Grade Quick Filter Pills (for Students) */}
+        {activeTab === 'students' && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 px-1 no-scrollbar">
+            <span className="text-[11px] font-bold text-slate-500 shrink-0 ml-1">فلترة الصفوف:</span>
+            <button
+              onClick={() => setSelectedGradeFilter('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                selectedGradeFilter === 'all'
+                  ? 'bg-[#0284C7] text-white shadow-xs'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              {isAr ? `الكل (${safeStudents.length})` : `All (${safeStudents.length})`}
+            </button>
+            {safeGrades.map((g) => {
+              const count = safeStudents.filter(s => (s.grade || '').includes(g.name)).length;
+              return (
+                <button
+                  key={g.id || g.name}
+                  onClick={() => setSelectedGradeFilter(selectedGradeFilter === g.name ? 'all' : g.name)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                    selectedGradeFilter === g.name
+                      ? 'bg-[#0284C7] text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {isAr ? g.name : (g.nameEn || g.name)} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* STUDENTS ROSTER - GROUPED BY GRADE CARDS */}

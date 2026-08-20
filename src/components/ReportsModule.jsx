@@ -425,7 +425,7 @@ export const ReportsModule = () => {
             <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-[#0284C7] pb-5 text-center sm:text-right gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-white overflow-hidden shadow-md border-2 border-[#0284C7] flex items-center justify-center">
-                  <img src="/logo.png?v=2026" alt="School Logo" className="w-full h-full object-contain" />
+                  <img src="/emblem.png" alt="School Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h1 className="text-xl font-black text-[#0284C7] dark:text-[#38BDF8]">{isAr ? 'مدرسة الدعم التعليمي' : 'Educational Support School'}</h1>

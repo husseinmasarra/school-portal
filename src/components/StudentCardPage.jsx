@@ -145,7 +145,7 @@ export const StudentCardPage = () => {
             <div className="bg-[#032541] px-3.5 py-2 text-white flex items-center justify-between shadow-md">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-white p-0.5 flex items-center justify-center shadow shrink-0 overflow-hidden">
-                  <img src="/logo.png?v=2026" alt="Logo" className="w-full h-full object-contain" />
+                  <img src="/emblem.png" alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h3 className="text-[11px] font-black leading-tight text-white">{isAr ? (siteSettings?.schoolName || t('schoolName')) : (siteSettings?.schoolNameEn || t('schoolName'))}</h3>

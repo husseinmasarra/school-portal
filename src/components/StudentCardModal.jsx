@@ -47,7 +47,7 @@ export const StudentCardModal = ({ student, onClose }) => {
             <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-600 px-3.5 py-2 text-white flex items-center justify-between shadow-md">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-slate-950/80 border border-white/30 flex items-center justify-center shadow shrink-0 overflow-hidden">
-                  <img src="/logo.png?v=2026" alt="Logo" className="w-full h-full object-contain" />
+                  <img src="/emblem.png" alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h4 className="text-[11px] font-black leading-tight text-white">{siteSettings?.schoolName || t('schoolName')}</h4>

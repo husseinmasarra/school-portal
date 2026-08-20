@@ -123,7 +123,7 @@ export const AppProvider = ({ children }) => {
       recessEndTime: "09:30",
       recessLabel: "استراحة ووجبة فطور",
       ...parsed, 
-      schoolLogo: "/logo.png?v=2026",
+      schoolLogo: "/emblem.png",
       schoolName: "مركز الدعم التعليمي", 
       schoolNameEn: "Educational Support Center", 
       academicYear: "2026/2027",
@@ -807,7 +807,7 @@ export const AppProvider = ({ children }) => {
 
   const updateSiteSettings = (newSettings) => {
     setSiteSettings((prev) => {
-      const updated = { ...prev, ...newSettings, schoolLogo: "/logo.png?v=2026" };
+      const updated = { ...prev, ...newSettings, schoolLogo: "/emblem.png" };
       localStorage.setItem('school_settings', JSON.stringify(updated));
       dbSaveCollection('school_settings', updated);
       return updated;

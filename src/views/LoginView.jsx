@@ -41,7 +41,7 @@ export const LoginView = () => {
       <div className="max-w-7xl mx-auto w-full flex items-center justify-between py-2">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-white p-0.5 shadow-md flex items-center justify-center overflow-hidden border border-[#E2E8F0]">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+            <img src="/emblem.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <span className="font-extrabold text-lg text-[#0284C7]">
             {t('appName')}
@@ -65,7 +65,7 @@ export const LoginView = () => {
           
           <div className="text-center space-y-2 relative z-10">
             <div className="w-20 h-20 bg-white border border-slate-100 rounded-3xl mx-auto flex items-center justify-center shadow-md overflow-hidden p-1">
-              <img src="/logo.png" alt="School Logo" className="w-full h-full object-contain" />
+              <img src="/emblem.png" alt="School Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-[#0284C7]">{t('loginTitle')}</h2>
             <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">

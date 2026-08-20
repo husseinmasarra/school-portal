@@ -18,13 +18,14 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
-// Rate limiting to mitigate DoS / brute‑force attempts
-app.use(rateLimit({
+// Rate limiting for API endpoints ONLY to prevent brute-force attacks
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 5000, // limit each IP to 5000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false
-}));
+});
+app.use('/api/', apiLimiter);
 
 const SYNC_SECURITY_TOKEN = process.env.SYNC_SECURITY_TOKEN || 'sp-secure-wifi-sync-token-2026';
 

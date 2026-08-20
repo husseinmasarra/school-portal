@@ -44,13 +44,23 @@ export const TuitionModule = () => {
   const currentStudent = safeStudents.find((s) => s.id === selectedStudentId) || safeStudents[0];
   const isOverduePeriod = new Date().getDate() > 5;
 
-  // Admin Financial Metrics in USD
+  // Admin Financial Metrics in USD (Frozen accounts are excluded from active overdue dues)
+  const activeStudents = safeStudents.filter((s) => !s?.frozen);
   const totalTuitionUSD   = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionTotal) || 600), 0);
   const totalAdminFeesUSD = safeStudents.reduce((sum, s) => sum + (Number(s?.adminFees) || 0), 0);
   const totalTransportFeesUSD = safeStudents.reduce((sum, s) => sum + (s?.hasTransport ? (Number(s?.transportFee) || 0) : 0), 0);
   const totalDiscountUSD  = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionDiscount) || 0), 0);
   const totalPaidUSD      = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionPaid) || 0), 0);
-  const totalRemainingUSD = Math.max(0, totalTuitionUSD + totalAdminFeesUSD + totalTransportFeesUSD - totalDiscountUSD - totalPaidUSD);
+  
+  // Total overdue dues only includes active non-frozen students
+  const totalRemainingUSD = activeStudents.reduce((sum, s) => {
+    const tot = Number(s.tuitionTotal) || 600;
+    const adm = Number(s.adminFees) || 0;
+    const trs = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
+    const disc = Number(s.tuitionDiscount) || 0;
+    const paid = Number(s.tuitionPaid) || 0;
+    return sum + Math.max(0, tot + adm + trs - disc - paid);
+  }, 0);
 
   const savePaymentHistory = (updated) => {
     setPaymentHistory(updated);
@@ -346,6 +356,7 @@ export const TuitionModule = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {safeStudents.filter(s => {
+                  if (s.frozen) return false; // Frozen accounts are excluded from overdue reminders & dues list
                   const total = Number(s.tuitionTotal) || 600;
                   const discount = Number(s.tuitionDiscount) || 0;
                   const paid = Number(s.tuitionPaid) || 0;
@@ -359,7 +370,9 @@ export const TuitionModule = () => {
                   return (
                     <div key={stu.id} className="bg-white dark:bg-slate-900 border border-red-200 dark:border-red-950/50 p-3 rounded-2xl flex items-center justify-between shadow-xs">
                       <div className="flex items-center gap-2 min-w-0">
-                        <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border border-red-500 shrink-0" />
+                        <div className="w-8 h-8 rounded-full bg-red-100 text-red-700 font-black text-xs flex items-center justify-center shrink-0 border border-red-300">
+                          {(stu.name || 'ط')[0]}
+                        </div>
                         <div className="truncate">
                           <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{isAr ? stu.name : stu.nameEn}</h4>
                           <span className="text-[10px] text-red-500 font-extrabold block font-mono">
@@ -406,15 +419,23 @@ export const TuitionModule = () => {
                 <div key={stu.id} className="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-2xl space-y-3 shadow-sm hover:border-[#0284C7]/50 transition-all">
                   {/* Student Header */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <img src={stu.avatar} alt={stu.name} className="w-9 h-9 rounded-full object-cover border-2 border-[#0284C7]" />
-                      <div>
-                        <h4 className="text-xs font-bold text-[#0F172A]">{isAr ? stu.name : stu.nameEn}</h4>
-                        <span className="text-[10px] text-slate-500">{isAr ? stu.grade : stu.gradeEn}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[#0284C7]/10 text-[#0284C7] font-black text-xs flex items-center justify-center shrink-0 border border-[#0284C7]">
+                        {(stu.name || 'ط')[0]}
+                      </div>
+                      <div className="truncate">
+                        <h4 className="text-xs font-bold text-[#0F172A] truncate">{isAr ? stu.name : stu.nameEn}</h4>
+                        <span className="text-[10px] text-slate-500 block">{isAr ? stu.grade : stu.gradeEn}</span>
                       </div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${remUSD === 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' : 'bg-red-50 text-red-700 border border-red-300'}`}>
-                      {remUSD === 0 ? (isAr ? '✅ مسدد' : '✅ Paid') : `$${remUSD} USD`}
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
+                      stu.frozen 
+                        ? 'bg-cyan-50 text-cyan-800 border border-cyan-300 font-black' 
+                        : remUSD === 0 
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' 
+                        : 'bg-red-50 text-red-700 border border-red-300'
+                    }`}>
+                      {stu.frozen ? (isAr ? '❄️ حساب مجمد (موقوف عن المتأخرات)' : '❄️ Frozen Account') : remUSD === 0 ? (isAr ? '✅ مسدد' : '✅ Paid') : `$${remUSD} USD`}
                     </span>
                   </div>
 

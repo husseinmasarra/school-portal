@@ -577,6 +577,16 @@ export const ReportsModule = () => {
         {/* Financial Statement Section */}
         {reportType === 'financial' && (
           <div className="space-y-4">
+            {selectedStudent.frozen && (
+              <div className="bg-cyan-50 border-2 border-cyan-300 p-4 rounded-2xl text-cyan-900 font-bold text-xs flex items-center gap-2">
+                <span className="text-xl">❄️</span>
+                <div>
+                  <h4 className="font-black text-sm text-cyan-950">حساب الطالب مجمد (موقوف عن المطالبات والدفعات المتأخرة المستحقة)</h4>
+                  <p className="text-[11px] text-cyan-800 font-semibold pt-0.5">تم تجميد مطالبات الدفعات المتأخرة عن هذا الحساب تلقائياً ولا يُحسب ضمن الذمم المالية النشطة.</p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
               <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]">
                 <span className="text-slate-500 block">{t('totalTuition')}:</span>
@@ -586,9 +596,13 @@ export const ReportsModule = () => {
                 <span className="text-slate-500 block">{t('paidAmount')}:</span>
                 <span className="text-lg font-bold text-[#0284C7]">${selectedStudent.tuitionPaid || 0} USD</span>
               </div>
-              <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-red-300">
-                <span className="text-red-600 block font-bold">{t('remainingAmount')}:</span>
-                <span className="text-lg font-bold text-red-600">${(selectedStudent.tuitionTotal || 1200) - (selectedStudent.tuitionPaid || 0)} USD</span>
+              <div className={`p-4 rounded-2xl border ${selectedStudent.frozen ? 'bg-cyan-50 border-cyan-300' : 'bg-[#F8FAFC] border-red-300'}`}>
+                <span className={`${selectedStudent.frozen ? 'text-cyan-800 font-black' : 'text-red-600 font-bold'} block`}>
+                  {selectedStudent.frozen ? 'حالة المتأخرات والمطالبة:' : t('remainingAmount') + ':'}
+                </span>
+                <span className={`text-lg font-bold ${selectedStudent.frozen ? 'text-cyan-900 font-black' : 'text-red-600'}`}>
+                  {selectedStudent.frozen ? '❄️ مجمد (معفى من المتأخرات)' : `$${(selectedStudent.tuitionTotal || 1200) - (selectedStudent.tuitionPaid || 0)} USD`}
+                </span>
               </div>
             </div>
           </div>

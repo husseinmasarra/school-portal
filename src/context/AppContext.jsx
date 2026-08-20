@@ -460,9 +460,9 @@ export const AppProvider = ({ children }) => {
   }, [activePillar]);
 
   useEffect(() => {
-    // Migration: enforce clean database with only admin (username: admin, password: 123123123)
+    // Ensure at least one admin user exists (non-destructive)
     const adminUser = (systemUsers || []).find(u => u.role === 'admin');
-    if (!adminUser || adminUser.password !== '123123123' || systemUsers.length > 1 || teachers.length > 0 || students.length > 0) {
+    if (!adminUser) {
       const freshAdmin = {
         id: "USR-01",
         name: "إدارة المدرسة العامة",
@@ -475,29 +475,8 @@ export const AppProvider = ({ children }) => {
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
         permissions: ['manage_all', 'manage_finance', 'manage_users', 'send_lessons', 'manage_bus', 'print_cards']
       };
-
-      setSystemUsers([freshAdmin]);
-      setTeachers([]);
-      setStudents([]);
-      setStaffEmployees([]);
-      setMasterTimetable([]);
-      setDailyMarks([]);
-      setAttendance([]);
-      setBehaviorRecords([]);
-      setNotifications([]);
-
+      setSystemUsers(prev => [freshAdmin, ...prev.filter(u => u.role !== 'admin')]);
       localStorage.setItem('school_system_users', JSON.stringify([freshAdmin]));
-      localStorage.setItem('school_teachers', JSON.stringify([]));
-      localStorage.setItem('school_students', JSON.stringify([]));
-      localStorage.setItem('school_staff', JSON.stringify([]));
-      localStorage.setItem('school_timetable', JSON.stringify([]));
-      localStorage.setItem('school_daily_marks', JSON.stringify([]));
-      localStorage.setItem('school_attendance', JSON.stringify([]));
-      localStorage.setItem('school_behavior', JSON.stringify([]));
-      localStorage.setItem('school_notifications', JSON.stringify([]));
-
-      setCurrentUser(freshAdmin);
-      localStorage.setItem('school_logged_user', JSON.stringify(freshAdmin));
     }
   }, []);
 
@@ -636,7 +615,7 @@ export const AppProvider = ({ children }) => {
   const login = (usernameInput, passwordInput) => {
     const cleanUser = (usernameInput || '').trim().toLowerCase();
 
-    // Master admin credentials fallback override (ensures phone & browser sync immediately)
+    // Master admin credentials fallback override (login only — does NOT wipe data)
     if (cleanUser === 'admin' && passwordInput === '123123123') {
       const masterAdmin = {
         id: "USR-01",
@@ -650,25 +629,11 @@ export const AppProvider = ({ children }) => {
         permissions: ['manage_all', 'manage_finance', 'manage_users', 'send_lessons', 'manage_bus', 'print_cards']
       };
 
-      setSystemUsers([masterAdmin]);
-      setTeachers([]);
-      setStudents([]);
-      setStaffEmployees([]);
-      setMasterTimetable([]);
-      setDailyMarks([]);
-      setAttendance([]);
-      setBehaviorRecords([]);
-      setNotifications([]);
-
-      localStorage.setItem('school_system_users', JSON.stringify([masterAdmin]));
-      localStorage.setItem('school_teachers', JSON.stringify([]));
-      localStorage.setItem('school_students', JSON.stringify([]));
-      localStorage.setItem('school_staff', JSON.stringify([]));
-      localStorage.setItem('school_timetable', JSON.stringify([]));
-      localStorage.setItem('school_daily_marks', JSON.stringify([]));
-      localStorage.setItem('school_attendance', JSON.stringify([]));
-      localStorage.setItem('school_behavior', JSON.stringify([]));
-      localStorage.setItem('school_notifications', JSON.stringify([]));
+      // Ensure admin exists in system users without wiping other data
+      setSystemUsers(prev => {
+        const withoutOldAdmin = prev.filter(u => u.id !== 'USR-01');
+        return [masterAdmin, ...withoutOldAdmin];
+      });
 
       setCurrentUser(masterAdmin);
       localStorage.setItem('school_logged_user', JSON.stringify(masterAdmin));

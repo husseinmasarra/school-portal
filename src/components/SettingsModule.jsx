@@ -172,7 +172,7 @@ export const SettingsModule = () => {
     updateSiteSettings({
       schoolName,
       schoolNameEn,
-      schoolLogo,
+      schoolLogo: "/logo.png?v=2026",
       academicYear,
       schoolStartTime,
       schoolEndTime,
@@ -192,6 +192,7 @@ export const SettingsModule = () => {
     });
 
     setToastMessage(isAr ? 'تم حفظ وإعتماد كافة إعدادات الموقع بنجاح 🟢' : 'Settings saved successfully!');
+    alert(isAr ? 'تم حفظ وإعتماد كافة إعدادات المنظومة بنجاح 🟢' : 'Settings saved successfully!');
     setTimeout(() => setToastMessage(''), 3000);
   };
 

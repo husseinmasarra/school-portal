@@ -806,7 +806,12 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateSiteSettings = (newSettings) => {
-    setSiteSettings((prev) => ({ ...prev, ...newSettings }));
+    setSiteSettings((prev) => {
+      const updated = { ...prev, ...newSettings, schoolLogo: "/logo.png?v=2026" };
+      localStorage.setItem('school_settings', JSON.stringify(updated));
+      dbSaveCollection('school_settings', updated);
+      return updated;
+    });
   };
 
   const updateUserAvatar = (newAvatarUrl) => {

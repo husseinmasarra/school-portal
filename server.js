@@ -163,10 +163,26 @@ app.get('/api/db/load', authenticateToken, async (req, res) => {
   }
 });
 
-// 3. Serve the built React static files
-app.use(express.static(path.join(__dirname, 'dist')));
+// 3. Force no-cache for logo, favicon, and icon files
+app.get(/\/(logo|favicon|icon)/, (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+  next();
+});
 
-// 4. Fallback route for React Router (Single Page App)
+// 4. Serve the built React static files
+app.use(express.static(path.join(__dirname, 'dist'), {
+  etag: false,
+  setHeaders: (res, filePath) => {
+    if (filePath.includes('logo') || filePath.includes('favicon') || filePath.includes('icon')) {
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    }
+  }
+}));
+
+// 5. Fallback route for React Router (Single Page App)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });

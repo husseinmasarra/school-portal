@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Printer, FileSpreadsheet, CheckCircle2, GraduationCap, DollarSign } from 'lucide-react';
+import { Printer, FileSpreadsheet, CheckCircle2, GraduationCap, DollarSign, Search, Users, UserCheck, X } from 'lucide-react';
 
 export const ReportsModule = () => {
   const { 
@@ -36,6 +36,29 @@ export const ReportsModule = () => {
 
   const [reportType, setReportType] = useState('academic'); // academic, financial, attendance, daily_log
   const [stuId, setStuId] = useState(selectedStudentId || safeStudents[0]?.id);
+  const [reportSearchTerm, setReportSearchTerm] = useState('');
+  const [reportGradeFilter, setReportGradeFilter] = useState('all');
+
+  // Filtered Students for Reports Smart Search
+  const filteredReportStudents = safeStudents.filter((s) => {
+    const term = reportSearchTerm.toLowerCase().trim();
+    const matchesSearch = !term ||
+                          (s.name || '').toLowerCase().includes(term) ||
+                          (s.nameEn || '').toLowerCase().includes(term) ||
+                          (s.id || '').toLowerCase().includes(term) ||
+                          (s.username || '').toLowerCase().includes(term) ||
+                          (s.grade || '').toLowerCase().includes(term) ||
+                          (s.classRoom || '').toLowerCase().includes(term) ||
+                          (s.parentName || '').toLowerCase().includes(term) ||
+                          (s.parentPhone || '').includes(term) ||
+                          (s.phone || '').includes(term) ||
+                          (s.ministryClearance || '').toLowerCase().includes(term);
+    const matchesGrade = reportGradeFilter === 'all' || (s.grade || '').includes(reportGradeFilter);
+    return matchesSearch && matchesGrade;
+  });
+
+  // Extract unique grades for quick filter pills
+  const availableGrades = Array.from(new Set(safeStudents.map(s => s.grade).filter(Boolean)));
 
   // New Daily Mark Form Modal State
   const [showAddMarkModal, setShowAddMarkModal] = useState(false);
@@ -136,7 +159,7 @@ export const ReportsModule = () => {
             </div>
           </div>
 
-          {/* Student Picker */}
+          {/* Quick Select Dropdown */}
           <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-1.5 rounded-xl">
             <span className="text-xs text-slate-500 font-medium">{t('studentName')}:</span>
             <select
@@ -151,6 +174,129 @@ export const ReportsModule = () => {
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Smart Student Cards Selector Grid */}
+        <div className="bg-white border border-[#E2E8F0] p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-[#0284C7]/10 text-[#0284C7] rounded-xl">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-[#0284C7]">
+                  {isAr ? `اختيار كرت الطالب لإصدار التقرير والشهادة (${filteredReportStudents.length} طالب)` : `Select Student Card for Report (${filteredReportStudents.length})`}
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  {isAr ? 'انقر على كرت أي طالب لاختياره ومعاينة كشف علاماته وتقاريره المدرسية فوراً' : 'Click any student card to select and view their official report card'}
+                </p>
+              </div>
+            </div>
+
+            {/* Smart Search Bar */}
+            <div className="relative w-full md:w-80">
+              <Search className="w-4 h-4 text-[#0284C7] absolute top-2.5 right-3 rtl:right-3 ltr:left-3 pointer-events-none" />
+              <input
+                type="text"
+                value={reportSearchTerm}
+                onChange={(e) => setReportSearchTerm(e.target.value)}
+                placeholder={isAr ? '🔍 البحث الذكي في كروت الطلاب...' : 'Search student cards...'}
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-9 py-2 text-xs font-semibold focus:outline-none focus:border-[#0284C7] transition-all"
+              />
+              {reportSearchTerm && (
+                <button
+                  onClick={() => setReportSearchTerm('')}
+                  className="absolute top-2 left-3 rtl:left-3 ltr:right-3 text-slate-400 hover:text-red-500 text-xs font-bold bg-slate-200 hover:bg-slate-300 w-4 h-4 rounded-full flex items-center justify-center cursor-pointer"
+                  title="مسح البحث"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Grade Quick Filter Pills */}
+          {availableGrades.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar border-t border-slate-100 pt-3">
+              <span className="text-[10px] font-bold text-slate-400 shrink-0 ml-1">تصفية الصفوف:</span>
+              <button
+                onClick={() => setReportGradeFilter('all')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                  reportGradeFilter === 'all'
+                    ? 'bg-[#0284C7] text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {isAr ? `الكل (${safeStudents.length})` : `All (${safeStudents.length})`}
+              </button>
+              {availableGrades.map((gradeName) => {
+                const count = safeStudents.filter(s => (s.grade || '').includes(gradeName)).length;
+                return (
+                  <button
+                    key={gradeName}
+                    onClick={() => setReportGradeFilter(reportGradeFilter === gradeName ? 'all' : gradeName)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                      reportGradeFilter === gradeName
+                        ? 'bg-[#0284C7] text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {gradeName} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Student Cards Grid */}
+          {filteredReportStudents.length === 0 ? (
+            <div className="text-center py-6 text-slate-400 text-xs font-bold border border-dashed border-slate-200 rounded-2xl">
+              {isAr ? 'لا يوجد طالب يطابق كلمات البحث الحالية' : 'No student found matching search'}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-72 overflow-y-auto p-1 border border-slate-100 rounded-2xl bg-[#F8FAFC]">
+              {filteredReportStudents.map((s) => {
+                const isSelected = s.id === selectedStudent?.id;
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => setStuId(s.id)}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      isSelected
+                        ? 'bg-sky-50 border-[#0284C7] ring-2 ring-[#0284C7]/30 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-[#0284C7]/50 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <img
+                        src={s.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80'}
+                        alt={s.name}
+                        className={`w-9 h-9 rounded-full object-cover shrink-0 border ${isSelected ? 'border-[#0284C7]' : 'border-slate-300'}`}
+                      />
+                      <div className="truncate">
+                        <h4 className={`text-xs font-extrabold truncate ${isSelected ? 'text-[#0284C7]' : 'text-slate-800'}`}>
+                          {isAr ? s.name : s.nameEn}
+                        </h4>
+                        <span className="text-[10px] text-slate-500 font-mono block">
+                          {s.grade} ({s.classRoom || 'أ'})
+                        </span>
+                      </div>
+                    </div>
+
+                    {isSelected ? (
+                      <span className="bg-[#0284C7] text-white text-[9px] px-2 py-0.5 rounded-full font-black shrink-0 flex items-center gap-1">
+                        ✓ مختار
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-bold hover:text-[#0284C7] shrink-0">
+                        اختيار
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Report Type Selection Cards */}

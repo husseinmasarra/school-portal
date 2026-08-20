@@ -489,7 +489,11 @@ export const SettingsModule = () => {
 
 
         <div className="flex justify-end pt-3 border-t border-slate-100">
-          <button type="submit" className="btn-mustard flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer">
+          <button 
+            type="button" 
+            onClick={handleSaveSettings} 
+            className="btn-mustard flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer hover:opacity-90 active:scale-95 transition-all"
+          >
             <Save className="w-4 h-4" />
             <span>حفظ واعتماد التغييرات 💾</span>
           </button>

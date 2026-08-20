@@ -3,13 +3,13 @@
   "name": "مركز الدعم التعليمي - منصة الإدارة الرقمية الذكية",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/logo.png?v=2026",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon.png",
+      "src": "/logo.png?v=2026",
       "type": "image/png",
       "sizes": "192x192"
     }

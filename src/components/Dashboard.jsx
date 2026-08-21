@@ -74,8 +74,8 @@ export const Dashboard = ({ setActiveTab }) => {
   // Active teacher for Teacher Role & Data Isolation
   const activeTeacher = safeTeachers.find((t) => t.id === currentUser?.id || t.username === currentUser?.username || t.name === currentUser?.name) || safeTeachers[0] || {
     id: "TCH-101",
-    name: currentUser?.name || "أ. مريم صالح",
-    nameEn: currentUser?.nameEn || "Prof. Maryam Saleh",
+    name: currentUser?.name || "أ. معلم المادة",
+    nameEn: currentUser?.nameEn || "Prof. Subject Teacher",
     subject: "العلوم والفيزياء",
     subjects: ["العلوم والفيزياء"],
     assignedClassrooms: ["الصف السادس الابتدائي (أ)", "الصف الخامس الابتدائي (أ)"],
@@ -800,46 +800,73 @@ export const Dashboard = ({ setActiveTab }) => {
 
         </div>
 
-        {/* 🎖️ Student Honor Badges & Motivation Wall */}
-        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-[#0284C7]/10 border border-amber-400/30 rounded-3xl p-6 space-y-4 shadow-sm text-[#0F172A]">
-          <div className="flex items-center justify-between border-b border-amber-300/40 pb-3">
-            <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300 flex items-center gap-2">
+        {/* 🏆 Ultra-Modern Student Honor Board & Motivation Wall */}
+        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-[#0284C7]/10 border border-amber-400/30 rounded-3xl p-6 space-y-5 shadow-sm text-[#0F172A]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300/40 pb-3">
+            <h3 className="text-sm font-black text-amber-900 dark:text-amber-300 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-500 animate-bounce" />
-              <span>{isAr ? 'لوحة الشرف ووسامات التميز والتفوق الأكاديمي 🏆' : 'Student Honor Roll & Badges'}</span>
+              <span>{isAr ? 'لوحة الشرف وتكريم المتفوقين الأوائل لكل صف وشعبة 🏆' : 'Classroom Honor Roll'}</span>
             </h3>
             <span className="text-[11px] font-extrabold px-3 py-1 bg-amber-500 text-white rounded-full shadow">
-              4 {isAr ? 'أوسمة مكتسبة' : 'Badges Earned'}
+              أوائل الصفوف والشُعب 🌟
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white/90 border border-amber-300/50 p-3.5 rounded-2xl text-center space-y-1 shadow-sm hover:scale-105 transition-all">
-              <span className="text-3xl block">🏆</span>
-              <h4 className="text-xs font-black text-amber-900">{isAr ? 'متفوق الصف' : 'Top Student'}</h4>
-              <span className="text-[10px] text-slate-500 font-bold block">
-                {isAr 
-                  ? `معدل ${Number(getStudentOverallGpa ? getStudentOverallGpa(activeStudent?.id) : 0) > 0 ? `${getStudentOverallGpa(activeStudent?.id)}%` : '94.5%'} ممتاز` 
-                  : `GPA ${Number(getStudentOverallGpa ? getStudentOverallGpa(activeStudent?.id) : 0) > 0 ? `${getStudentOverallGpa(activeStudent?.id)}%` : '94.5%'}`}
-              </span>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(() => {
+              const groups = {};
+              safeStudents.forEach(s => {
+                const key = `${s.grade || 'الصف السادس'} (${s.classRoom || 'أ'})`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(s);
+              });
 
-            <div className="bg-white/90 border border-[#0284C7]/30 p-3.5 rounded-2xl text-center space-y-1 shadow-sm hover:scale-105 transition-all">
-              <span className="text-3xl block">⚡</span>
-              <h4 className="text-xs font-black text-[#0284C7]">{isAr ? 'العبقري السريع' : 'Fast Thinker'}</h4>
-              <span className="text-[10px] text-slate-500 font-bold block">{isAr ? 'السرعة الحسابية' : 'Math Speed'}</span>
-            </div>
+              return Object.entries(groups).map(([groupName, groupStudents]) => {
+                const sorted = [...groupStudents].sort((a, b) => {
+                  const gpaA = Number(getStudentOverallGpa ? getStudentOverallGpa(a.id) : 90);
+                  const gpaB = Number(getStudentOverallGpa ? getStudentOverallGpa(b.id) : 90);
+                  return gpaB - gpaA;
+                });
+                const topStudent = sorted[0];
+                const topGpa = topStudent ? (getStudentOverallGpa ? getStudentOverallGpa(topStudent.id) : 95) : 95;
 
-            <div className="bg-white/90 border border-emerald-300/50 p-3.5 rounded-2xl text-center space-y-1 shadow-sm hover:scale-105 transition-all">
-              <span className="text-3xl block">🌟</span>
-              <h4 className="text-xs font-black text-emerald-800">{isAr ? 'الحضور الكامل' : 'Full Attendance'}</h4>
-              <span className="text-[10px] text-slate-500 font-bold block">{isAr ? 'انضباط 98.8%' : 'Attendance 98.8%'}</span>
-            </div>
+                return (
+                  <div key={groupName} className="bg-white/95 dark:bg-zinc-900 border border-amber-300/50 p-4 rounded-2xl space-y-3 shadow-md relative overflow-hidden">
+                    <div className="flex items-center justify-between border-b border-amber-200/50 pb-2">
+                      <span className="text-xs font-black text-amber-900 dark:text-amber-400">{groupName}</span>
+                      <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">المركز الأول 🥇</span>
+                    </div>
 
-            <div className="bg-white/90 border border-purple-300/50 p-3.5 rounded-2xl text-center space-y-1 shadow-sm hover:scale-105 transition-all">
-              <span className="text-3xl block">📚</span>
-              <h4 className="text-xs font-black text-purple-800">{isAr ? 'قارئ الشرف' : 'Honor Reader'}</h4>
-              <span className="text-[10px] text-slate-500 font-bold block">{isAr ? 'مواظب الأجندة' : 'Agenda Dedicated'}</span>
-            </div>
+                    {topStudent && (
+                      <div className="flex items-center gap-3">
+                        <img src={topStudent.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"} alt={topStudent.name} className="w-12 h-12 rounded-full object-cover border-2 border-amber-500 shadow" />
+                        <div>
+                          <h4 className="text-xs font-black text-[#0F172A] dark:text-white">{topStudent.name}</h4>
+                          <span className="text-[10px] font-mono font-bold text-emerald-600 block">المعدل الممتاز: {topGpa}% 🌟</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {(currentRole === 'admin' || currentRole === 'teacher') && topStudent && (
+                      <button
+                        onClick={() => {
+                          addNotification({
+                            recipientId: topStudent.id,
+                            title: '🏆 تهنئة وتكريم في لوحة الشرف!',
+                            message: `نهنئك بحصولك على المركز الأول في لوحة الشرف لـ ${groupName}! نتمنى لك دوام التوفيق والنجاح.`,
+                            type: 'honor'
+                          });
+                          alert(isAr ? `تم إرسال تهنئة مخصصة لحساب التلميذ (${topStudent.name}) بنجاح! 💌` : 'Encouragement message sent!');
+                        }}
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-white py-1.5 px-3 rounded-xl text-[11px] font-bold shadow flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <span>إرسال تهنئة لحساب التلميذ 💌</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
 
@@ -1270,3 +1297,4 @@ export const Dashboard = ({ setActiveTab }) => {
     </div>
   );
 };
+

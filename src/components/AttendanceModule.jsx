@@ -178,13 +178,14 @@ export const AttendanceModule = () => {
     setTimeout(() => setToastMsg(''), 3500);
   };
 
-  // Stats calculation
-  const totalRecordsToday = attendance.filter(a => a.date === selectedDate);
-  const presentCount = totalRecordsToday.filter(a => a.status === 'حاضر').length;
-  const absentCount = totalRecordsToday.filter(a => a.status === 'غائب').length;
-  const lateCount = totalRecordsToday.filter(a => a.status === 'متأخر').length;
-  const excusedCount = totalRecordsToday.filter(a => a.status === 'بعذر').length;
-  const attendanceRate = filteredStudents.length > 0 ? Math.round((presentCount / Math.max(1, filteredStudents.length)) * 100) : 100;
+  // Accurate Grade-specific Stats calculation for selected Date
+  const filteredStudentIds = new Set(filteredStudents.map(s => s.id));
+  const totalRecordsTodayForGrade = attendance.filter(a => a.date === selectedDate && filteredStudentIds.has(a.studentId));
+  const presentCount = totalRecordsTodayForGrade.filter(a => a.status === 'حاضر').length;
+  const absentCount = totalRecordsTodayForGrade.filter(a => a.status === 'غائب').length;
+  const lateCount = totalRecordsTodayForGrade.filter(a => a.status === 'متأخر').length;
+  const excusedCount = totalRecordsTodayForGrade.filter(a => a.status === 'بعذر').length;
+  const attendanceRate = filteredStudents.length > 0 ? Math.min(100, Math.round((presentCount / filteredStudents.length) * 100)) : 100;
 
   return (
     <div className="space-y-6 animate-fade-in text-[#0F172A]">

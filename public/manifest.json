@@ -1,15 +1,15 @@
 {
-  "short_name": "مركز الدعم التعليمي",
-  "name": "مركز الدعم التعليمي - منصة الإدارة الرقمية الذكية",
+  "short_name": "مدرسة الدعم التعليمي",
+  "name": "مدرسة الدعم التعليمي - منصة الإدارة الرقمية الذكية",
   "icons": [
     {
-      "src": "./emblem.png",
+      "src": "./emblem.png?v=100",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
     },
     {
-      "src": "./emblem.png",
+      "src": "./pwa-192x192.png?v=100",
       "type": "image/png",
       "sizes": "192x192"
     }

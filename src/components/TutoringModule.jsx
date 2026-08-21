@@ -6,25 +6,46 @@ import {
   Users, 
   CheckCircle2, 
   BookOpen, 
-  UserPlus 
+  UserPlus,
+  Trash2,
+  DollarSign
 } from 'lucide-react';
 
 export const TutoringModule = () => {
-  const { lang, t, currentRole, tutoringCourses, registerTutoring, students, selectedStudentId } = useApp();
+  const { 
+    lang, 
+    t, 
+    currentRole, 
+    tutoringCourses = [], 
+    registerTutoring, 
+    unregisterTutoring, 
+    students = [], 
+    selectedStudentId 
+  } = useApp();
 
   const isAr = lang === 'ar';
+  const safeStudents = students || [];
+  const safeCourses = tutoringCourses || [];
+
   const [selectedStudentForEnroll, setSelectedStudentForEnroll] = useState(selectedStudentId);
+  const [customFeeInput, setCustomFeeInput] = useState('');
   const [successToast, setSuccessToast] = useState(false);
 
-  // Active student for Parent / Student View
-  const currentStudent = students.find((s) => s.id === selectedStudentForEnroll) || students[0];
+  const currentStudent = safeStudents.find((s) => s.id === selectedStudentForEnroll) || safeStudents[0];
 
   const handleEnroll = (courseId) => {
     if (!currentStudent) return;
 
-    registerTutoring(courseId, currentStudent.id);
+    registerTutoring(courseId, currentStudent.id, customFeeInput);
     setSuccessToast(true);
+    setCustomFeeInput('');
     setTimeout(() => setSuccessToast(false), 3000);
+  };
+
+  const handleRemoveStudentFromCourse = (courseId, studentId) => {
+    if (unregisterTutoring) {
+      unregisterTutoring(courseId, studentId);
+    }
   };
 
   return (
@@ -37,25 +58,40 @@ export const TutoringModule = () => {
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#0284C7]">{t('tutoringTitle')}</h2>
-            <p className="text-xs text-slate-500 mt-1">{t('tutoringSubtitle')}</p>
+            <h2 className="text-xl font-bold text-[#0284C7]">{isAr ? 'معهد التقوية والدورات التعليمية الخاصة' : t('tutoringTitle')}</h2>
+            <p className="text-xs text-slate-500 mt-1">
+              {isAr ? 'تسجيل التلاميذ وإدارتهم في دورات التقوية وتحديد القسط المالي المخصص لكل تلميذ.' : t('tutoringSubtitle')}
+            </p>
           </div>
         </div>
 
         {/* Student Selector for Enrollment */}
-        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-1.5 rounded-xl">
+        <div className="flex flex-wrap items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-2 rounded-xl">
           <span className="text-xs text-slate-500 font-medium">{t('studentName')}:</span>
           <select
             value={selectedStudentForEnroll}
             onChange={(e) => setSelectedStudentForEnroll(e.target.value)}
             className="bg-transparent text-xs font-bold text-[#0F172A] focus:outline-none cursor-pointer"
           >
-            {students.map((s) => (
+            {safeStudents.map((s) => (
               <option key={s.id} value={s.id} className="bg-white text-[#0F172A]">
                 {isAr ? s.name : s.nameEn} ({isAr ? s.grade : s.gradeEn})
               </option>
             ))}
           </select>
+
+          {(currentRole === 'admin' || currentRole === 'teacher') && (
+            <div className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg ml-2">
+              <span className="text-[11px] font-bold text-slate-500">$</span>
+              <input
+                type="number"
+                placeholder={isAr ? 'قسط مخصص' : 'Fee $'}
+                value={customFeeInput}
+                onChange={(e) => setCustomFeeInput(e.target.value)}
+                className="w-20 text-xs font-bold bg-transparent focus:outline-none"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -63,15 +99,20 @@ export const TutoringModule = () => {
       {successToast && (
         <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-4 rounded-2xl flex items-center gap-3 shadow-lg animate-fade-in text-xs font-semibold">
           <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
-          <span>{t('registrationSuccess')}</span>
+          <span>{isAr ? 'تم تسجيل التلميذ في معهد التقوية وتثبيت القسط المالي بنجاح! 🟢' : t('registrationSuccess')}</span>
         </div>
       )}
 
       {/* Interactive Courses Catalog Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tutoringCourses.map((course) => {
-          const isEnrolled = course.enrolledStudentIds.includes(currentStudent?.id);
-          const seatsLeft = course.maxSeats - course.enrolledStudentIds.length;
+        {safeCourses.map((course) => {
+          const enrolledIds = course.enrolledStudentIds || [];
+          const isEnrolled = enrolledIds.includes(currentStudent?.id);
+          const seatsLeft = course.maxSeats - enrolledIds.length;
+          const feesMap = course.studentFeesMap || {};
+
+          // Enrolled Students list objects
+          const enrolledStudentsList = safeStudents.filter(s => enrolledIds.includes(s.id));
 
           return (
             <div
@@ -110,14 +151,59 @@ export const TutoringModule = () => {
                     <span>{t('availableSeats')}: <strong className="text-[#0284C7]">{seatsLeft} / {course.maxSeats}</strong></span>
                   </div>
                 </div>
+
+                {/* Registered Students Roster Section */}
+                <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <span className="text-[11px] font-bold text-[#0F172A] block">
+                    {isAr ? `التلاميذ المسجلون بالمعهد (${enrolledStudentsList.length}):` : `Enrolled Students (${enrolledStudentsList.length}):`}
+                  </span>
+
+                  {enrolledStudentsList.length === 0 ? (
+                    <span className="text-[10px] text-slate-400 italic block">لا يوجد تلاميذ مسجلون في هذه الدورة حتى الآن.</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1">
+                      {enrolledStudentsList.map(stu => {
+                        const studentCustomFee = feesMap[stu.id] !== undefined ? feesMap[stu.id] : course.fee;
+                        return (
+                          <div key={stu.id} className="flex items-center gap-1 bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-1 rounded-xl text-[10px] shadow-xs">
+                            <span className="font-bold text-[#0F172A]">{isAr ? stu.name : stu.nameEn}</span>
+                            <span className="text-emerald-700 font-mono font-black bg-emerald-50 px-1 rounded border border-emerald-200">${studentCustomFee}</span>
+                            {(currentRole === 'admin' || currentRole === 'teacher') && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveStudentFromCourse(course.id, stu.id)}
+                                className="text-red-500 hover:text-red-700 font-bold ml-1 text-xs cursor-pointer"
+                                title="إزالة التلميذ من الدورة"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Action Button */}
               <div className="pt-3 border-t border-slate-100">
                 {isEnrolled ? (
-                  <div className="w-full py-2.5 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-2 shadow-sm">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>{t('registeredAlready')}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 py-2.5 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-2 shadow-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>{t('registeredAlready')}</span>
+                    </div>
+                    {(currentRole === 'admin' || currentRole === 'teacher') && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveStudentFromCourse(course.id, currentStudent.id)}
+                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl cursor-pointer"
+                        title="إلغاء تسجيل التلميذ"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <button
@@ -130,7 +216,7 @@ export const TutoringModule = () => {
                     }`}
                   >
                     <UserPlus className="w-4 h-4" />
-                    <span>{isAr ? "التسجيل في الدورة الآن" : "Register Course Now"}</span>
+                    <span>{isAr ? "تسجيل التلميذ في الدورة الآن" : "Register Student Now"}</span>
                   </button>
                 )}
               </div>

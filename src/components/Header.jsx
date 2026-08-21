@@ -200,11 +200,7 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
               title={lang === 'ar' ? 'العودة للوحة التحكم الرئيسية' : 'Go to Dashboard'}
             >
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white p-0.5 sm:p-1 flex items-center justify-center shadow border border-[#0284C7] shrink-0 overflow-hidden">
-                <img 
-                  src="/emblem.png" 
-                  alt="Logo" 
-                  className="w-full h-full object-contain" 
-                />
+                <img src={siteSettings?.schoolLogo || "/emblem.png"} alt="Logo" className="w-full h-full object-contain" />
               </div>
 
               <div className="min-w-0">

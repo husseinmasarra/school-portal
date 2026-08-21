@@ -89,11 +89,7 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
             title={isAr ? 'العودة للوحة التحكم الرئيسية' : 'Go to Dashboard'}
           >
             <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-lg border border-white shrink-0 overflow-hidden">
-              <img 
-                src="/emblem.png" 
-                alt="Logo" 
-                className="w-full h-full object-contain" 
-              />
+              <img src={siteSettings?.schoolLogo || "/emblem.png"} alt="Logo" className="w-full h-full object-contain" />
             </div>
 
             <div>
@@ -379,22 +375,8 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
             </div>
           )}
 
-          {/* 4.3 بطاقة الطالب الرقمية (للطالب وولي الأمر والآدمن) */}
-          {(currentRole === 'admin' || currentRole === 'student' || currentRole === 'parent') && (
-            <button
-              onClick={() => handleNavClick('idcard', 'academic')}
-              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'idcard' || activeTab === 'student-card'
-                  ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                  : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <IdCard className="w-5 h-5 text-[#EF4444]" />
-                <span>{isAr ? 'بطاقة الطالب الرقمية' : 'Digital Student ID Card'}</span>
-              </div>
-            </button>
-          )}
+
+
 
           {/* ── 5. الشؤون المالية والرواتب (للإدارة فقط) ── */}
           {currentRole === 'admin' && (

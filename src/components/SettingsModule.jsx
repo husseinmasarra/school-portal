@@ -42,7 +42,7 @@ export const SettingsModule = () => {
 
   const [schoolName, setSchoolName] = useState(siteSettings?.schoolName || 'مدرسة الدعم التعليمي');
   const [schoolNameEn, setSchoolNameEn] = useState(siteSettings?.schoolNameEn || 'Educational Support School');
-  const [schoolLogo, setSchoolLogo] = useState("/emblem.png");
+  const [schoolLogo, setSchoolLogo] = useState(siteSettings?.schoolLogo || null);
   const [academicYear, setAcademicYear] = useState(siteSettings?.academicYear || '2026/2027');
   const [schoolStartTime, setSchoolStartTime] = useState(siteSettings?.schoolStartTime || '07:30');
   const [schoolEndTime, setSchoolEndTime] = useState(siteSettings?.schoolEndTime || '12:00');
@@ -172,7 +172,7 @@ export const SettingsModule = () => {
     updateSiteSettings({
       schoolName,
       schoolNameEn,
-      schoolLogo: "/emblem.png",
+      schoolLogo,
       academicYear,
       schoolStartTime,
       schoolEndTime,

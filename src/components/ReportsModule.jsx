@@ -462,7 +462,16 @@ export const ReportsModule = () => {
               <div className="space-y-1">
                 <span className="text-xs font-bold text-[#0284C7] dark:text-[#38BDF8] block">العام الدراسي والمرحلة:</span>
                 <span className="text-sm font-black text-[#0F172A] dark:text-white block">{getDynamicAcademicYear()} (الفصل الثاني)</span>
-                <span className="text-xs block font-bold text-emerald-600 dark:text-emerald-400">الحالة: منتظم ومجتاز 🟢</span>
+                <span className="text-xs block font-bold">
+                  {(() => {
+                    const hasFailedSubject = dynamicSubjectScores.some(s => s.total > 0 && s.total < 40);
+                    const isOverallFail = hasFailedSubject || (Number(computedGpa) > 0 && Number(computedGpa) < 40);
+                    if (isOverallFail) {
+                      return <span className="text-red-600 dark:text-red-400">الحالة: راسب 🔴 (أقل من 40%)</span>;
+                    }
+                    return <span className="text-emerald-600 dark:text-emerald-400">الحالة: ناجح ومجتاز 🟢</span>;
+                  })()}
+                </span>
               </div>
             </div>
 

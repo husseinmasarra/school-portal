@@ -227,9 +227,19 @@ export const BusModule = () => {
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {busStudents.map((stu) => (
-                        <div key={stu.id} className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] px-2.5 py-1 rounded-xl text-[11px]">
+                        <div key={stu.id} className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] px-2.5 py-1 rounded-xl text-[11px] shadow-sm">
                           <img src={stu.avatar} alt={stu.name} className="w-5 h-5 rounded-full object-cover border border-[#0284C7]" />
                           <span className="font-bold text-[#0F172A]">{isAr ? stu.name : stu.nameEn}</span>
+                          {currentRole === 'admin' && (
+                            <button
+                              type="button"
+                              onClick={() => assignStudentToBus(stu.id, null)}
+                              className="text-red-500 hover:bg-red-50 hover:text-red-700 font-bold text-xs rounded-full w-4 h-4 flex items-center justify-center cursor-pointer transition-colors"
+                              title={isAr ? "إزالة الطالب من هذه الحافلة" : "Remove student from bus"}
+                            >
+                              ✕
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>

@@ -22,7 +22,6 @@ export const Navigation = ({ activeTab, setActiveTab }) => {
 
   const academicItems = [
     { id: 'dashboard', label: t('navDashboard'), icon: LayoutDashboard, color: 'text-purple-400' },
-    { id: 'idcard', label: t('studentCardBtn'), icon: IdCard, color: 'text-amber-400' },
     { id: 'messages', label: t('navMessages'), icon: MessageSquareText, color: 'text-rose-400' },
     { id: 'agenda', label: t('navAgenda'), icon: BookOpenCheck, color: 'text-emerald-400' },
     { id: 'exams', label: t('navExams'), icon: Award, color: 'text-amber-400' },
@@ -34,7 +33,6 @@ export const Navigation = ({ activeTab, setActiveTab }) => {
 
   const financialItems = [
     { id: 'dashboard', label: t('navDashboard'), icon: LayoutDashboard, color: 'text-purple-400' },
-    { id: 'idcard', label: t('studentCardBtn'), icon: IdCard, color: 'text-amber-400' },
     { id: 'finance', label: t('navFinance'), icon: DollarSign, color: 'text-amber-400' },
     { id: 'bus', label: isAr ? 'قسم النقل والحافلات' : 'School Bus Fleet', icon: Bus, color: 'text-cyan-400' },
     { id: 'reports', label: t('navReports'), icon: Printer, color: 'text-indigo-400' },

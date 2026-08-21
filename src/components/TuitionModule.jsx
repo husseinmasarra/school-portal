@@ -153,16 +153,10 @@ export const TuitionModule = () => {
   };
 
   const handleSendWhatsAppReminder = (stu) => {
-    const totalUSD = Number(stu.tuitionTotal) || 600;
-    const adminUSD = Number(stu.adminFees) || 0;
-    const transportUSD = stu.hasTransport ? (Number(stu.transportFee) || 0) : 0;
-    const discountUSD = Number(stu.tuitionDiscount || 0);
-    const paidUSD = Number(stu.tuitionPaid || 0);
-    const remUSD = Math.max(0, totalUSD + adminUSD + transportUSD - discountUSD - paidUSD);
     const parentPhone = stu.parentPhone || stu.phone || '+961 70 000 000';
     const msg = isAr
-      ? `السلام عليكم ولي أمر التلميذ(ة) ${stu.name} المحترم 🌸\nنود تذكيركم بضرورة تسديد القسط المدرسي المتبقي وقدره $${remUSD} USD.\nيرجى السداد لتصفية الحساب. شاكرين تعاونكم الكريم.`
-      : `Dear parent of ${stu.nameEn || stu.name}, this is a reminder to settle the remaining tuition balance of $${remUSD} USD. Thank you for your cooperation!`;
+      ? `الى ولي امر التلميذ ( ${stu.name} ) نود تذكيركم بضرورة تسديد القسط الشهري المستحق يرجى التسديد في اقرب وقت شاكرين تعاونكم الكريم`
+      : `To the parent of student (${stu.nameEn || stu.name}), we kindly remind you to settle the due monthly tuition payment at your earliest convenience. Thank you for your cooperation!`;
     openWhatsAppMessage(parentPhone, msg);
   };
 

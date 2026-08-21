@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Award, 
@@ -139,7 +139,7 @@ export const BehaviorModule = () => {
       type: recordType,
       title,
       notes,
-      teacherName: currentUser?.name || 'أ. مريم صالح'
+      teacherName: currentUser?.name || 'أ. معلم المادة'
     });
 
     addNotification({
@@ -440,3 +440,4 @@ export const BehaviorModule = () => {
     </div>
   );
 };
+

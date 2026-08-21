@@ -123,7 +123,7 @@ export const AppProvider = ({ children }) => {
       recessEndTime: "09:30",
       recessLabel: "استراحة ووجبة فطور",
       ...parsed, 
-      schoolLogo: "/emblem.png",
+      schoolLogo: parsed?.schoolLogo && parsed.schoolLogo.startsWith('data:') ? parsed.schoolLogo : null,
       schoolName: "مركز الدعم التعليمي", 
       schoolNameEn: "Educational Support Center", 
       academicYear: "2026/2027",
@@ -449,14 +449,12 @@ export const AppProvider = ({ children }) => {
         total = sub.directTotal;
       }
 
-      let grade = 'ممتاز (A+)';
-      if (total >= 95) grade = 'تفوق ممتاز (A+)';
-      else if (total >= 90) grade = 'ممتاز مرتفع (A+)';
-      else if (total >= 85) grade = 'جيد جداً مرتفع (A)';
-      else if (total >= 80) grade = 'جيد جداً (B+)';
-      else if (total >= 75) grade = 'جيد (B)';
-      else if (total >= 70) grade = 'مقبول (C+)';
-      else if (total > 0) grade = 'يحتاج متابعة (C)';
+      let grade = 'ناجح - ممتاز (A+)';
+      if (total >= 90) grade = 'ناجح - ممتاز (A+)';
+      else if (total >= 80) grade = 'ناجح - جيد جداً (A)';
+      else if (total >= 65) grade = 'ناجح - جيد (B)';
+      else if (total >= 40) grade = 'ناجح - مقبول (C)';
+      else if (total > 0) grade = 'راسب 🔴 (F)';
       else grade = 'غير مرصود';
 
       return {
@@ -724,8 +722,8 @@ export const AppProvider = ({ children }) => {
     if (foundTeacher || cleanUser === 'teacher' || cleanUser === 'meryem') {
       const teacherObj = foundTeacher || (teachers && teachers[0]) || {
         id: "TCH-101",
-        name: "أ. مريم صالح",
-        nameEn: "Prof. Maryam Saleh",
+        name: "أ. معلم المادة",
+        nameEn: "Prof. Subject Teacher",
         username: "teacher",
         role: "teacher",
         subject: "العلوم والفيزياء",
@@ -807,7 +805,7 @@ export const AppProvider = ({ children }) => {
 
   const updateSiteSettings = (newSettings) => {
     setSiteSettings((prev) => {
-      const updated = { ...prev, ...newSettings, schoolLogo: "/emblem.png" };
+      const updated = { ...prev, ...newSettings };
       localStorage.setItem('school_settings', JSON.stringify(updated));
       dbSaveCollection('school_settings', updated);
       return updated;
@@ -1127,15 +1125,44 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  const registerTutoring = (studentId, courseId) => {
-    setTutoringCourses((prev) =>
-      prev.map((c) => {
-        if (c.id === courseId && !c.enrolledStudentIds.includes(studentId)) {
-          return { ...c, enrolledStudentIds: [...c.enrolledStudentIds, studentId] };
+  const registerTutoring = (courseId, studentId, customFee = null) => {
+    setTutoringCourses((prev) => {
+      const updated = prev.map((c) => {
+        if (c.id === courseId) {
+          const enrolled = c.enrolledStudentIds || [];
+          const feesMap = c.studentFeesMap || {};
+          if (!enrolled.includes(studentId)) {
+            const nextEnrolled = [...enrolled, studentId];
+            if (customFee !== null && customFee !== undefined && customFee !== '') {
+              feesMap[studentId] = Number(customFee);
+            }
+            return { ...c, enrolledStudentIds: nextEnrolled, studentFeesMap: { ...feesMap } };
+          } else if (customFee !== null && customFee !== undefined && customFee !== '') {
+            feesMap[studentId] = Number(customFee);
+            return { ...c, studentFeesMap: { ...feesMap } };
+          }
         }
         return c;
-      })
-    );
+      });
+      dbSaveCollection('school_tutoring', updated);
+      return updated;
+    });
+  };
+
+  const unregisterTutoring = (courseId, studentId) => {
+    setTutoringCourses((prev) => {
+      const updated = prev.map((c) => {
+        if (c.id === courseId) {
+          const nextEnrolled = (c.enrolledStudentIds || []).filter(id => id !== studentId);
+          const feesMap = { ...(c.studentFeesMap || {}) };
+          delete feesMap[studentId];
+          return { ...c, enrolledStudentIds: nextEnrolled, studentFeesMap: feesMap };
+        }
+        return c;
+      });
+      dbSaveCollection('school_tutoring', updated);
+      return updated;
+    });
   };
 
   const updateBusStatus = (studentId, newStatus) => {
@@ -1373,6 +1400,7 @@ export const AppProvider = ({ children }) => {
     deleteAgendaItem,
     payTuition,
     registerTutoring,
+    unregisterTutoring,
     updateBusStatus,
     addStudent,
     addTeacher,
@@ -1415,3 +1443,4 @@ export const AppProvider = ({ children }) => {
 };
 
 export const useApp = () => useContext(AppContext);
+

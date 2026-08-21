@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   FolderArchive, 
@@ -80,7 +80,7 @@ export const DocumentsModule = () => {
       subject: resSubject,
       grade: resGrade,
       type: resType,
-      teacherName: currentUser?.name || 'أ. مريم صالح',
+      teacherName: currentUser?.name || 'أ. معلم المادة',
       link: '#',
       icon: resType === 'PDF' ? '📄' : resType === 'Document' ? '📐' : '💻'
     });
@@ -389,3 +389,4 @@ export const DocumentsModule = () => {
     </div>
   );
 };
+

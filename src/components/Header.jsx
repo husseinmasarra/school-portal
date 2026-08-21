@@ -229,14 +229,7 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
           {/* Left Actions: Profile, App Download, Bell, Mode, Lang, Logout */}
           <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             
-            {/* 💰 Remaining Tuition Balance Badge (For Student & Parent only) */}
-            {(currentRole === 'student' || currentRole === 'parent') && activeStudent && (
-              <div className="flex items-center gap-1.5 sm:gap-2 bg-red-500/10 dark:bg-red-500/20 border border-red-500/30 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-black shrink-0 text-red-500 dark:text-red-400 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-                <span>{lang === 'ar' ? 'المتبقي من القسط:' : 'Remaining Balance:'}</span>
-                <span className="font-mono text-red-600 dark:text-red-300 font-extrabold">${studentRemainingUSD} USD</span>
-              </div>
-            )}
+
 
             {/* Logged-In User Profile Card (Desktop only) */}
             {currentUser && (

@@ -37,7 +37,8 @@ export const Dashboard = ({ setActiveTab }) => {
     selectedStudentId,
     getHonorRollStudents,
     masterTimetable = [],
-    getStudentOverallGpa
+    getStudentOverallGpa,
+    attendance = []
   } = useApp();
 
   const isAr = lang === 'ar';
@@ -871,39 +872,52 @@ export const Dashboard = ({ setActiveTab }) => {
         </div>
 
         {/* 📊 Student Personal Attendance & Compliance Analytics */}
-        <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-[#0284C7] flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-[#0284C7]" />
-              <span>{isAr ? 'كشف الحضور والغياب والانضباط الفردي للتلميذ' : 'Personal Attendance Log'}</span>
-            </h3>
-            <span className="text-xs font-extrabold px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300 font-mono">
-              98.8% {isAr ? 'نسبة الانضباط' : 'Compliance'}
-            </span>
-          </div>
+        {(() => {
+          const studentAttendanceRecords = (attendance || []).filter(a => a.studentId === activeStudent?.id);
+          const studentPresentDays = studentAttendanceRecords.filter(r => r.status === 'حاضر').length;
+          const studentExcusedDays = studentAttendanceRecords.filter(r => r.status === 'بعذر').length;
+          const studentUnexcusedDays = studentAttendanceRecords.filter(r => r.status === 'غائب').length;
+          const studentTotalRecorded = studentPresentDays + studentExcusedDays + studentUnexcusedDays;
+          const studentComplianceRate = studentTotalRecorded > 0 
+            ? Math.round(((studentPresentDays + studentExcusedDays) / studentTotalRecorded) * 100) 
+            : 100;
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs font-mono">
-            <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
-              <span className="text-slate-500 block text-[11px]">{isAr ? 'أيام الحضور الفعلية:' : 'Days Present:'}</span>
-              <span className="text-lg font-black text-emerald-600">175 {isAr ? 'يوم 🟢' : 'Days 🟢'}</span>
-            </div>
+          return (
+            <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-bold text-[#0284C7] flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-[#0284C7]" />
+                  <span>{isAr ? 'كشف الحضور والغياب والانضباط الفردي للتلميذ' : 'Personal Attendance Log'}</span>
+                </h3>
+                <span className="text-xs font-extrabold px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300 font-mono">
+                  {studentComplianceRate}% {isAr ? 'نسبة الانضباط' : 'Compliance'}
+                </span>
+              </div>
 
-            <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
-              <span className="text-slate-500 block text-[11px]">{isAr ? 'غياب بعذر مقبول:' : 'Excused Absences:'}</span>
-              <span className="text-lg font-black text-[#0284C7]">2 {isAr ? 'يوم 🔵' : 'Days 🔵'}</span>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs font-mono">
+                <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-slate-500 block text-[11px]">{isAr ? 'أيام الحضور الفعلية:' : 'Days Present:'}</span>
+                  <span className="text-lg font-black text-emerald-600">{studentPresentDays} {isAr ? 'يوم 🟢' : 'Days 🟢'}</span>
+                </div>
 
-            <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
-              <span className="text-slate-500 block text-[11px]">{isAr ? 'غياب بدون عذر:' : 'Unexcused Absences:'}</span>
-              <span className="text-lg font-black text-slate-400">0 {isAr ? 'يوم ⚪' : 'Days ⚪'}</span>
-            </div>
+                <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-slate-500 block text-[11px]">{isAr ? 'غياب بعذر مقبول:' : 'Excused Absences:'}</span>
+                  <span className="text-lg font-black text-[#0284C7]">{studentExcusedDays} {isAr ? 'يوم 🔵' : 'Days 🔵'}</span>
+                </div>
 
-            <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
-              <span className="text-slate-500 block text-[11px]">{isAr ? 'حالة السلوك والأخلاق:' : 'Behavior Grade:'}</span>
-              <span className="text-lg font-black text-amber-600">{isAr ? 'ممتاز مرتفع ⭐' : 'Excellent ⭐'}</span>
+                <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-slate-500 block text-[11px]">{isAr ? 'غياب بدون عذر:' : 'Unexcused Absences:'}</span>
+                  <span className="text-lg font-black text-red-600">{studentUnexcusedDays} {isAr ? 'يوم 🔴' : 'Days 🔴'}</span>
+                </div>
+
+                <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-slate-500 block text-[11px]">{isAr ? 'حالة السلوك والأخلاق:' : 'Behavior Grade:'}</span>
+                  <span className="text-lg font-black text-amber-600">{isAr ? 'ممتاز مرتفع ⭐' : 'Excellent ⭐'}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* ⏱️ Student Weekly Timetable Schedule */}
         {(() => {

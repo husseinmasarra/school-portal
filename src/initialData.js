@@ -127,11 +127,61 @@ export const initialClassrooms = [
 export const initialExams = [
   {
     id: "EXM-101",
-    title: "اختبار الرياضيات التقييمي - الشهر الأول",
+    title: "اختبار الرياضيات التقييمي - الشهر الأول (الرياضيات)",
     titleEn: "Math First Month Exam",
     subjectId: "SUB-01",
     subject: "الرياضيات",
-    grade: "الصف السادس الابتدائي",
+    grade: "الصف الثاني",
+    classRoom: "أ",
+    results: []
+  },
+  {
+    id: "EXM-102",
+    title: "اختبار العلوم والفيزياء التقييمي - الشهر الأول (العلوم والفيزياء)",
+    titleEn: "Science & Physics First Month Exam",
+    subjectId: "SUB-02",
+    subject: "العلوم والفيزياء",
+    grade: "الصف الثاني",
+    classRoom: "أ",
+    results: []
+  },
+  {
+    id: "EXM-103",
+    title: "اختبار اللغة الإنجليزية التقييمي - الشهر الأول (اللغة الإنجليزية)",
+    titleEn: "English Language First Month Exam",
+    subjectId: "SUB-03",
+    subject: "اللغة الإنجليزية",
+    grade: "الصف الثاني",
+    classRoom: "أ",
+    results: []
+  },
+  {
+    id: "EXM-104",
+    title: "اختبار اللغة العربية واللغويات - الشهر الأول (اللغة العربية واللغويات)",
+    titleEn: "Arabic Language First Month Exam",
+    subjectId: "SUB-04",
+    subject: "اللغة العربية واللغويات",
+    grade: "الصف الثاني",
+    classRoom: "أ",
+    results: []
+  },
+  {
+    id: "EXM-105",
+    title: "اختبار القرآن والدراسات الإسلامية - الشهر الأول (القرآن والدراسات الإسلامية)",
+    titleEn: "Islamic Studies First Month Exam",
+    subjectId: "SUB-05",
+    subject: "القرآن والدراسات الإسلامية",
+    grade: "الصف الثاني",
+    classRoom: "أ",
+    results: []
+  },
+  {
+    id: "EXM-106",
+    title: "اختبار البرمجة والابتكار الرقمي - الشهر الأول (البرمجة والابتكار الرقمي)",
+    titleEn: "Coding & Digital Tech First Month Exam",
+    subjectId: "SUB-06",
+    subject: "البرمجة والابتكار الرقمي",
+    grade: "الصف الثاني",
     classRoom: "أ",
     results: []
   }

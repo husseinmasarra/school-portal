@@ -100,10 +100,33 @@ export const ExamsModule = () => {
   const [gradingEvals, setGradingEvals] = useState({});
   const [savedToast, setSavedToast] = useState(false);
 
+  // Combine custom created exams with default subject exam entries for ALL active subjects in the website!
+  const allActiveExams = [...safeExams];
+  safeSubjects.forEach((sub) => {
+    const subNameClean = (sub.name || '').trim().toLowerCase();
+    const hasExam = allActiveExams.some((ex) => {
+      const exSubClean = (ex.subject || '').trim().toLowerCase();
+      const exTitleClean = (ex.title || '').trim().toLowerCase();
+      return ex.subjectId === sub.id || (exSubClean && exSubClean === subNameClean) || (exTitleClean && exTitleClean.includes(subNameClean));
+    });
+    if (!hasExam) {
+      allActiveExams.push({
+        id: `EXM-AUTO-${sub.id}`,
+        title: `اختبار ${sub.name} التقييمي - الشهر الأول (${sub.name})`,
+        titleEn: `${sub.nameEn || sub.name} Monthly Exam`,
+        subjectId: sub.id,
+        subject: sub.name,
+        grade: 'جميع الصفوف',
+        classRoom: 'أ',
+        results: []
+      });
+    }
+  });
+
   // Safely resolve selected exam or fallback to first available
-  const selectedExam = (safeExams.length > 0 && selectedExamId)
-    ? safeExams.find((e) => e.id === selectedExamId) || safeExams[0]
-    : safeExams[0] || null;
+  const selectedExam = (allActiveExams.length > 0 && selectedExamId)
+    ? allActiveExams.find((e) => e.id === selectedExamId) || allActiveExams[0]
+    : allActiveExams[0] || null;
 
   const handleAddExamSubmit = (e) => {
     e.preventDefault();
@@ -223,17 +246,17 @@ export const ExamsModule = () => {
             <span>{isAr ? 'دفتر رصد درجات الاختبار' : 'Exam Grading Sheet'}</span>
           </h3>
 
-          {safeExams.length > 0 && (
+          {allActiveExams.length > 0 && (
             <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-1.5 rounded-xl">
-              <span className="text-xs text-slate-500">{isAr ? 'اختر الاختبار:' : 'Select Exam:'}</span>
+              <span className="text-xs text-slate-500 font-bold">{isAr ? 'اختر اختبار المادة الدراسية:' : 'Select Subject Exam:'}</span>
               <select
                 value={selectedExam?.id || ''}
                 onChange={(e) => setSelectedExamId(e.target.value)}
                 className="bg-transparent text-xs font-bold text-[#0F172A] focus:outline-none cursor-pointer"
               >
-                {safeExams.map((ex) => (
+                {allActiveExams.map((ex) => (
                   <option key={ex.id} value={ex.id}>
-                    {isAr ? ex.title : ex.titleEn || ex.title} ({ex.subject})
+                    {isAr ? ex.title : (ex.titleEn || ex.title)} ({ex.subject})
                   </option>
                 ))}
               </select>

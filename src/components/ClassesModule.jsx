@@ -428,7 +428,13 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
       {/* TAB 2: CLASSROOMS & SECTIONS ROSTER */}
       {activeTab === 'classrooms' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {safeClassrooms.map((cls) => {
+          {safeClassrooms.filter(cls => {
+            if (currentRole !== 'teacher') return true;
+            const assigned = currentUser?.assignedClassrooms || currentUser?.assignedClasses || [];
+            if (!assigned || assigned.length === 0) return true;
+            const fullClass = `${cls.gradeName} (${cls.sectionName})`;
+            return assigned.some(a => a === fullClass || (cls.gradeName && a.includes(cls.gradeName) && (a.includes(`(${cls.sectionName})`) || a.includes(cls.sectionName))));
+          }).map((cls) => {
             const sectionStudents = safeStudents.filter((s) => 
               s.grade && s.grade.includes(cls.gradeName.replace(' الابتدائي', '').replace(' المتوسط', '')) &&
               s.classroom && s.classroom.includes(cls.sectionName)

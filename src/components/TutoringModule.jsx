@@ -80,7 +80,7 @@ export const TutoringModule = () => {
             ))}
           </select>
 
-          {(currentRole === 'admin' || currentRole === 'teacher') && (
+          {currentRole === 'admin' && (
             <div className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg ml-2">
               <span className="text-[11px] font-bold text-slate-500">$</span>
               <input
@@ -168,7 +168,7 @@ export const TutoringModule = () => {
                           <div key={stu.id} className="flex items-center gap-1 bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-1 rounded-xl text-[10px] shadow-xs">
                             <span className="font-bold text-[#0F172A]">{isAr ? stu.name : stu.nameEn}</span>
                             <span className="text-emerald-700 font-mono font-black bg-emerald-50 px-1 rounded border border-emerald-200">${studentCustomFee}</span>
-                            {(currentRole === 'admin' || currentRole === 'teacher') && (
+                            {currentRole === 'admin' && (
                               <button
                                 type="button"
                                 onClick={() => handleRemoveStudentFromCourse(course.id, stu.id)}
@@ -194,7 +194,7 @@ export const TutoringModule = () => {
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       <span>{t('registeredAlready')}</span>
                     </div>
-                    {(currentRole === 'admin' || currentRole === 'teacher') && (
+                    {currentRole === 'admin' && (
                       <button
                         type="button"
                         onClick={() => handleRemoveStudentFromCourse(course.id, currentStudent.id)}

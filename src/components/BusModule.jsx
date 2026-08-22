@@ -104,8 +104,8 @@ export const BusModule = () => {
           </div>
         </div>
 
-        {/* Admin Action Buttons */}
-        {(currentRole === 'admin' || currentRole === 'teacher') && (
+        {/* Admin Action Buttons Only */}
+        {currentRole === 'admin' && (
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setShowAssignModal(true)}

@@ -256,6 +256,8 @@ export const AgendaModule = () => {
 
   // New Homework Form state
   const [showAddModal, setShowAddModal] = useState(false);
+  const [modalGrade, setModalGrade] = useState('');
+  const [modalClass, setModalClass] = useState('');
   const [subject, setSubject] = useState('الرياضيات');
   const [title, setTitle] = useState('');
   const [titleEn, setTitleEn] = useState('');
@@ -348,8 +350,8 @@ export const AgendaModule = () => {
 
     addAgendaItem({
       date: selectedDate,
-      grade: selectedGrade,
-      classRoom: selectedClass,
+      grade: modalGrade || selectedGrade,
+      classRoom: modalClass || selectedClass,
       subject,
       title,
       titleEn: titleEn || title,
@@ -434,8 +436,9 @@ export const AgendaModule = () => {
           </div>
         </div>
 
-        {/* Grade/Class Selectors & Generators */}
+        {/* Grade/Class Selectors & Add Button */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Grade Selector */}
           <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-1.5 rounded-xl">
             <span className="text-xs text-slate-500 font-medium">{t('grade')}:</span>
             <select
@@ -449,12 +452,29 @@ export const AgendaModule = () => {
             </select>
           </div>
 
+          {/* Section Selector */}
+          <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-1.5 rounded-xl">
+            <span className="text-xs text-slate-500 font-medium">{isAr ? 'الشعبة:' : 'Section:'}</span>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="bg-transparent text-xs font-bold text-[#0F172A] focus:outline-none cursor-pointer"
+            >
+              <option value="أ">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
+              <option value="ب">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
+              <option value="ج">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
+              <option value="د">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
+            </select>
+          </div>
+
           {(currentRole === 'admin' || currentRole === 'teacher') && (
             <button
               onClick={() => {
-                setShowAddModal(true);
+                setModalGrade(selectedGrade);
+                setModalClass(selectedClass);
                 setTitle('');
                 setHomework('');
+                setShowAddModal(true);
               }}
               className="btn-mustard flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold shadow transition-all cursor-pointer"
             >
@@ -826,6 +846,36 @@ export const AgendaModule = () => {
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>توليد تلقائي 🪄</span>
               </button>
+            </div>
+
+            {/* Target Grade & Section Selector */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#F8FAFC] border border-[#E2E8F0] p-3 rounded-2xl">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">{isAr ? 'الصف المستهدف' : 'Target Grade'} <span className="text-red-500">*</span></label>
+                <select
+                  value={modalGrade || selectedGrade}
+                  onChange={(e) => setModalGrade(e.target.value)}
+                  className="w-full bg-white border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7] cursor-pointer"
+                >
+                  {safeGrades.map((g) => (
+                    <option key={g.id} value={g.name}>{isAr ? g.name : g.nameEn}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">{isAr ? 'الشعبة المستهدفة' : 'Target Section'} <span className="text-red-500">*</span></label>
+                <select
+                  value={modalClass || selectedClass}
+                  onChange={(e) => setModalClass(e.target.value)}
+                  className="w-full bg-white border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7] cursor-pointer"
+                >
+                  <option value="أ">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
+                  <option value="ب">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
+                  <option value="ج">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
+                  <option value="د">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
+                </select>
+              </div>
             </div>
 
             {/* Select Subject */}

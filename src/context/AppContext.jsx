@@ -144,10 +144,7 @@ export const AppProvider = ({ children }) => {
     return cleanSettings;
   });
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('school_logged_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [currentUser, setCurrentUser] = useState(null);
 
   const currentRole = currentUser?.role || 'admin';
 

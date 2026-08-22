@@ -148,6 +148,26 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
+  const [printingTargetKey, setPrintingTargetKey] = useState(null);
+
+  const handlePrintSingleClassCard = (cardKey) => {
+    setPrintingTargetKey(cardKey);
+    document.body.classList.add('printing-single-card');
+    setTimeout(() => {
+      window.print();
+      document.body.classList.remove('printing-single-card');
+      setPrintingTargetKey(null);
+    }, 150);
+  };
+
+  const handlePrintAllFilteredCards = () => {
+    setPrintingTargetKey(null);
+    document.body.classList.remove('printing-single-card');
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
   const normStr = (str) => (str || '')
     .toLowerCase()
     .replace(/[أإآ]/g, 'ا')
@@ -605,7 +625,26 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               .class-timetable-print-card, .class-timetable-print-card * {
                 visibility: visible !important;
               }
-              .class-timetable-print-card {
+              /* When printing single specific card */
+              body.printing-single-card .class-timetable-print-card {
+                display: none !important;
+              }
+              body.printing-single-card .class-timetable-print-card.target-single-card {
+                display: block !important;
+                visibility: visible !important;
+                position: relative !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 1rem !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+              }
+              /* When printing all filtered cards */
+              body:not(.printing-single-card) .class-timetable-print-card {
                 position: relative !important;
                 left: 0 !important;
                 top: 0 !important;
@@ -623,26 +662,30 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
           `}</style>
 
           {/* Header Banner & Add Slot / Print Buttons */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-6 rounded-3xl shadow-sm no-print">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-6 rounded-3xl shadow-sm no-print">
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-purple-700 flex items-center gap-2">
+              <h3 className="text-base font-bold text-purple-700 dark:text-purple-400 flex items-center gap-2">
                 <span>⏱️</span>
-                <span>{isAr ? 'جدول توزيع الحصص والشُعب الأسبوعية (كل صف وشعبة منفصلة 🖨️)' : 'Weekly Timetable (Separated per Grade & Section)'}</span>
+                <span>{isAr ? 'جدول توزيع الحصص والشُعب الأسبوعية (حسب الفلتر والطباعة 🖨️)' : 'Weekly Timetable (Filtered Print View)'}</span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {isAr 
-                  ? 'تم فصل وتخصيص جدول كل صف وشعبة بجدول مستقل بذاته لسهولة المراجعة والطباعة بصفحة مستقلة لكافة صفوف المنظومة.'
-                  : 'Class timetables are completely separated per grade and section for independent printouts.'}
+                  ? 'تم تخصيص عرض وطباعة جداول الصفوف والشعَب بدقة وفقاً للفلاتر المحددة بالأعلى مع طباعة مستقلة لكل شعبة.'
+                  : 'Display and printing automatically adapt based on your filter criteria.'}
               </p>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap shrink-0">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintAllFilteredCards}
                 className="px-4 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
               >
                 <Printer className="w-4 h-4" />
-                <span>{isAr ? 'طباعة جداول كافة الصفوف 🖨️ (صفحة لكل شعبة)' : 'Print All Classes Timetables 🖨️'}</span>
+                <span>
+                  {slotFilterGrade !== 'all' || slotFilterSection !== 'all'
+                    ? (isAr ? `طباعة الصفوف المفلترة 🖨️ (${uniqueClassroomsList.length} شعبة)` : `Print Filtered (${uniqueClassroomsList.length}) 🖨️`)
+                    : (isAr ? 'طباعة كافة جداول الصفوف 🖨️ (صفحة لكل شعبة)' : 'Print All Timetables 🖨️')}
+                </span>
               </button>
 
               {currentRole === 'admin' && (
@@ -658,7 +701,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
           </div>
 
           {/* Filter Bar */}
-          <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs no-print">
+          <div className="bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs no-print shadow-xs">
             <div className="flex items-center gap-3 flex-wrap">
               
               {/* Grade and Section filters */}
@@ -669,11 +712,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                     <select
                       value={slotFilterGrade}
                       onChange={(e) => setSlotFilterGrade(e.target.value)}
-                      className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 text-purple-950 dark:text-purple-300 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer"
+                      className="bg-white dark:bg-zinc-800 border-2 border-purple-200 dark:border-purple-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer text-xs"
                     >
-                      <option value="all">{isAr ? 'جميع الصفوف (مفصلة)' : 'All Grades (Separated)'}</option>
+                      <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع الصفوف (مفصلة)' : 'All Grades (Separated)'}</option>
                       {safeGrades.map((g) => (
-                        <option key={g.id} value={g.name}>{g.name}</option>
+                        <option key={g.id} value={g.name} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{g.name}</option>
                       ))}
                     </select>
                   </div>
@@ -683,13 +726,13 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                     <select
                       value={slotFilterSection}
                       onChange={(e) => setSlotFilterSection(e.target.value)}
-                      className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 text-purple-950 dark:text-purple-300 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer"
+                      className="bg-white dark:bg-zinc-800 border-2 border-purple-200 dark:border-purple-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer text-xs"
                     >
-                      <option value="all">{isAr ? 'جميع الشعب' : 'All Sections'}</option>
-                      <option value="أ">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
-                      <option value="ب">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
-                      <option value="ج">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
-                      <option value="د">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
+                      <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع الشعب' : 'All Sections'}</option>
+                      <option value="أ" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
+                      <option value="ب" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
+                      <option value="ج" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
+                      <option value="د" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
                     </select>
                   </div>
                 </>
@@ -708,24 +751,24 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 <select
                   value={slotFilterTeacher}
                   onChange={(e) => setSlotFilterTeacher(e.target.value)}
-                  className="bg-[#F8FAFC] dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer"
+                  className="bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer text-xs"
                 >
-                  <option value="all">{isAr ? 'جميع المعلمين' : 'All Teachers'}</option>
+                  <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع المعلمين' : 'All Teachers'}</option>
                   {safeTeachers.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name} ({t.subject || 'معلم'})</option>
+                    <option key={t.id} value={t.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{t.name} ({t.subject || 'معلم'})</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+            <span className="text-[11px] font-bold text-purple-700 bg-purple-50 dark:bg-purple-950/50 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
               {isAr ? `عدد الصفوف والشُعب المعروضة: ${uniqueClassroomsList.length} شعبة` : `Classrooms: ${uniqueClassroomsList.length}`}
             </span>
           </div>
 
           {/* Separated Timetable Cards per Grade & Section */}
           {uniqueClassroomsList.length === 0 ? (
-            <div className="bg-white border border-[#E2E8F0] p-12 rounded-3xl text-center space-y-2 text-slate-400">
+            <div className="bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-12 rounded-3xl text-center space-y-2 text-slate-400">
               <Calendar className="w-12 h-12 mx-auto opacity-30 text-purple-600" />
               <p className="text-xs font-bold">{isAr ? 'لا يوجد جداول مضافة تطابق الفلتر المحدد.' : 'No timetables found matching filter.'}</p>
             </div>
@@ -734,6 +777,9 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               {uniqueClassroomsList.map((clsItem) => {
                 const classGradeName = clsItem.gradeName;
                 const classSecLetter = clsItem.sectionLetter;
+                const cardKey = `${classGradeName}_${classSecLetter}`;
+                const isTargetCard = printingTargetKey === cardKey;
+
                 const classSlots = safeTimetable.filter((s) => {
                   const matchGrade = isGradeMatch(s.grade, classGradeName);
                   const matchSec = isSecMatch(s.section, classSecLetter);
@@ -745,7 +791,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 const classSupervisor = (safeTeachers || []).find(t => (t.assignedClassrooms || []).some(c => isGradeMatch(c, classGradeName) && isSecMatch(c, classSecLetter)))?.name || (isAr ? 'إدارة المدرسة' : 'Administration');
 
                 return (
-                  <div key={`${classGradeName}_${classSecLetter}`} className="bg-white border-2 border-purple-200 dark:border-purple-900/60 rounded-3xl p-6 shadow-sm space-y-4 class-timetable-print-card">
+                  <div
+                    key={cardKey}
+                    className={`bg-white dark:bg-zinc-900 border-2 border-purple-200 dark:border-purple-900/60 rounded-3xl p-6 shadow-sm space-y-4 class-timetable-print-card ${isTargetCard ? 'target-single-card' : ''}`}
+                  >
                     {/* Header Banner for this Classroom */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-100 dark:border-purple-900 pb-4">
                       <div className="space-y-1">
@@ -755,18 +804,18 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                             {isAr ? `جدول حصص: ${classGradeName} (${classSecLetter.includes('الشعبة') ? classSecLetter : `الشعبة ${classSecLetter}`})` : `Timetable: ${classGradeName} (Section ${classSecLetter})`}
                           </h4>
                         </div>
-                        <p className="text-xs text-slate-500 font-bold me-1">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold me-1">
                           {isAr ? `مربّي الصف والمشرف: ${classSupervisor} | إجمالي حصص الأسبوع: ${classSlots.length} حصة` : `Homeroom Teacher: ${classSupervisor} | Total Slots: ${classSlots.length}`}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-2 no-print">
                         <button
-                          onClick={() => window.print()}
+                          onClick={() => handlePrintSingleClassCard(cardKey)}
                           className="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-xl text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-all"
                         >
                           <Printer className="w-4 h-4 text-purple-700" />
-                          <span>{isAr ? 'طباعة هذا الصف 🖨️' : 'Print Class Timetable 🖨️'}</span>
+                          <span>{isAr ? 'طباعة هذا الصف فقط 🖨️' : 'Print This Class Only 🖨️'}</span>
                         </button>
                       </div>
                     </div>
@@ -1194,10 +1243,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               <select
                 value={slotTeacherId}
                 onChange={(e) => setSlotTeacherId(e.target.value)}
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600"
+                className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 cursor-pointer"
               >
                 {safeTeachers.map((t) => (
-                  <option key={t.id} value={t.id}>
+                  <option key={t.id} value={t.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">
                     {t.name} - ({t.subject || 'معلم'})
                   </option>
                 ))}
@@ -1210,10 +1259,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               <select
                 value={slotSubject}
                 onChange={(e) => setSlotSubject(e.target.value)}
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600"
+                className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 cursor-pointer"
               >
                 {safeSubjects.map((sub) => (
-                  <option key={sub.id} value={sub.name}>
+                  <option key={sub.id} value={sub.name} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">
                     {sub.name}
                   </option>
                 ))}
@@ -1227,10 +1276,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 <select
                   value={slotGrade}
                   onChange={(e) => setSlotGrade(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"
+                  className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
                 >
                   {safeGrades.map((g) => (
-                    <option key={g.id} value={g.name}>{isAr ? g.name : g.nameEn}</option>
+                    <option key={g.id} value={g.name} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? g.name : g.nameEn}</option>
                   ))}
                 </select>
               </div>
@@ -1240,11 +1289,12 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 <select
                   value={slotSection}
                   onChange={(e) => setSlotSection(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"
+                  className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
                 >
-                  <option value="أ">الشعبة (أ)</option>
-                  <option value="ب">الشعبة (ب)</option>
-                  <option value="ج">الشعبة (ج)</option>
+                  <option value="أ" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (أ)</option>
+                  <option value="ب" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (ب)</option>
+                  <option value="ج" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (ج)</option>
+                  <option value="د" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (د)</option>
                 </select>
               </div>
             </div>

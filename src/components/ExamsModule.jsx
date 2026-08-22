@@ -241,17 +241,21 @@ export const ExamsModule = () => {
             <span>{isAr ? 'دفتر رصد علامات المادة الدراسية 📝' : 'Subject Marks Registry Sheet 📝'}</span>
           </h3>
 
-          {allActiveExams.length > 0 && (
-            <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2 rounded-2xl shadow-sm border-[#0284C7]/40">
+          {safeSubjects.length > 0 && (
+            <div className="flex items-center gap-2 bg-[#F8FAFC] border-2 border-[#0284C7]/40 px-4 py-2 rounded-2xl shadow-sm">
               <span className="text-xs font-black text-[#0284C7] shrink-0">{isAr ? 'اختر المادة الدراسية لرصد العلامة:' : 'Select Subject:'}</span>
               <select
-                value={selectedExam?.id || ''}
-                onChange={(e) => setSelectedExamId(e.target.value)}
-                className="bg-transparent text-xs font-extrabold text-[#0F172A] focus:outline-none cursor-pointer"
+                value={selectedExam?.subjectId || safeSubjects[0]?.id}
+                onChange={(e) => {
+                  const targetSubId = e.target.value;
+                  const matchExam = allActiveExams.find(ex => ex.subjectId === targetSubId || ex.subject === safeSubjects.find(s=>s.id===targetSubId)?.name);
+                  if (matchExam) setSelectedExamId(matchExam.id);
+                }}
+                className="bg-white text-xs font-extrabold text-[#0F172A] border border-slate-300 rounded-xl px-3 py-1 focus:outline-none cursor-pointer"
               >
-                {allActiveExams.map((ex) => (
-                  <option key={ex.id} value={ex.id} className="bg-white text-slate-900 font-bold py-1">
-                    📚 {ex.subject}
+                {safeSubjects.map((sub) => (
+                  <option key={sub.id} value={sub.id} className="bg-white text-slate-900 font-bold py-1">
+                    {sub.icon || '📚'} {sub.name}
                   </option>
                 ))}
               </select>

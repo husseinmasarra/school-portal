@@ -564,6 +564,17 @@ export const AppProvider = ({ children }) => {
     return 'راسب';
   };
 
+  // Dynamic formula helper per user directive for Grand Total Score (E15 sum out of 600)
+  // =IF(E15>=550,"ممتاز",IF(E15>=500,"جيد جدا",IF(E15>=450,"جيد",IF(E15>=400,"مقبول",IF(E15>=300,"مقبول","راسب")))))
+  const calculateGrandTotalLevel = (totalScoreSum) => {
+    const sum = Number(totalScoreSum) || 0;
+    if (sum >= 550) return 'ممتاز';
+    if (sum >= 500) return 'جيد جداً';
+    if (sum >= 450) return 'جيد';
+    if (sum >= 300) return 'مقبول';
+    return 'راسب';
+  };
+
   // System Users (admin/teacher/driver accounts)
   const [systemUsers, setSystemUsers] = useState(() => dbLoadCollection('school_system_users', initialAdmins));
 
@@ -1666,6 +1677,7 @@ export const AppProvider = ({ children }) => {
     getStudentSubjectScores,
     getStudentOverallGpa,
     calculateStudentLevel,
+    calculateGrandTotalLevel,
     themeMode,
     toggleThemeMode,
     attendance,

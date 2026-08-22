@@ -6,7 +6,7 @@ export const ReportsModule = () => {
   const { 
     lang, t, currentRole, currentUser, students = [], subjects = [], selectedStudentId,
     dailyMarks = [], addDailyMark, deleteDailyMark,
-    getStudentSubjectScores, getStudentOverallGpa, calculateStudentLevel, behaviorRecords = []
+    getStudentSubjectScores, getStudentOverallGpa, calculateStudentLevel, calculateGrandTotalLevel, behaviorRecords = []
   } = useApp();
 
   const isAr = lang === 'ar';
@@ -592,6 +592,35 @@ export const ReportsModule = () => {
                       ))
                     )}
                   </tbody>
+                  <tfoot>
+                    {(() => {
+                      const totalSum = dynamicSubjectScores.reduce((sum, item) => sum + Number(item.total || 0), 0);
+                      const maxPossible = (dynamicSubjectScores.length || 6) * 100;
+                      const grandLevel = calculateGrandTotalLevel ? calculateGrandTotalLevel(totalSum) : (totalSum >= 550 ? 'ممتاز' : totalSum >= 500 ? 'جيد جداً' : totalSum >= 450 ? 'جيد' : totalSum >= 300 ? 'مقبول' : 'راسب');
+                      
+                      return (
+                        <tr className="bg-sky-50 dark:bg-[#1E293B] font-black border-t-2 border-[#0284C7] text-[#0F172A] dark:text-white">
+                          <td colSpan={5} className="p-3 text-right text-xs text-[#0284C7] font-black">
+                            المجموع الكلي النهائي والتنقييم العام:
+                          </td>
+                          <td className="p-3 text-center text-sm font-black text-[#0284C7] font-mono">
+                            {totalSum} / {maxPossible}
+                          </td>
+                          <td className="p-3 text-center">
+                            <span className={`px-3 py-1 rounded-md text-xs font-black border ${
+                              grandLevel === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                              grandLevel === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border-sky-300' :
+                              grandLevel === 'جيد' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                              grandLevel === 'مقبول' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                              'bg-red-100 text-red-800 border-red-300'
+                            }`}>
+                              {grandLevel}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })()}
+                  </tfoot>
                 </table>
               </div>
             </div>
@@ -599,9 +628,13 @@ export const ReportsModule = () => {
              {/* 🏅 Final Result KPI Summary Cards */}
              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono pt-2">
                <div className="bg-sky-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-sky-200 dark:border-[#334155] text-center space-y-1">
-                 <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">المعدل العام التراكمي:</span>
-                 <span className="text-xl font-black text-[#0284C7] dark:text-[#38BDF8] block">
-                   {Number(computedGpa) > 0 ? `${computedGpa}%` : (isAr ? 'لا يوجد درجات' : 'N/A')}
+                 <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-bold">المجموع الكلي والتقدير:</span>
+                 <span className="text-sm font-black text-[#0284C7] dark:text-[#38BDF8] block">
+                   {(() => {
+                     const totalSum = dynamicSubjectScores.reduce((sum, item) => sum + Number(item.total || 0), 0);
+                     const grandLevel = calculateGrandTotalLevel ? calculateGrandTotalLevel(totalSum) : (totalSum >= 550 ? 'ممتاز' : totalSum >= 500 ? 'جيد جداً' : totalSum >= 450 ? 'جيد' : totalSum >= 300 ? 'مقبول' : 'راسب');
+                     return `${totalSum} (${grandLevel})`;
+                   })()}
                  </span>
                </div>
                <div className="bg-purple-50 dark:bg-[#1E293B] p-3.5 rounded-2xl border border-purple-200 dark:border-[#334155] text-center space-y-1">

@@ -428,34 +428,24 @@ export const AgendaModule = () => {
               onChange={(e) => setSelectedGrade(e.target.value)}
               className="bg-transparent text-xs font-bold text-[#0F172A] focus:outline-none cursor-pointer"
             >
-              <option value="الصف الخامس">الصف الخامس</option>
-              <option value="الصف السادس">الصف السادس</option>
-              <option value="الصف السابع">الصف السابع</option>
+              {safeGrades.map((g) => (
+                <option key={g.id} value={g.name}>{isAr ? g.name : g.nameEn}</option>
+              ))}
             </select>
           </div>
 
           {(currentRole === 'admin' || currentRole === 'teacher') && (
-            <>
-              <button
-                onClick={handleBatchGenerateWeek}
-                className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
-                title="توليد حزمة واجبات وامتحانات ومسابقات لكافة المواد فوراً"
-              >
-                <Zap className="w-4 h-4 text-purple-600 animate-bounce" />
-                <span>توليد أنشطة الأسبوع ⚡</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowAddModal(true);
-                  handleAutoGenerateSingle();
-                }}
-                className="btn-mustard flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow transition-all cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>إرسال / توليد درس جديد 🪄</span>
-              </button>
-            </>
+            <button
+              onClick={() => {
+                setShowAddModal(true);
+                setTitle('');
+                setHomework('');
+              }}
+              className="btn-mustard flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold shadow transition-all cursor-pointer"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>{isAr ? 'إضافة ونشر درس / واجب جديد 📚' : 'Add & Publish Lesson 📚'}</span>
+            </button>
           )}
         </div>
       </div>

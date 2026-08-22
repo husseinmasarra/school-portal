@@ -557,21 +557,18 @@ export const AppProvider = ({ children }) => {
   // System Users (admin/teacher/driver accounts)
   const [systemUsers, setSystemUsers] = useState(() => dbLoadCollection('school_system_users', initialAdmins));
 
-  const [themeMode, setThemeMode] = useState(() => localStorage.getItem('school_theme_mode') || 'light');
+  const [themeMode, setThemeMode] = useState('light');
 
   const toggleThemeMode = () => {
-    const newTheme = themeMode === 'light' ? 'dark' : 'light';
-    setThemeMode(newTheme);
-    localStorage.setItem('school_theme_mode', newTheme);
+    setThemeMode('light');
+    localStorage.removeItem('school_theme_mode');
+    document.documentElement.classList.remove('dark');
   };
 
   useEffect(() => {
-    if (themeMode === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [themeMode]);
+    localStorage.removeItem('school_theme_mode');
+    document.documentElement.classList.remove('dark');
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('school_lang', lang);

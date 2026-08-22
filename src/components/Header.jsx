@@ -382,15 +382,7 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
               )}
             </div>
 
-            {/* Dark / Light Mode Toggle */}
-            <button
-              onClick={toggleThemeMode}
-              className="p-1.5 sm:px-3 sm:py-1.5 bg-[#0284C7]/20 hover:bg-[#0284C7]/40 border border-[#0EA5E9]/20 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
-              title={lang === 'ar' ? 'التبديل بين الوضع الليلي والنهاري' : 'Toggle Dark/Light Mode'}
-            >
-              <span className="hidden sm:inline">{themeMode === 'dark' ? '☀️ نهاري' : '🌙 ليلي'}</span>
-              <span className="sm:hidden text-xs">{themeMode === 'dark' ? '☀️' : '🌙'}</span>
-            </button>
+
 
             {/* Logout Button */}
             <button

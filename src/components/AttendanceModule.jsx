@@ -131,7 +131,13 @@ export const AttendanceModule = () => {
   const filteredStudents = safeStudents.filter((s) => {
     const matchGrade = !selectedGrade || s.grade === selectedGrade || (s.grade && s.grade.includes(selectedGrade));
     const matchSearch = !searchTerm || s.name.includes(searchTerm) || (s.nameEn && s.nameEn.toLowerCase().includes(searchTerm.toLowerCase())) || s.id.includes(searchTerm);
-    return matchGrade && matchSearch;
+    const matchesTeacherAssignment = currentRole !== 'teacher' || (() => {
+      const assigned = currentUser?.assignedClassrooms || currentUser?.assignedClasses || [];
+      if (!assigned || assigned.length === 0) return true;
+      const fullClass = `${s.grade} (${s.classRoom || 'أ'})`;
+      return assigned.some(cls => cls === fullClass || (s.grade && cls.includes(s.grade) && (cls.includes(`(${s.classRoom || 'أ'})`) || cls.includes(s.classRoom || 'أ'))));
+    })();
+    return matchGrade && matchSearch && matchesTeacherAssignment;
   });
 
   const getStudentStatusForDate = (studentId, dateStr) => {

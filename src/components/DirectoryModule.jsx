@@ -506,7 +506,14 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                           (s.motherPhone || '').includes(term) ||
                           (s.ministryClearance || '').toLowerCase().includes(term);
     const matchesGrade = selectedGradeFilter === 'all' || (s.grade || '').includes(selectedGradeFilter);
-    return matchesSearch && matchesGrade;
+    const matchesTeacherAssignment = currentRole !== 'teacher' || (() => {
+      const assigned = currentUser?.assignedClassrooms || currentUser?.assignedClasses || [];
+      if (!assigned || assigned.length === 0) return true;
+      const fullClass = `${s.grade} (${s.classRoom || 'أ'})`;
+      return assigned.some(cls => cls === fullClass || (s.grade && cls.includes(s.grade) && (cls.includes(`(${s.classRoom || 'أ'})`) || cls.includes(s.classRoom || 'أ'))));
+    })();
+
+    return matchesSearch && matchesGrade && matchesTeacherAssignment;
   });
 
   const filteredTeachers = safeTeachers.filter((t) => {

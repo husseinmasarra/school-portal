@@ -98,8 +98,9 @@ export const Dashboard = ({ setActiveTab }) => {
   const teacherAssignedClasses = activeTeacher.assignedClassrooms || [];
   const isolatedTeacherStudents = safeStudents.filter(s => {
     if (teacherAssignedClasses.length === 0) return true;
+    const fullClass = `${s.grade} (${s.classRoom || 'أ'})`;
     return teacherAssignedClasses.some(c => 
-      c.includes(s.grade) || (s.grade && s.grade.includes(c)) || c.includes(s.classRoom)
+      c === fullClass || (s.grade && c.includes(s.grade) && (c.includes(`(${s.classRoom || 'أ'})`) || c.includes(s.classRoom || 'أ')))
     );
   });
 

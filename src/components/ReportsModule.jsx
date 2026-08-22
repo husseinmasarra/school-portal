@@ -54,7 +54,13 @@ export const ReportsModule = () => {
                           (s.phone || '').includes(term) ||
                           (s.ministryClearance || '').toLowerCase().includes(term);
     const matchesGrade = reportGradeFilter === 'all' || (s.grade || '').includes(reportGradeFilter);
-    return matchesSearch && matchesGrade;
+    const matchesTeacherAssignment = currentRole !== 'teacher' || (() => {
+      const assigned = currentUser?.assignedClassrooms || currentUser?.assignedClasses || [];
+      if (!assigned || assigned.length === 0) return true;
+      const fullClass = `${s.grade} (${s.classRoom || 'أ'})`;
+      return assigned.some(cls => cls === fullClass || (s.grade && cls.includes(s.grade) && (cls.includes(`(${s.classRoom || 'أ'})`) || cls.includes(s.classRoom || 'أ'))));
+    })();
+    return matchesSearch && matchesGrade && matchesTeacherAssignment;
   });
 
   // Extract unique grades for quick filter pills

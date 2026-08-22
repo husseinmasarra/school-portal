@@ -125,11 +125,12 @@ export const activityBank = {
 };
 
 export const AgendaModule = () => {
-  const { lang, t, currentRole, currentUser, agenda = [], addAgendaItem, updateAgendaItem, deleteAgendaItem, students = [], teachers = [] } = useApp();
+  const { lang, t, currentRole, currentUser, agenda = [], addAgendaItem, updateAgendaItem, deleteAgendaItem, students = [], teachers = [], grades = [] } = useApp();
 
   const isAr = lang === 'ar';
   const safeStudents = students || [];
   const safeAgenda = agenda || [];
+  const safeGrades = grades || [];
 
   const currentStudent = safeStudents.find(s => s.id === currentUser?.id || s.name === currentUser?.name) || safeStudents[0];
 

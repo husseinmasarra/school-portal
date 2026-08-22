@@ -1243,10 +1243,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               <select
                 value={slotTeacherId}
                 onChange={(e) => setSlotTeacherId(e.target.value)}
-                className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 cursor-pointer"
+                className="w-full bg-white border-2 border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7] cursor-pointer"
               >
                 {safeTeachers.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">
+                  <option key={t.id} value={t.id} className="bg-white text-slate-900 font-bold py-1">
                     {t.name} - ({t.subject || 'معلم'})
                   </option>
                 ))}
@@ -1259,10 +1259,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               <select
                 value={slotSubject}
                 onChange={(e) => setSlotSubject(e.target.value)}
-                className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 cursor-pointer"
+                className="w-full bg-white border-2 border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7] cursor-pointer"
               >
                 {safeSubjects.map((sub) => (
-                  <option key={sub.id} value={sub.name} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">
+                  <option key={sub.id} value={sub.name} className="bg-white text-slate-900 font-bold py-1">
                     {sub.name}
                   </option>
                 ))}
@@ -1276,10 +1276,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 <select
                   value={slotGrade}
                   onChange={(e) => setSlotGrade(e.target.value)}
-                  className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
+                  className="w-full bg-white border-2 border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
                 >
                   {safeGrades.map((g) => (
-                    <option key={g.id} value={g.name} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? g.name : g.nameEn}</option>
+                    <option key={g.id} value={g.name} className="bg-white text-slate-900 font-bold py-1">{isAr ? g.name : g.nameEn}</option>
                   ))}
                 </select>
               </div>
@@ -1289,12 +1289,12 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 <select
                   value={slotSection}
                   onChange={(e) => setSlotSection(e.target.value)}
-                  className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
+                  className="w-full bg-white border-2 border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
                 >
-                  <option value="أ" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (أ)</option>
-                  <option value="ب" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (ب)</option>
-                  <option value="ج" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (ج)</option>
-                  <option value="د" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">الشعبة (د)</option>
+                  <option value="أ" className="bg-white text-slate-900 font-bold py-1">الشعبة (أ)</option>
+                  <option value="ب" className="bg-white text-slate-900 font-bold py-1">الشعبة (ب)</option>
+                  <option value="ج" className="bg-white text-slate-900 font-bold py-1">الشعبة (ج)</option>
+                  <option value="د" className="bg-white text-slate-900 font-bold py-1">الشعبة (د)</option>
                 </select>
               </div>
             </div>
@@ -1348,13 +1348,13 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 value={slotPeriodTime}
                 onChange={(e) => setSlotPeriodTime(e.target.value)}
                 placeholder="مثال: 07:30 - 08:20..."
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-purple-600 text-right"
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-[#0284C7] text-right"
               />
             </div>
 
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
               <button type="button" onClick={() => setShowAddSlotModal(false)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
-              <button type="submit" className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
+              <button type="submit" className="px-5 py-2 bg-[#0284C7] hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
                 <CheckCircle2 className="w-4 h-4" /> {isAr ? 'حفظ وتثبيت الحصة 🌟' : 'Save Slot'}
               </button>
             </div>
@@ -1368,11 +1368,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <form
             onSubmit={handleUpdateSlotSubmit}
-            className="bg-white border-2 border-purple-600 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative my-auto"
+            className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative my-auto"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-purple-700 flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-purple-600" />
+              <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
+                <span>✏️</span>
                 <span>{isAr ? 'تعديل وتحديث الحصة الدراسية ✏️' : 'Edit Timetable Slot'}</span>
               </h3>
               <button 

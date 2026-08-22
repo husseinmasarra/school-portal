@@ -125,7 +125,7 @@ export const activityBank = {
 };
 
 export const AgendaModule = () => {
-  const { lang, t, currentRole, currentUser, agenda = [], addAgendaItem, updateAgendaItem, deleteAgendaItem, students = [], teachers = [], grades = [] } = useApp();
+  const { lang, t, currentRole, currentUser, agenda = [], addAgendaItem, updateAgendaItem, deleteAgendaItem, students = [], teachers = [], grades = [], submittedTasks = {}, addHomeworkSubmission, gradeHomeworkSubmission } = useApp();
 
   const isAr = lang === 'ar';
   const safeStudents = students || [];
@@ -284,28 +284,12 @@ export const AgendaModule = () => {
   const [submissionText, setSubmissionText] = useState('');
   const [submissionFileNote, setSubmissionFileNote] = useState('');
   const [submissionImage, setSubmissionImage] = useState('');
-  const [submittedTasks, setSubmittedTasks] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('school_homework_submissions') || '{}'); }
-    catch { return {}; }
-  });
 
   const handleGradeSubmission = (subRecord, score, note) => {
-    const updatedRecord = {
-      ...subRecord,
-      status: 'graded',
-      gradeScore: score || 'ممتاز (20/20)',
-      teacherNote: note || 'إجابة رائعة وممتازة 👏'
-    };
-
     const subKey = subRecord.id || `${subRecord.taskId}_${subRecord.studentId}`;
-    const updatedTasks = {
-      ...submittedTasks,
-      [subKey]: updatedRecord,
-      [subRecord.taskId]: updatedRecord
-    };
-
-    setSubmittedTasks(updatedTasks);
-    localStorage.setItem('school_homework_submissions', JSON.stringify(updatedTasks));
+    if (gradeHomeworkSubmission) {
+      gradeHomeworkSubmission(subKey, subRecord.taskId, score, note);
+    }
     setToastMessage('✅ تم حفظ تقييم وملاحظات المعلم وإرسالها للطالب بنجاح!');
     setTimeout(() => setToastMessage(''), 3500);
   };
@@ -322,6 +306,11 @@ export const AgendaModule = () => {
   const handleSubmitHomeworkResponse = (e) => {
     e.preventDefault();
     if (!submitHomeworkModal) return;
+    if (!submissionText.trim() && !submissionImage && !submissionFileNote.trim()) {
+      alert(isAr ? 'يرجى كتابة نص الإجابة أو تصوير/رفع صورة الحل من الدفتر قبل الضغط على الإرسال!' : 'Please enter text answer or attach a photo before submitting!');
+      return;
+    }
+
     const taskId = submitHomeworkModal.id;
     const studentId = currentUser?.id || currentStudent?.id || 'STU-1';
     const studentName = currentUser?.name || currentStudent?.name || 'طالب متميز';
@@ -345,14 +334,14 @@ export const AgendaModule = () => {
       submittedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toISOString().split('T')[0]
     };
 
-    const updated = { ...submittedTasks, [subKey]: record, [taskId]: record };
-    setSubmittedTasks(updated);
-    localStorage.setItem('school_homework_submissions', JSON.stringify(updated));
+    if (addHomeworkSubmission) {
+      addHomeworkSubmission(record);
+    }
     setSubmitHomeworkModal(null);
     setSubmissionText('');
     setSubmissionFileNote('');
     setSubmissionImage('');
-    setToastMessage('📥 تم تسليم حل الواجب وصورة الإجابة بنجاح وإرسالها للمدرس!');
+    setToastMessage('🚀 تم إرسال إجابتك وصورة الحل مباشرةً للمدرس المسؤول بنجاح!');
     setTimeout(() => setToastMessage(''), 3500);
   };
 
@@ -1119,13 +1108,12 @@ export const AgendaModule = () => {
 
             <form onSubmit={handleSubmitHomeworkResponse} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200">حل الواجب / إجابة التلميذ <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-200">حل الواجب / كتابة الإجابة النصية للمعلم (أو رفع الصورة بالأسفل)</label>
                 <textarea
-                  required
                   rows={4}
                   value={submissionText}
                   onChange={(e) => setSubmissionText(e.target.value)}
-                  placeholder="اكتب إجابتك أو خطوات الحل هنا للمعلم..."
+                  placeholder="اكتب تفاصيل إجابتك أو خطوات الحل هنا..."
                   className="w-full bg-[#F8FAFC] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-700 text-[#0F172A] dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2 text-xs leading-relaxed focus:outline-none focus:border-[#0284C7] dark:focus:border-sky-400"
                 />
               </div>

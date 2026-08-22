@@ -194,6 +194,48 @@ export const AppProvider = ({ children }) => {
   // ─── Daily Marks & Cumulative Gradebook Registry ───────────────────────────
   const [dailyMarks, setDailyMarks] = useState(() => dbLoadCollection('school_daily_marks', initialDailyMarks));
 
+  // ─── Student Homework & Lesson Submissions Registry ─────────────────────────────
+  const [submittedTasks, setSubmittedTasks] = useState(() => dbLoadCollection('school_homework_submissions', {}));
+
+  const addHomeworkSubmission = (submissionRecord) => {
+    const subKey = submissionRecord.id || `${submissionRecord.taskId}_${submissionRecord.studentId}`;
+    const newRecord = {
+      id: subKey,
+      status: 'submitted',
+      submittedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toISOString().split('T')[0],
+      ...submissionRecord
+    };
+
+    setSubmittedTasks((prev) => {
+      const updated = {
+        ...prev,
+        [subKey]: newRecord,
+        [submissionRecord.taskId]: newRecord
+      };
+      dbSaveCollection('school_homework_submissions', updated);
+      return updated;
+    });
+  };
+
+  const gradeHomeworkSubmission = (subKey, taskId, gradeScore, teacherNote) => {
+    setSubmittedTasks((prev) => {
+      const existing = prev[subKey] || prev[taskId] || {};
+      const updatedRecord = {
+        ...existing,
+        status: 'graded',
+        gradeScore: gradeScore || 'ممتاز (20/20)',
+        teacherNote: teacherNote || 'إجابة ممتازة وواضحة 👏'
+      };
+      const updated = {
+        ...prev,
+        [subKey]: updatedRecord,
+        [taskId]: updatedRecord
+      };
+      dbSaveCollection('school_homework_submissions', updated);
+      return updated;
+    });
+  };
+
   // ─── Attendance Records ───────────────────────────────────────────────────
   const [attendance, setAttendance] = useState(() => dbLoadCollection('school_attendance', initialAttendanceRecords));
 
@@ -1479,6 +1521,9 @@ export const AppProvider = ({ children }) => {
     uploadStudentDoc,
     messages,
     agenda,
+    submittedTasks,
+    addHomeworkSubmission,
+    gradeHomeworkSubmission,
     tutoringCourses,
     addMessage,
     addAgendaItem,

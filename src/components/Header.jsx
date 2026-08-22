@@ -45,6 +45,7 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
   const safeStudents = students || [];
   const safeTeachers = teachers || [];
   const safeSubjects = subjects || [];
+  const activeStudent = safeStudents.find((s) => s.id === selectedStudentId || s.id === currentUser?.id || s.name === currentUser?.name) || safeStudents[0];
   const studentTotalUSD = Number(activeStudent?.tuitionTotal || 0) + Number(activeStudent?.adminFees || 0) + (activeStudent?.hasTransport ? (Number(activeStudent?.transportFee) || 0) : 0);
   const studentDiscountUSD = Number(activeStudent?.tuitionDiscount || activeStudent?.discount || 0);
   const studentPaidUSD = Number(activeStudent?.tuitionPaid || 0);

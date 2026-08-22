@@ -1345,6 +1345,92 @@ export const AppProvider = ({ children }) => {
     setSystemUsers((prev) => prev.filter((u) => u.id !== userId));
   };
 
+  // ─── Academic Years Archives & Reset Options ─────────────────────────────
+  const [academicYearsArchive, setAcademicYearsArchive] = useState(() => dbLoadCollection('school_academic_years_archive', []));
+
+  const clearDemoData = () => {
+    setStudents([]);
+    dbSaveCollection('school_students', []);
+
+    setAttendance([]);
+    dbSaveCollection('school_attendance', []);
+
+    setDailyMarks([]);
+    dbSaveCollection('school_attendance_marks', []);
+    dbSaveCollection('school_daily_marks', []);
+
+    setAgenda([]);
+    dbSaveCollection('school_agenda', []);
+
+    setMessages([]);
+    dbSaveCollection('school_messages', []);
+
+    setBehaviorRecords([]);
+    dbSaveCollection('school_behavior', []);
+
+    setNotifications([]);
+    dbSaveCollection('school_notifications', []);
+
+    setTutoringCourses(prev => {
+      const resetCourses = prev.map(c => ({ ...c, enrolledStudentIds: [], studentFeesMap: {} }));
+      dbSaveCollection('school_tutoring', resetCourses);
+      return resetCourses;
+    });
+
+    addNotification({
+      title: 'تم تفريغ البيانات التجريبية 🧹',
+      message: 'تم تنظيف المنظومة وتفريغ كافة البيانات التجريبية بنجاح.',
+      type: 'system'
+    });
+  };
+
+  const startNewAcademicYear = (newYearName) => {
+    const archiveItem = {
+      id: `AY-${Date.now()}`,
+      yearName: siteSettings.academicYear || '2025/2026',
+      archivedAt: new Date().toISOString(),
+      studentsSnapshot: [...students],
+      attendanceSnapshot: [...attendance],
+      dailyMarksSnapshot: [...dailyMarks],
+      agendaSnapshot: [...agenda],
+      messagesSnapshot: [...messages]
+    };
+
+    const updatedArchives = [archiveItem, ...academicYearsArchive];
+    setAcademicYearsArchive(updatedArchives);
+    dbSaveCollection('school_academic_years_archive', updatedArchives);
+
+    // Update site settings
+    updateSiteSettings({ academicYear: newYearName });
+
+    // Reset tuition paid for new academic year
+    const resetStudents = students.map(s => ({
+      ...s,
+      tuitionPaid: 0
+    }));
+    setStudents(resetStudents);
+    dbSaveCollection('school_students', resetStudents);
+
+    // Reset daily logs for new year
+    setAttendance([]);
+    dbSaveCollection('school_attendance', []);
+
+    setDailyMarks([]);
+    dbSaveCollection('school_attendance_marks', []);
+    dbSaveCollection('school_daily_marks', []);
+
+    setAgenda([]);
+    dbSaveCollection('school_agenda', []);
+
+    addNotification({
+      title: `بدء العام الدراسي الجديد: ${newYearName} 🎓`,
+      message: `تم أرشفة العام الدراسي السابق وحفظ سجلاته في الأرشيف وتجهيز المنظومة للعام الجديد.`,
+      type: 'system'
+    });
+
+    return true;
+  };
+
   const value = {
     lang,
     dir,
@@ -1436,7 +1522,10 @@ export const AppProvider = ({ children }) => {
     studyResources,
     addStudyResource,
     deleteStudyResource,
-    getHonorRollStudents
+    getHonorRollStudents,
+    academicYearsArchive,
+    clearDemoData,
+    startNewAcademicYear
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

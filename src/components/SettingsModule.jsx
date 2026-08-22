@@ -35,10 +35,17 @@ export const SettingsModule = () => {
     addSystemUser,
     updateSystemUserPermissions,
     deleteSystemUser,
-    generateStrong8CharPassword
+    generateStrong8CharPassword,
+    clearDemoData,
+    startNewAcademicYear,
+    academicYearsArchive = []
   } = useApp();
 
   const isAr = lang === 'ar';
+
+  const [showNewYearModal, setShowNewYearModal] = useState(false);
+  const [newYearNameInput, setNewYearNameInput] = useState('2027/2028');
+  const [showArchivesModal, setShowArchivesModal] = useState(false);
 
   const [schoolName, setSchoolName] = useState(siteSettings?.schoolName || 'مدرسة الدعم التعليمي');
   const [schoolNameEn, setSchoolNameEn] = useState(siteSettings?.schoolNameEn || 'Educational Support School');
@@ -500,6 +507,81 @@ export const SettingsModule = () => {
         </div>
       </form>
 
+      {/* 🎓 Academic Years Management & Clean Data Tool */}
+      <div className="bg-[#032541] border border-sky-800 p-6 rounded-3xl space-y-4 text-white shadow-xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-sky-800/80 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-amber-500/20 text-amber-300 rounded-2xl border border-amber-500/30">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                <span>إدارة الأعوام الدراسية وأرشفة السجلات 🎓</span>
+                <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-[10px] font-black">
+                  العام الحالي: {siteSettings?.academicYear || '2026/2027'}
+                </span>
+              </h3>
+              <p className="text-xs text-sky-200 mt-0.5">بدء عام دراسي جديد، أرشفة السجلات القديمة تلقائياً، أو تفريغ البيانات التجريبية للمنتج النهائي.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          {/* Action 1: Start New Academic Year */}
+          <div className="bg-sky-950/60 border border-sky-700/60 p-4 rounded-2xl space-y-3">
+            <h4 className="text-sm font-bold text-sky-200 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-amber-300" />
+              <span>بدء عام دراسي جديد وتجهيز السجلات 🎓</span>
+            </h4>
+            <p className="text-xs text-slate-300">يتم أرشفة وحفظ العام السابق تلقائياً بالكامل في سجلات الأرشيف، وتصفير الأقساط والسجلات اليومية وتأهيل الطلاب للعام الجديد.</p>
+            <button
+              type="button"
+              onClick={() => setShowNewYearModal(true)}
+              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>بدء عام دراسي جديد 🚀</span>
+            </button>
+          </div>
+
+          {/* Action 2: Clear Demo Data */}
+          <div className="bg-red-950/40 border border-red-800/50 p-4 rounded-2xl space-y-3">
+            <h4 className="text-sm font-bold text-red-200 flex items-center gap-2">
+              <RotateCcw className="w-4 h-4 text-red-400" />
+              <span>تفريغ البيانات التجريبية (إعادة ضبط نظيفة) 🧹</span>
+            </h4>
+            <p className="text-xs text-slate-300">يمسح كافة الطلاب والدروس والرسائل التجريبية لتنظيف المنظومة كلياً قبل تسليمها النهائي للعميل مع الحفاظ على الهيكل الإداري.</p>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('هل أنت تأكد من تفريغ كافة البيانات التجريبية والتسجيلات للبدء بسجل مدرسة نظيف بالكامل؟')) {
+                  clearDemoData();
+                  alert('تم تفريغ وتنظيف كافة البيانات التجريبية بنجاح! المنظومة جاهزة للبدء بسجل جديد.');
+                }
+              }}
+              className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-2 border border-red-500"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>تفريغ كافة البيانات التجريبية 🧹</span>
+            </button>
+          </div>
+        </div>
+
+        {/* View Archives Button */}
+        {(academicYearsArchive || []).length > 0 && (
+          <div className="pt-2 border-t border-sky-800/60 flex items-center justify-between">
+            <span className="text-xs text-sky-200 font-bold">يوجد {(academicYearsArchive || []).length} أعوام دراسية مؤرشفة ومحفوظة بالسيرفر 📁</span>
+            <button
+              type="button"
+              onClick={() => setShowArchivesModal(true)}
+              className="px-4 py-2 bg-sky-800/60 hover:bg-sky-800 text-sky-100 rounded-xl text-xs font-bold transition-all cursor-pointer border border-sky-700"
+            >
+              استعراض أرشيف الأعوام السابقة 📁
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Database Backup & Restore Section */}
       <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
         <h3 className="text-base font-bold text-[#0284C7] border-b border-slate-100 pb-3 flex items-center gap-2">
@@ -512,7 +594,7 @@ export const SettingsModule = () => {
             onClick={() => {
               // Export all localStorage data as a JSON backup file
               const backup = {};
-              const keys = ['school_subjects','school_grades','school_classrooms','school_students','school_teachers','school_staff','school_exams','school_expenses','school_buses','school_messages','school_agenda','school_tutoring','school_push_notifs','school_system_users','school_settings','school_db_init','school_db_version'];
+              const keys = ['school_subjects','school_grades','school_classrooms','school_students','school_teachers','school_staff','school_exams','school_expenses','school_buses','school_messages','school_agenda','school_tutoring','school_push_notifs','school_system_users','school_settings','school_academic_years_archive','school_db_init','school_db_version'];
               keys.forEach(k => { const v = localStorage.getItem(k); if (v) backup[k] = JSON.parse(v); });
               const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
@@ -777,6 +859,103 @@ export const SettingsModule = () => {
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">إلغاء</button>
               <button onClick={handleSaveEditPermissions}
                 className="btn-mustard px-5 py-2 rounded-xl text-xs font-bold shadow cursor-pointer">حفظ الصلاحيات ✅</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Start New Academic Year Modal */}
+      {showNewYearModal && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4">
+          <div className="bg-white border-2 border-amber-500 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-[#032541] flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-amber-500" />
+                <span>بدء وتفعيل عام دراسي جديد 🎓</span>
+              </h3>
+              <button onClick={() => setShowNewYearModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs cursor-pointer">✕</button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-amber-900 font-bold space-y-1">
+                <p>⚠️ عند بدء العام الجديد:</p>
+                <ul className="list-disc pe-4 space-y-0.5 text-[11px] text-amber-800">
+                  <li>سيتم أرشفة السجلات والحضور والدرجات الحالية وحفظها في السيرفر بالأرشيف.</li>
+                  <li>تصفير مدفوعات الأقساط لتجهيز دفعات العام الجديد.</li>
+                  <li>تصفير السجلات اليومية والواجبات المخصصة للعام الجديد.</li>
+                </ul>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">اسم المسمى للعام الدراسي الجديد:</label>
+                <input
+                  type="text"
+                  value={newYearNameInput}
+                  onChange={(e) => setNewYearNameInput(e.target.value)}
+                  placeholder="مثال: 2027/2028"
+                  className="w-full bg-[#F8FAFC] border border-slate-300 text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button onClick={() => setShowNewYearModal(false)}
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">إلغاء</button>
+              <button
+                onClick={() => {
+                  if (!newYearNameInput) return;
+                  startNewAcademicYear(newYearNameInput);
+                  setShowNewYearModal(false);
+                  alert(`تم بدء العام الدراسي الجديد (${newYearNameInput}) وأرشفة العام السالف بنجاح! 🚀`);
+                }}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-5 py-2 rounded-xl text-xs font-black shadow cursor-pointer flex items-center gap-1.5"
+              >
+                <Calendar className="w-4 h-4" />
+                تأكيد وبدء العام الدراسي الجديد 🎓
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Archives View Modal */}
+      {showArchivesModal && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4">
+          <div className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-2xl w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                أرشيف الأعوام الدراسية السابقة المحفوظة 📁
+              </h3>
+              <button onClick={() => setShowArchivesModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs cursor-pointer">✕</button>
+            </div>
+
+            <div className="space-y-3 max-h-96 overflow-y-auto pe-1 custom-scrollbar">
+              {(academicYearsArchive || []).length === 0 ? (
+                <p className="text-center py-8 text-slate-400 text-xs font-bold">لا يوجد أعوام دراسية مؤرشفة حالياً 📁</p>
+              ) : (
+                academicYearsArchive.map((arch) => (
+                  <div key={arch.id} className="p-4 bg-[#F8FAFC] border border-slate-200 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                      <span className="font-extrabold text-[#0284C7] text-sm">🎓 العام الدراسي: {arch.yearName}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">تاريخ الأرشفة: {new Date(arch.archivedAt).toLocaleDateString('ar-EG')}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-[11px] font-bold text-slate-700">
+                      <span className="bg-sky-50 p-2 rounded-xl text-center border border-sky-100">👥 {arch.studentsSnapshot?.length || 0} طالب مؤرشف</span>
+                      <span className="bg-emerald-50 p-2 rounded-xl text-center border border-emerald-100">📅 {arch.attendanceSnapshot?.length || 0} سجل حضور</span>
+                      <span className="bg-purple-50 p-2 rounded-xl text-center border border-purple-100">📚 {arch.agendaSnapshot?.length || 0} درس وواجب</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-100">
+              <button onClick={() => setShowArchivesModal(false)}
+                className="px-5 py-2 bg-[#0284C7] text-white rounded-xl text-xs font-bold cursor-pointer">إغلاق ✕</button>
             </div>
           </div>
         </div>,

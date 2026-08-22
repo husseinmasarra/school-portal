@@ -95,13 +95,35 @@ export const Dashboard = ({ setActiveTab }) => {
     teacherSubjects.includes(a.subject) || a.subject === activeTeacher.subject
   );
 
+  const getSectionLetter = (str) => {
+    if (!str) return '';
+    const m = str.match(/[\(\s\-\_]([أبجدA-Z])[\)\s\-\_]?$/) || str.match(/([أبجدA-Z])/g);
+    return m ? m[m.length - 1] : '';
+  };
+
+  const normGradeStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الصف', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\-\_\s]/g, '');
+
   const teacherAssignedClasses = activeTeacher.assignedClassrooms || [];
   const isolatedTeacherStudents = safeStudents.filter(s => {
     if (teacherAssignedClasses.length === 0) return true;
-    const fullClass = `${s.grade} (${s.classRoom || 'أ'})`;
-    return teacherAssignedClasses.some(c => 
-      c === fullClass || (s.grade && c.includes(s.grade) && (c.includes(`(${s.classRoom || 'أ'})`) || c.includes(s.classRoom || 'أ')))
-    );
+    const sGrade = normGradeStr(s.grade);
+    const sSec = getSectionLetter(s.classRoom || s.classroom);
+
+    return teacherAssignedClasses.some((assignedItem) => {
+      const aGrade = normGradeStr(assignedItem);
+      const aSec = getSectionLetter(assignedItem);
+      const gradeMatches = !sGrade || !aGrade || aGrade.includes(sGrade) || sGrade.includes(aGrade.replace(/[أبجدA-Z]/g, ''));
+      const secMatches = !sSec || !aSec || sSec === aSec;
+      return gradeMatches && secMatches;
+    });
   });
 
   // Submissions state for teacher grading

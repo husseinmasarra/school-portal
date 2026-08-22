@@ -491,6 +491,36 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     }
   };
 
+  const getSectionLetter = (str) => {
+    if (!str) return '';
+    const m = str.match(/[\(\s\-\_]([أبجدA-Z])[\)\s\-\_]?$/) || str.match(/([أبجدA-Z])/g);
+    return m ? m[m.length - 1] : '';
+  };
+
+  const normGradeStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الصف', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\-\_\s]/g, '');
+
+  const isStudentAssignedToTeacher = (student, assignedList) => {
+    if (!assignedList || assignedList.length === 0) return true;
+    const sGrade = normGradeStr(student.grade);
+    const sSec = getSectionLetter(student.classRoom || student.classroom);
+
+    return assignedList.some((assignedItem) => {
+      const aGrade = normGradeStr(assignedItem);
+      const aSec = getSectionLetter(assignedItem);
+      const gradeMatches = !sGrade || !aGrade || aGrade.includes(sGrade) || sGrade.includes(aGrade.replace(/[أبجدA-Z]/g, ''));
+      const secMatches = !sSec || !aSec || sSec === aSec;
+      return gradeMatches && secMatches;
+    });
+  };
+
   // Smart Search & Filter Logic
   const filteredStudents = safeStudents.filter((s) => {
     const term = searchTerm.toLowerCase().trim();
@@ -507,12 +537,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                           (s.motherPhone || '').includes(term) ||
                           (s.ministryClearance || '').toLowerCase().includes(term);
     const matchesGrade = selectedGradeFilter === 'all' || (s.grade || '').includes(selectedGradeFilter);
-    const matchesTeacherAssignment = currentRole !== 'teacher' || (() => {
-      const assigned = currentUser?.assignedClassrooms || currentUser?.assignedClasses || [];
-      if (!assigned || assigned.length === 0) return true;
-      const fullClass = `${s.grade} (${s.classRoom || 'أ'})`;
-      return assigned.some(cls => cls === fullClass || (s.grade && cls.includes(s.grade) && (cls.includes(`(${s.classRoom || 'أ'})`) || cls.includes(s.classRoom || 'أ'))));
-    })();
+    const matchesTeacherAssignment = currentRole !== 'teacher' || isStudentAssignedToTeacher(s, currentUser?.assignedClassrooms || currentUser?.assignedClasses || []);
 
     return matchesSearch && matchesGrade && matchesTeacherAssignment;
   });

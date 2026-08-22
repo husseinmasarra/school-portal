@@ -662,13 +662,13 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
           `}</style>
 
           {/* Header Banner & Add Slot / Print Buttons */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-6 rounded-3xl shadow-sm no-print">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-6 rounded-3xl shadow-sm no-print">
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-[#0284C7] dark:text-sky-400 flex items-center gap-2">
+              <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
                 <span>⏱️</span>
                 <span>{isAr ? 'جدول توزيع الحصص والشُعب الأسبوعية (حسب الفلتر والطباعة 🖨️)' : 'Weekly Timetable (Filtered Print View)'}</span>
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500">
                 {isAr 
                   ? 'تم تخصيص عرض وطباعة جداول الصفوف والشعَب بدقة وفقاً للفلاتر المحددة بالأعلى مع طباعة مستقلة لكل شعبة.'
                   : 'Display and printing automatically adapt based on your filter criteria.'}
@@ -701,38 +701,38 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
           </div>
 
           {/* Filter Bar */}
-          <div className="bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs no-print shadow-xs">
+          <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs no-print shadow-xs">
             <div className="flex items-center gap-3 flex-wrap">
               
               {/* Grade and Section filters */}
               {(currentRole === 'admin' || currentRole === 'teacher') && (
                 <>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-[#0284C7] dark:text-sky-400">{isAr ? 'اختيار الصف:' : 'Grade:'}</span>
+                    <span className="font-bold text-[#0284C7]">{isAr ? 'اختيار الصف:' : 'Grade:'}</span>
                     <select
                       value={slotFilterGrade}
                       onChange={(e) => setSlotFilterGrade(e.target.value)}
-                      className="bg-white dark:bg-zinc-800 border-2 border-sky-200 dark:border-sky-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-[#0284C7] cursor-pointer text-xs"
+                      className="bg-white border-2 border-sky-200 text-slate-900 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-[#0284C7] cursor-pointer text-xs"
                     >
-                      <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع الصفوف (مفصلة)' : 'All Grades (Separated)'}</option>
+                      <option value="all" className="bg-white text-slate-900 font-bold py-1">{isAr ? 'جميع الصفوف (مفصلة)' : 'All Grades (Separated)'}</option>
                       {safeGrades.map((g) => (
-                        <option key={g.id} value={g.name} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{g.name}</option>
+                        <option key={g.id} value={g.name} className="bg-white text-slate-900 font-bold py-1">{g.name}</option>
                       ))}
                     </select>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-[#0284C7] dark:text-sky-400">{isAr ? 'الشعبة:' : 'Section:'}</span>
+                    <span className="font-bold text-[#0284C7]">{isAr ? 'الشعبة:' : 'Section:'}</span>
                     <select
                       value={slotFilterSection}
                       onChange={(e) => setSlotFilterSection(e.target.value)}
-                      className="bg-white dark:bg-zinc-800 border-2 border-sky-200 dark:border-sky-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-[#0284C7] cursor-pointer text-xs"
+                      className="bg-white border-2 border-sky-200 text-slate-900 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-[#0284C7] cursor-pointer text-xs"
                     >
-                      <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع الشعب' : 'All Sections'}</option>
-                      <option value="أ" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
-                      <option value="ب" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
-                      <option value="ج" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
-                      <option value="د" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
+                      <option value="all" className="bg-white text-slate-900 font-bold py-1">{isAr ? 'جميع الشعب' : 'All Sections'}</option>
+                      <option value="أ" className="bg-white text-slate-900 font-bold py-1">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
+                      <option value="ب" className="bg-white text-slate-900 font-bold py-1">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
+                      <option value="ج" className="bg-white text-slate-900 font-bold py-1">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
+                      <option value="د" className="bg-white text-slate-900 font-bold py-1">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
                     </select>
                   </div>
                 </>
@@ -740,35 +740,35 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
 
               {/* Locked view notice badge for Student and Parent */}
               {(currentRole === 'student' || currentRole === 'parent') && (
-                <div className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300 rounded-xl font-bold flex items-center gap-1.5">
+                <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-bold flex items-center gap-1.5">
                   <span>🎓 {isAr ? 'جدول حصص الصف والشعبة المخصصة:' : 'Your Enrolled Class Timetable:'}</span>
                   <span className="underline decoration-wavy decoration-emerald-500 font-extrabold">{slotFilterGrade} ({isAr ? `الشعبة ${slotFilterSection}` : `Section ${slotFilterSection}`})</span>
                 </div>
               )}
 
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-600 dark:text-slate-300">{isAr ? 'تصفية حسب المعلم:' : 'Filter Teacher:'}</span>
+                <span className="font-bold text-slate-600">{isAr ? 'تصفية حسب المعلم:' : 'Filter Teacher:'}</span>
                 <select
                   value={slotFilterTeacher}
                   onChange={(e) => setSlotFilterTeacher(e.target.value)}
-                  className="bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer text-xs"
+                  className="bg-white border-2 border-slate-200 text-slate-900 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer text-xs"
                 >
-                  <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع المعلمين' : 'All Teachers'}</option>
+                  <option value="all" className="bg-white text-slate-900 font-bold py-1">{isAr ? 'جميع المعلمين' : 'All Teachers'}</option>
                   {safeTeachers.map((t) => (
-                    <option key={t.id} value={t.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{t.name} ({t.subject || 'معلم'})</option>
+                    <option key={t.id} value={t.id} className="bg-white text-slate-900 font-bold py-1">{t.name} ({t.subject || 'معلم'})</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <span className="text-[11px] font-bold text-[#0284C7] bg-sky-50 dark:bg-sky-950/50 px-3 py-1 rounded-full border border-sky-200 dark:border-sky-800">
+            <span className="text-[11px] font-bold text-[#0284C7] bg-sky-50 px-3 py-1 rounded-full border border-sky-200">
               {isAr ? `عدد الصفوف والشُعب المعروضة: ${uniqueClassroomsList.length} شعبة` : `Classrooms: ${uniqueClassroomsList.length}`}
             </span>
           </div>
 
           {/* Separated Timetable Cards per Grade & Section */}
           {uniqueClassroomsList.length === 0 ? (
-            <div className="bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-12 rounded-3xl text-center space-y-2 text-slate-400">
+            <div className="bg-white border border-[#E2E8F0] p-12 rounded-3xl text-center space-y-2 text-slate-400">
               <Calendar className="w-12 h-12 mx-auto opacity-30 text-[#0284C7]" />
               <p className="text-xs font-bold">{isAr ? 'لا يوجد جداول مضافة تطابق الفلتر المحدد.' : 'No timetables found matching filter.'}</p>
             </div>
@@ -793,18 +793,18 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 return (
                   <div
                     key={cardKey}
-                    className={`bg-white dark:bg-zinc-900 border-2 border-sky-200 dark:border-sky-900/60 rounded-3xl p-6 shadow-sm space-y-4 class-timetable-print-card ${isTargetCard ? 'target-single-card' : ''}`}
+                    className={`bg-white border-2 border-sky-200 rounded-3xl p-6 shadow-sm space-y-4 class-timetable-print-card ${isTargetCard ? 'target-single-card' : ''}`}
                   >
                     {/* Header Banner for this Classroom */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sky-100 dark:border-sky-900/50 pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sky-100 pb-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="p-2 bg-sky-100 dark:bg-sky-950 text-[#0284C7] dark:text-sky-300 rounded-xl text-sm font-black">🏫</span>
-                          <h4 className="text-base font-black text-sky-950 dark:text-sky-300">
+                          <span className="p-2 bg-sky-100 text-[#0284C7] rounded-xl text-sm font-black">🏫</span>
+                          <h4 className="text-base font-black text-sky-950">
                             {isAr ? `جدول حصص: ${classGradeName} (${classSecLetter.includes('الشعبة') ? classSecLetter : `الشعبة ${classSecLetter}`})` : `Timetable: ${classGradeName} (Section ${classSecLetter})`}
                           </h4>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold me-1">
+                        <p className="text-xs text-slate-500 font-bold me-1">
                           {isAr ? `مربّي الصف والمشرف: ${classSupervisor} | إجمالي حصص الأسبوع: ${classSlots.length} حصة` : `Homeroom Teacher: ${classSupervisor} | Total Slots: ${classSlots.length}`}
                         </p>
                       </div>
@@ -822,37 +822,37 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
 
                     {/* Timetable Table Grid for this Class */}
                     <div className="overflow-x-auto">
-                      <table className="w-full text-right rtl:text-right border-collapse border border-slate-200 dark:border-slate-700 min-w-[700px] text-xs">
+                      <table className="w-full text-right rtl:text-right border-collapse border border-slate-200 min-w-[700px] text-xs">
                         <thead>
-                          <tr className="bg-[#0284C7] dark:bg-sky-950/80 text-[11px] font-black text-white dark:text-sky-200 border-b border-sky-600 dark:border-slate-700">
-                            <th className="p-3 w-28 border-e border-sky-600/50 dark:border-slate-700 text-center">{isAr ? 'اليوم' : 'Day'}</th>
-                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 1 (07:30 - 08:20)' : 'P1 (07:30 - 08:20)'}</th>
-                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 2 (08:20 - 09:10)' : 'P2 (08:20 - 09:10)'}</th>
-                            <th className="p-3 text-center bg-amber-500 text-white font-extrabold border-e border-sky-600/50 dark:border-slate-700">
+                          <tr className="bg-[#0284C7] text-[11px] font-black text-white border-b border-sky-600">
+                            <th className="p-3 w-28 border-e border-sky-600/50 text-center">{isAr ? 'اليوم' : 'Day'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50">{isAr ? 'الحصة 1 (07:30 - 08:20)' : 'P1 (07:30 - 08:20)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50">{isAr ? 'الحصة 2 (08:20 - 09:10)' : 'P2 (08:20 - 09:10)'}</th>
+                            <th className="p-3 text-center bg-amber-500 text-white font-extrabold border-e border-sky-600/50">
                               {isAr ? `☕ الفسحة (${siteSettings?.recessStartTime || '09:10'} - ${siteSettings?.recessEndTime || '09:30'})` : `Break`}
                             </th>
-                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 3 (09:30 - 10:20)' : 'P3 (09:30 - 10:20)'}</th>
-                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 4 (10:20 - 11:10)' : 'P4 (10:20 - 11:10)'}</th>
-                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 5 (11:10 - 12:00)' : 'P5 (11:10 - 12:00)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50">{isAr ? 'الحصة 3 (09:30 - 10:20)' : 'P3 (09:30 - 10:20)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50">{isAr ? 'الحصة 4 (10:20 - 11:10)' : 'P4 (10:20 - 11:10)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50">{isAr ? 'الحصة 5 (11:10 - 12:00)' : 'P5 (11:10 - 12:00)'}</th>
                           </tr>
                         </thead>
-                        <tbody className="font-bold divide-y divide-slate-200 dark:divide-slate-700">
+                        <tbody className="font-bold divide-y divide-slate-200">
                           {['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'].map((dayName) => (
-                            <tr key={dayName} className="hover:bg-sky-50/30 dark:hover:bg-sky-950/20 border-b border-slate-200 dark:border-slate-700">
-                              <td className="p-3 font-extrabold text-[#0284C7] dark:text-sky-300 bg-sky-50/60 dark:bg-sky-950/40 text-center border-e border-slate-300 dark:border-slate-700">
+                            <tr key={dayName} className="hover:bg-sky-50/30 border-b border-slate-200">
+                              <td className="p-3 font-extrabold text-[#0284C7] bg-sky-50/60 text-center border-e border-slate-300">
                                 {dayName}
                               </td>
 
                               {[1, 2].map((periodNum) => {
                                 const slot = classSlots.find(s => s.day === dayName && Number(s.period) === periodNum);
                                 return (
-                                  <td key={periodNum} className="p-2.5 text-center align-top border-e border-slate-300 dark:border-slate-700">
+                                  <td key={periodNum} className="p-2.5 text-center align-top border-e border-slate-300">
                                     {slot ? (
-                                      <div className="space-y-1 bg-[#F8FAFC] dark:bg-zinc-900 p-2.5 rounded-2xl border border-slate-200 dark:border-zinc-800">
-                                        <span className="font-extrabold text-xs text-[#0284C7] dark:text-sky-400 block">📚 {slot.subject}</span>
-                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">👨‍🏫 {slot.teacherName}</span>
+                                      <div className="space-y-1 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-200">
+                                        <span className="font-extrabold text-xs text-[#0284C7] block">📚 {slot.subject}</span>
+                                        <span className="text-[11px] font-bold text-slate-700 block">👨‍🏫 {slot.teacherName}</span>
                                         {currentRole === 'admin' && (
-                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 dark:border-zinc-800 pt-1">
+                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 pt-1">
                                             <button
                                               type="button"
                                               onClick={() => {
@@ -880,26 +880,26 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                                         )}
                                       </div>
                                     ) : (
-                                      <span className="text-[10px] text-slate-300 dark:text-slate-600 block py-3">-</span>
+                                      <span className="text-[10px] text-slate-300 block py-3">-</span>
                                     )}
                                   </td>
                                 );
                               })}
 
-                              <td className="p-2 text-center align-middle bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-bold border-e border-slate-300 dark:border-slate-700 text-[10px]">
+                              <td className="p-2 text-center align-middle bg-amber-50 text-amber-900 font-bold border-e border-slate-300 text-[10px]">
                                 ☕ الفسحة
                               </td>
 
                               {[3, 4, 5].map((periodNum) => {
                                 const slot = classSlots.find(s => s.day === dayName && Number(s.period) === periodNum);
                                 return (
-                                  <td key={periodNum} className="p-2.5 text-center align-top border-e border-slate-300 dark:border-slate-700">
+                                  <td key={periodNum} className="p-2.5 text-center align-top border-e border-slate-300">
                                     {slot ? (
-                                      <div className="space-y-1 bg-[#F8FAFC] dark:bg-zinc-900 p-2.5 rounded-2xl border border-slate-200 dark:border-zinc-800">
-                                        <span className="font-extrabold text-xs text-[#0284C7] dark:text-sky-400 block">📚 {slot.subject}</span>
-                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">👨‍🏫 {slot.teacherName}</span>
+                                      <div className="space-y-1 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-200">
+                                        <span className="font-extrabold text-xs text-[#0284C7] block">📚 {slot.subject}</span>
+                                        <span className="text-[11px] font-bold text-slate-700 block">👨‍🏫 {slot.teacherName}</span>
                                         {currentRole === 'admin' && (
-                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 dark:border-zinc-800 pt-1">
+                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 pt-1">
                                             <button
                                               type="button"
                                               onClick={() => {
@@ -927,7 +927,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                                         )}
                                       </div>
                                     ) : (
-                                      <span className="text-[10px] text-slate-300 dark:text-slate-600 block py-3">-</span>
+                                      <span className="text-[10px] text-slate-300 block py-3">-</span>
                                     )}
                                   </td>
                                 );

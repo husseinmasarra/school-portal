@@ -131,8 +131,17 @@ export const AgendaModule = () => {
   const safeStudents = students || [];
   const safeAgenda = agenda || [];
 
-  const [selectedGrade, setSelectedGrade] = useState('الصف السادس');
-  const [selectedClass, setSelectedClass] = useState('أ');
+  const currentStudent = safeStudents.find(s => s.id === currentUser?.id || s.name === currentUser?.name) || safeStudents[0];
+
+  const [selectedGrade, setSelectedGrade] = useState(() => currentStudent?.grade || 'الصف السادس');
+  const [selectedClass, setSelectedClass] = useState(() => currentStudent?.classRoom || currentStudent?.classroom || 'أ');
+
+  useEffect(() => {
+    if (currentStudent && (currentRole === 'student' || currentRole === 'parent')) {
+      if (currentStudent.grade) setSelectedGrade(currentStudent.grade);
+      if (currentStudent.classRoom || currentStudent.classroom) setSelectedClass(currentStudent.classRoom || currentStudent.classroom);
+    }
+  }, [currentStudent, currentRole]);
 
   // Selected Calendar Date state (default to today)
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);

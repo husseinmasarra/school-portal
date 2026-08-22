@@ -38,6 +38,29 @@ export const SubjectsModule = () => {
   // Active student if student or parent logged in
   const currentStudent = safeStudents.find(s => s.id === currentUser?.id || s.name === currentUser?.name) || safeStudents[0];
 
+  const normStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\s]/g, '');
+
+  const isGradeMatch = (g1, g2) => {
+    if (!g1 || !g2) return true;
+    const n1 = normStr(g1);
+    const n2 = normStr(g2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
+
+  const isSecMatch = (s1, s2) => {
+    if (!s1 || !s2) return true;
+    const n1 = normStr(s1);
+    const n2 = normStr(s2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [name, setName] = useState('');
   const [nameEn, setNameEn] = useState('');
@@ -157,8 +180,8 @@ export const SubjectsModule = () => {
           const subjectLessons = agenda.filter(a => {
             const matchesSubject = a.subject === sub.name || (a.subject && a.subject.includes(sub.name));
             if (currentRole === 'student' || currentRole === 'parent') {
-              const matchesGrade = !currentStudent || (a.grade && currentStudent.grade && a.grade.includes(currentStudent.grade));
-              const matchesSection = !currentStudent || !a.classRoom || a.classRoom === currentStudent.classRoom;
+              const matchesGrade = isGradeMatch(a.grade, currentStudent?.grade);
+              const matchesSection = isSecMatch(a.classRoom, currentStudent?.classRoom || currentStudent?.classroom);
               return matchesSubject && matchesGrade && matchesSection;
             }
             return matchesSubject;
@@ -325,8 +348,8 @@ export const SubjectsModule = () => {
                 const subjectLessons = agenda.filter(a => {
                   const matchesSubject = a.subject === selectedSubjectForLessons.name || (a.subject && a.subject.includes(selectedSubjectForLessons.name));
                   if (currentRole === 'student' || currentRole === 'parent') {
-                    const matchesGrade = !currentStudent || (a.grade && currentStudent.grade && a.grade.includes(currentStudent.grade));
-                    const matchesSection = !currentStudent || !a.classRoom || a.classRoom === currentStudent.classRoom;
+                    const matchesGrade = isGradeMatch(a.grade, currentStudent?.grade);
+                    const matchesSection = isSecMatch(a.classRoom, currentStudent?.classRoom || currentStudent?.classroom);
                     return matchesSubject && matchesGrade && matchesSection;
                   }
                   return matchesSubject;

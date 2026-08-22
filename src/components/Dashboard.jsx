@@ -982,17 +982,24 @@ export const Dashboard = ({ setActiveTab }) => {
             (s) => s.grade === activeStudent.grade && s.section === (activeStudent.classRoom || 'أ')
           );
 
-          const getSubjectForPeriod = (dayName, periodNum, fallbackVal) => {
+          // Get exact array of active subject names created in the system
+          const activeSubjectNames = safeSubjects.length > 0 
+            ? safeSubjects.map(s => s.name) 
+            : ['اللغة الانكليزية', 'اللغة العربية', 'رياضيات', 'تربية مدنية', 'تربية اسلامية', 'علوم', 'تفاعل ومشاركة'];
+
+          const getSubjectNameAt = (idx) => activeSubjectNames[idx % activeSubjectNames.length] || activeSubjectNames[0];
+
+          const getSubjectForPeriod = (dayName, periodNum, defaultIdx) => {
             const slot = studentDbSlots.find(s => s.day === dayName && Number(s.period) === periodNum);
-            return slot ? slot.subject : fallbackVal;
+            return slot ? slot.subject : getSubjectNameAt(defaultIdx);
           };
 
           const timetableRows = [
-            { day: 'الإثنين', p1: getSubjectForPeriod('الإثنين', 1, 'الرياضيات'), p2: getSubjectForPeriod('الإثنين', 2, 'العلوم والفيزياء'), p3: getSubjectForPeriod('الإثنين', 3, 'اللغة الإنجليزية'), p4: getSubjectForPeriod('الإثنين', 4, 'اللغة العربية واللغويات'), p5: getSubjectForPeriod('الإثنين', 5, 'البرمجة والابتكار الرقمي') },
-            { day: 'الثلاثاء', p1: getSubjectForPeriod('الثلاثاء', 1, 'اللغة العربية واللغويات'), p2: getSubjectForPeriod('الثلاثاء', 2, 'الرياضيات'), p3: getSubjectForPeriod('الثلاثاء', 3, 'القرآن والدراسات الإسلامية'), p4: getSubjectForPeriod('الثلاثاء', 4, 'العلوم والفيزياء'), p5: getSubjectForPeriod('الثلاثاء', 5, 'اللغة الإنجليزية') },
-            { day: 'الأربعاء', p1: getSubjectForPeriod('الأربعاء', 1, 'العلوم والفيزياء'), p2: getSubjectForPeriod('الأربعاء', 2, 'البرمجة والابتكار الرقمي'), p3: getSubjectForPeriod('الأربعاء', 3, 'الرياضيات'), p4: getSubjectForPeriod('الأربعاء', 4, 'اللغة الإنجليزية'), p5: getSubjectForPeriod('الأربعاء', 5, 'اللغة العربية واللغويات') },
-            { day: 'الخميس', p1: getSubjectForPeriod('الخميس', 1, 'اللغة الإنجليزية'), p2: getSubjectForPeriod('الخميس', 2, 'القرآن والدراسات الإسلامية'), p3: getSubjectForPeriod('الخميس', 3, 'العلوم والفيزياء'), p4: getSubjectForPeriod('الخميس', 4, 'الرياضيات'), p5: getSubjectForPeriod('الخميس', 5, 'البرمجة والابتكار الرقمي') },
-            { day: 'الجمعة', p1: getSubjectForPeriod('الجمعة', 1, 'الرياضيات'), p2: getSubjectForPeriod('الجمعة', 2, 'اللغة العربية واللغويات'), p3: getSubjectForPeriod('الجمعة', 3, 'البرمجة والابتكار الرقمي'), p4: getSubjectForPeriod('الجمعة', 4, 'القرآن والدراسات الإسلامية'), p5: getSubjectForPeriod('الجمعة', 5, 'العلوم والفيزياء') },
+            { day: 'الإثنين', p1: getSubjectForPeriod('الإثنين', 1, 2), p2: getSubjectForPeriod('الإثنين', 2, 5), p3: getSubjectForPeriod('الإثنين', 3, 0), p4: getSubjectForPeriod('الإثنين', 4, 1), p5: getSubjectForPeriod('الإثنين', 5, 4) },
+            { day: 'الثلاثاء', p1: getSubjectForPeriod('الثلاثاء', 1, 1), p2: getSubjectForPeriod('الثلاثاء', 2, 2), p3: getSubjectForPeriod('الثلاثاء', 3, 4), p4: getSubjectForPeriod('الثلاثاء', 4, 5), p5: getSubjectForPeriod('الثلاثاء', 5, 3) },
+            { day: 'الأربعاء', p1: getSubjectForPeriod('الأربعاء', 1, 5), p2: getSubjectForPeriod('الأربعاء', 2, 4), p3: getSubjectForPeriod('الأربعاء', 3, 2), p4: getSubjectForPeriod('الأربعاء', 4, 0), p5: getSubjectForPeriod('الأربعاء', 5, 6) },
+            { day: 'الخميس', p1: getSubjectForPeriod('الخميس', 1, 0), p2: getSubjectForPeriod('الخميس', 2, 3), p3: getSubjectForPeriod('الخميس', 3, 5), p4: getSubjectForPeriod('الخميس', 4, 2), p5: getSubjectForPeriod('الخميس', 5, 1) },
+            { day: 'الجمعة', p1: getSubjectForPeriod('الجمعة', 1, 2), p2: getSubjectForPeriod('الجمعة', 2, 1), p3: getSubjectForPeriod('الجمعة', 3, 6), p4: getSubjectForPeriod('الجمعة', 4, 4), p5: getSubjectForPeriod('الجمعة', 5, 3) },
           ];
 
           return (

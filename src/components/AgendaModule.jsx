@@ -280,6 +280,7 @@ export const AgendaModule = () => {
 
   // Online Homework Submission State
   const [submitHomeworkModal, setSubmitHomeworkModal] = useState(null);
+  const [viewingSubmissionsTask, setViewingSubmissionsTask] = useState(null);
   const [submissionText, setSubmissionText] = useState('');
   const [submissionFileNote, setSubmissionFileNote] = useState('');
   const [submissionImage, setSubmissionImage] = useState('');
@@ -287,6 +288,27 @@ export const AgendaModule = () => {
     try { return JSON.parse(localStorage.getItem('school_homework_submissions') || '{}'); }
     catch { return {}; }
   });
+
+  const handleGradeSubmission = (subRecord, score, note) => {
+    const updatedRecord = {
+      ...subRecord,
+      status: 'graded',
+      gradeScore: score || 'ممتاز (20/20)',
+      teacherNote: note || 'إجابة رائعة وممتازة 👏'
+    };
+
+    const subKey = subRecord.id || `${subRecord.taskId}_${subRecord.studentId}`;
+    const updatedTasks = {
+      ...submittedTasks,
+      [subKey]: updatedRecord,
+      [subRecord.taskId]: updatedRecord
+    };
+
+    setSubmittedTasks(updatedTasks);
+    localStorage.setItem('school_homework_submissions', JSON.stringify(updatedTasks));
+    setToastMessage('✅ تم حفظ تقييم وملاحظات المعلم وإرسالها للطالب بنجاح!');
+    setTimeout(() => setToastMessage(''), 3500);
+  };
 
   const handleHomeworkPhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -301,23 +323,36 @@ export const AgendaModule = () => {
     e.preventDefault();
     if (!submitHomeworkModal) return;
     const taskId = submitHomeworkModal.id;
+    const studentId = currentUser?.id || currentStudent?.id || 'STU-1';
+    const studentName = currentUser?.name || currentStudent?.name || 'طالب متميز';
+    const subKey = `${taskId}_${studentId}`;
+
     const record = {
+      id: subKey,
       taskId,
       taskTitle: submitHomeworkModal.title,
       subject: submitHomeworkModal.subject,
+      studentId,
+      studentName,
+      studentGrade: currentStudent?.grade || selectedGrade,
+      studentClass: currentStudent?.classRoom || currentStudent?.classroom || selectedClass,
       text: submissionText,
       fileNote: submissionFileNote,
       image: submissionImage,
+      status: submittedTasks[subKey]?.status || 'submitted',
+      gradeScore: submittedTasks[subKey]?.gradeScore || null,
+      teacherNote: submittedTasks[subKey]?.teacherNote || '',
       submittedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toISOString().split('T')[0]
     };
-    const updated = { ...submittedTasks, [taskId]: record };
+
+    const updated = { ...submittedTasks, [subKey]: record, [taskId]: record };
     setSubmittedTasks(updated);
     localStorage.setItem('school_homework_submissions', JSON.stringify(updated));
     setSubmitHomeworkModal(null);
     setSubmissionText('');
     setSubmissionFileNote('');
     setSubmissionImage('');
-    setToastMessage('📥 تم تسليم حل الواجب وصورة الإجابة بنجاح!');
+    setToastMessage('📥 تم تسليم حل الواجب وصورة الإجابة بنجاح وإرسالها للمدرس!');
     setTimeout(() => setToastMessage(''), 3500);
   };
 
@@ -780,26 +815,58 @@ export const AgendaModule = () => {
                       </div>
                     )}
 
-                    {(currentRole === 'student' || currentRole === 'parent') && (
-                      <button
-                        onClick={() => {
-                          setSubmitHomeworkModal(item);
-                          const existing = submittedTasks[item.id];
-                          if (existing) {
-                            setSubmissionText(existing.text || '');
-                            setSubmissionFileNote(existing.fileNote || '');
-                          }
-                        }}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center gap-1.5 ${
-                          submittedTasks[item.id]
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-[#0284C7] hover:bg-[#0369A1] text-white'
-                        }`}
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{submittedTasks[item.id] ? (isAr ? 'تم تسليم الواجب 📥 (تعديل)' : 'Submitted 📥') : (isAr ? 'تسليم الواجب 📤' : 'Submit Homework')}</span>
-                      </button>
-                    )}
+                    {(currentRole === 'teacher' || currentRole === 'admin') && (() => {
+                      const taskSubsCount = Object.values(submittedTasks || {}).filter(
+                        s => s && (s.taskId === item.id || s.taskTitle === item.title)
+                      ).length;
+
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => setViewingSubmissionsTask(item)}
+                          className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>إجابات الطلاب المرفوعة ({taskSubsCount}) 📥</span>
+                        </button>
+                      );
+                    })()}
+
+                    {(currentRole === 'student' || currentRole === 'parent') && (() => {
+                      const studentId = currentUser?.id || currentStudent?.id || 'STU-1';
+                      const subKey = `${item.id}_${studentId}`;
+                      const mySub = submittedTasks[subKey] || submittedTasks[item.id];
+
+                      return (
+                        <div className="space-y-2 w-full sm:w-auto">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSubmitHomeworkModal(item);
+                              if (mySub) {
+                                setSubmissionText(mySub.text || '');
+                                setSubmissionFileNote(mySub.fileNote || '');
+                              }
+                            }}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center gap-1.5 ${
+                              mySub
+                                ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                                : 'bg-[#0284C7] hover:bg-[#0369A1] text-white'
+                            }`}
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>{mySub ? (isAr ? 'تم تسليم الإجابة للمدرس 📥 (تعديل)' : 'Submitted 📥') : (isAr ? 'إجابة وتسليم الدرس / الواجب 📤' : 'Submit Homework')}</span>
+                          </button>
+
+                          {mySub?.gradeScore && (
+                            <div className="p-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-[11px] font-bold flex items-center justify-between gap-2">
+                              <span>⭐ تقييم المدرس: {mySub.gradeScore}</span>
+                              {mySub.teacherNote && <span className="text-[10px] text-amber-800 font-medium">💬 {mySub.teacherNote}</span>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );
@@ -1130,6 +1197,140 @@ export const AgendaModule = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Teacher View & Grade Student Submissions Modal */}
+      {viewingSubmissionsTask && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white dark:bg-[#0F172A] border-2 border-[#0284C7] dark:border-sky-500 rounded-3xl p-6 max-w-2xl w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] dark:text-white relative my-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-[#0284C7] dark:text-sky-400 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  <span>إجابات وحلول الطلاب المرفوعة لهذا الدرس</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold">
+                  {viewingSubmissionsTask.title} - ({viewingSubmissionsTask.subject})
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setViewingSubmissionsTask(null)} 
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-300 flex items-center justify-center font-bold text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {(() => {
+              const taskSubs = Object.values(submittedTasks || {}).filter(
+                s => s && (s.taskId === viewingSubmissionsTask.id || s.taskTitle === viewingSubmissionsTask.title)
+              );
+
+              if (taskSubs.length === 0) {
+                return (
+                  <div className="p-8 text-center bg-[#F8FAFC] dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 text-slate-400 font-bold text-xs space-y-2">
+                    <Send className="w-10 h-10 mx-auto opacity-30 text-[#0284C7]" />
+                    <p>لم يقم أي طالب بتسليم إجابة أو حل لهذا الدرس حتى الآن.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-4">
+                  {taskSubs.map((sub) => {
+                    const isGraded = sub.status === 'graded' || Boolean(sub.gradeScore);
+
+                    return (
+                      <div key={sub.id || sub.taskId} className="bg-[#F8FAFC] dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl space-y-3">
+                        {/* Student Info Header */}
+                        <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-zinc-800 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-full bg-[#0284C7]/10 text-[#0284C7] flex items-center justify-center font-black text-xs">🎓</span>
+                            <div>
+                              <h4 className="text-xs font-bold text-[#0F172A] dark:text-white">{sub.studentName}</h4>
+                              <span className="text-[10px] text-slate-500 font-mono block">{sub.studentGrade} - الشعبة ({sub.studentClass || 'أ'})</span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-mono bg-white dark:bg-zinc-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-zinc-700">{sub.submittedAt}</span>
+                        </div>
+
+                        {/* Student Written Answer */}
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">نص حل الطالب:</span>
+                          <p className="bg-white dark:bg-zinc-800 p-3 rounded-xl border border-slate-200 dark:border-zinc-700 text-xs font-medium leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-200">
+                            {sub.text || 'لا يوجد نص مكتوب'}
+                          </p>
+                        </div>
+
+                        {/* Student Image Attachment if exists */}
+                        {sub.image && (
+                          <div className="space-y-1">
+                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">📸 صورة إجابة الطالب (دفتر/ورقة):</span>
+                            <div className="relative group max-w-sm">
+                              <img 
+                                src={sub.image} 
+                                alt="إجابة الطالب" 
+                                className="w-full max-h-56 object-cover rounded-2xl border border-slate-300 dark:border-zinc-700 shadow-sm cursor-pointer"
+                                onClick={() => window.open(sub.image, '_blank')}
+                              />
+                              <div className="mt-1 text-[10px] text-sky-600 font-bold">انقر على الصورة لفتحها بالحجم الكامل 🔍</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Teacher Grading & Evaluation Form */}
+                        <div className="bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 p-3 rounded-2xl space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-sky-900 dark:text-sky-300">تقييم وملاحظات المدرس ✍️</span>
+                            {isGraded && (
+                              <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-emerald-300 dark:border-emerald-800">
+                                تم التقييم ✅ ({sub.gradeScore})
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <input
+                              type="text"
+                              defaultValue={sub.gradeScore || ''}
+                              placeholder="درجة الطالب (مثال 20/20)..."
+                              id={`score_input_${sub.id || sub.studentId}`}
+                              className="bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-[#0F172A] dark:text-white rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
+                            />
+                            <input
+                              type="text"
+                              defaultValue={sub.teacherNote || ''}
+                              placeholder="ملاحظات وتقييم المدرس للطالب..."
+                              id={`note_input_${sub.id || sub.studentId}`}
+                              className="sm:col-span-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-[#0F172A] dark:text-white rounded-xl px-3 py-1.5 text-xs font-medium focus:outline-none focus:border-[#0284C7]"
+                            />
+                          </div>
+
+                          <div className="flex justify-end pt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const scoreVal = document.getElementById(`score_input_${sub.id || sub.studentId}`)?.value;
+                                const noteVal = document.getElementById(`note_input_${sub.id || sub.studentId}`)?.value;
+                                handleGradeSubmission(sub, scoreVal, noteVal);
+                              }}
+                              className="px-3.5 py-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>حفظ تقييم المعلم ✅</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>,
         document.body

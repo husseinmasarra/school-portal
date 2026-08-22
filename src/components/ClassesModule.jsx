@@ -203,15 +203,32 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
+  const normStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\s]/g, '');
+
   // Filter students for the opened modal
   const getModalStudents = () => {
     if (!showStudentsModal) return [];
     return safeStudents.filter((s) => {
-      const matchGrade = !showStudentsModal.gradeName || (s.grade && s.grade.includes(showStudentsModal.gradeName.replace(' الابتدائي', '').replace(' المتوسط', '')));
-      const matchSection = !showStudentsModal.sectionName || (s.classroom && s.classroom.includes(showStudentsModal.sectionName));
+      const studentGrade = normStr(s.grade);
+      const targetGrade = normStr(showStudentsModal.gradeName);
+
+      const studentSec = normStr(s.classRoom || s.classroom);
+      const targetSec = normStr(showStudentsModal.sectionName);
+
+      const matchGrade = !targetGrade || studentGrade.includes(targetGrade) || targetGrade.includes(studentGrade);
+      const matchSection = !targetSec || studentSec.includes(targetSec) || targetSec.includes(studentSec);
+      
       const matchSearch = !modalSearchTerm || 
-        s.name.toLowerCase().includes(modalSearchTerm.toLowerCase()) || 
+        (s.name && s.name.toLowerCase().includes(modalSearchTerm.toLowerCase())) || 
         (s.id && s.id.toLowerCase().includes(modalSearchTerm.toLowerCase()));
+
       return matchGrade && matchSection && matchSearch;
     });
   };
@@ -435,10 +452,14 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
             const fullClass = `${cls.gradeName} (${cls.sectionName})`;
             return assigned.some(a => a === fullClass || (cls.gradeName && a.includes(cls.gradeName) && (a.includes(`(${cls.sectionName})`) || a.includes(cls.sectionName))));
           }).map((cls) => {
-            const sectionStudents = safeStudents.filter((s) => 
-              s.grade && s.grade.includes(cls.gradeName.replace(' الابتدائي', '').replace(' المتوسط', '')) &&
-              s.classroom && s.classroom.includes(cls.sectionName)
-            );
+            const sectionStudents = safeStudents.filter((s) => {
+              const studentGrade = normStr(s.grade);
+              const targetGrade = normStr(cls.gradeName);
+              const studentSec = normStr(s.classRoom || s.classroom);
+              const targetSec = normStr(cls.sectionName);
+              return (studentGrade.includes(targetGrade) || targetGrade.includes(studentGrade)) &&
+                     (studentSec.includes(targetSec) || targetSec.includes(studentSec));
+            });
 
             return (
               <div

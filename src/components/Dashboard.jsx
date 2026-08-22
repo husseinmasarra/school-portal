@@ -992,7 +992,6 @@ export const Dashboard = ({ setActiveTab }) => {
             { day: 'الثلاثاء', p1: getSubjectForPeriod('الثلاثاء', 1), p2: getSubjectForPeriod('الثلاثاء', 2), p3: getSubjectForPeriod('الثلاثاء', 3), p4: getSubjectForPeriod('الثلاثاء', 4), p5: getSubjectForPeriod('الثلاثاء', 5) },
             { day: 'الأربعاء', p1: getSubjectForPeriod('الأربعاء', 1), p2: getSubjectForPeriod('الأربعاء', 2), p3: getSubjectForPeriod('الأربعاء', 3), p4: getSubjectForPeriod('الأربعاء', 4), p5: getSubjectForPeriod('الأربعاء', 5) },
             { day: 'الخميس', p1: getSubjectForPeriod('الخميس', 1), p2: getSubjectForPeriod('الخميس', 2), p3: getSubjectForPeriod('الخميس', 3), p4: getSubjectForPeriod('الخميس', 4), p5: getSubjectForPeriod('الخميس', 5) },
-            { day: 'الجمعة', p1: getSubjectForPeriod('الجمعة', 1), p2: getSubjectForPeriod('الجمعة', 2), p3: getSubjectForPeriod('الجمعة', 3), p4: getSubjectForPeriod('الجمعة', 4), p5: getSubjectForPeriod('الجمعة', 5) },
           ];
 
           return (

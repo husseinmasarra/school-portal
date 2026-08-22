@@ -377,14 +377,33 @@ export const AgendaModule = () => {
     setTimeout(() => setAttendanceSavedToast(false), 3000);
   };
 
-  const activeTeacher = (teachers || []).find((t) => t.id === currentUser?.id || t.username === currentUser?.username || t.name === currentUser?.name) || (teachers || [])[0];
-  const teacherSubjects = activeTeacher?.subjects || [activeTeacher?.subject || 'العلوم والفيزياء'];
+  const normStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الصف', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\-\_\s]/g, '');
+
+  const isGradeMatch = (g1, g2) => {
+    if (!g1 || !g2) return true;
+    const n1 = normStr(g1);
+    const n2 = normStr(g2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
+
+  const isSecMatch = (s1, s2) => {
+    if (!s1 || !s2) return true;
+    const n1 = normStr(s1);
+    const n2 = normStr(s2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
 
   const filteredAgenda = safeAgenda.filter((item) => {
-    const itemG = (item.grade || '').toLowerCase();
-    const selG  = (selectedGrade || '').toLowerCase();
-    const matchesGrade = !item.grade || itemG === selG || itemG.includes(selG) || selG.includes(itemG) || itemG.includes('سادس') || itemG.includes('خامس');
-    const matchesClass = !item.classRoom || item.classRoom === selectedClass || item.classRoom.includes(selectedClass) || selectedClass.includes(item.classRoom);
+    const matchesGrade = isGradeMatch(item.grade, selectedGrade);
+    const matchesClass = isSecMatch(item.classRoom, selectedClass);
     const matchesDate  = !filterByDate || !item.date || item.date === selectedDate;
     const matchesSubject = subjectFilter === 'all' || item.subject === subjectFilter;
     const matchesType = typeFilter === 'all' 
@@ -393,12 +412,7 @@ export const AgendaModule = () => {
       ? (item.activityType === 'exam' || item.activityType === 'competition') 
       : item.activityType === typeFilter;
 
-    // Teacher Data Isolation: Teacher sees ONLY items belonging to their assigned subjects
-    const matchesTeacher = (currentRole === 'teacher') 
-      ? (teacherSubjects.includes(item.subject) || item.subject === activeTeacher?.subject)
-      : true;
-
-    return matchesGrade && matchesClass && matchesDate && matchesSubject && matchesTeacher && matchesType;
+    return matchesGrade && matchesClass && matchesDate && matchesSubject && matchesType;
   });
 
   return (

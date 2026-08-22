@@ -191,6 +191,14 @@ export const AppProvider = ({ children }) => {
     });
   };
 
+  const updateTimetableSlot = (slotId, updatedFields) => {
+    setMasterTimetable((prev) => {
+      const updated = prev.map((s) => (s.id === slotId ? { ...s, ...updatedFields } : s));
+      dbSaveCollection('school_timetable', updated);
+      return updated;
+    });
+  };
+
   // ─── Daily Marks & Cumulative Gradebook Registry ───────────────────────────
   const [dailyMarks, setDailyMarks] = useState(() => dbLoadCollection('school_daily_marks', initialDailyMarks));
 
@@ -1600,6 +1608,7 @@ export const AppProvider = ({ children }) => {
     generateStrong8CharPassword,
     masterTimetable,
     addTimetableSlot,
+    updateTimetableSlot,
     deleteTimetableSlot,
     dailyMarks,
     addDailyMark,

@@ -36,6 +36,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     subjects = [],
     masterTimetable = [],
     addTimetableSlot,
+    updateTimetableSlot,
     deleteTimetableSlot,
     siteSettings,
     selectedStudentId
@@ -119,6 +120,31 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
 
     setShowAddSlotModal(false);
     setSuccessMsg(isAr ? 'تم توزيع وإضافة الحصة لجدول المعلم والشعبة بنجاح!' : 'Timetable slot assigned successfully!');
+    setTimeout(() => setSuccessMsg(''), 4000);
+  };
+
+  const [editingSlot, setEditingSlot] = useState(null);
+
+  const handleUpdateSlotSubmit = (e) => {
+    e.preventDefault();
+    if (!editingSlot) return;
+    const targetTeacher = safeTeachers.find(t => t.id === slotTeacherId) || safeTeachers[0];
+
+    if (updateTimetableSlot) {
+      updateTimetableSlot(editingSlot.id, {
+        teacherId: slotTeacherId,
+        teacherName: targetTeacher?.name || 'معلم المدرسة',
+        subject: slotSubject,
+        grade: slotGrade,
+        section: slotSection,
+        day: slotDay,
+        period: Number(slotPeriod),
+        periodTime: slotPeriodTime
+      });
+    }
+
+    setEditingSlot(null);
+    setSuccessMsg(isAr ? 'تم تعديل وتحديث تفاصيل الحصة بنجاح! ✏️' : 'Timetable slot updated successfully!');
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
@@ -777,13 +803,31 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                                         <span className="font-extrabold text-xs text-[#0284C7] dark:text-sky-400 block">📚 {slot.subject}</span>
                                         <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">👨‍🏫 {slot.teacherName}</span>
                                         {currentRole === 'admin' && (
-                                          <button
-                                            type="button"
-                                            onClick={() => deleteTimetableSlot(slot.id)}
-                                            className="text-red-500 hover:text-red-700 text-[10px] no-print mt-1 underline cursor-pointer"
-                                          >
-                                            حذف
-                                          </button>
+                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 dark:border-zinc-800 pt-1">
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditingSlot(slot);
+                                                setSlotTeacherId(slot.teacherId || safeTeachers[0]?.id || '');
+                                                setSlotSubject(slot.subject || safeSubjects[0]?.name || '');
+                                                setSlotGrade(slot.grade || safeGrades[0]?.name || '');
+                                                setSlotSection(slot.section || 'أ');
+                                                setSlotDay(slot.day || 'الإثنين');
+                                                setSlotPeriod(slot.period || 1);
+                                                setSlotPeriodTime(slot.periodTime || '08:00 - 08:45');
+                                              }}
+                                              className="text-purple-600 hover:text-purple-800 text-[10px] font-extrabold underline cursor-pointer"
+                                            >
+                                              {isAr ? 'تعديل ✏️' : 'Edit'}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => deleteTimetableSlot(slot.id)}
+                                              className="text-red-500 hover:text-red-700 text-[10px] font-bold underline cursor-pointer"
+                                            >
+                                              {isAr ? 'حذف' : 'Delete'}
+                                            </button>
+                                          </div>
                                         )}
                                       </div>
                                     ) : (
@@ -806,13 +850,31 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                                         <span className="font-extrabold text-xs text-[#0284C7] dark:text-sky-400 block">📚 {slot.subject}</span>
                                         <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">👨‍🏫 {slot.teacherName}</span>
                                         {currentRole === 'admin' && (
-                                          <button
-                                            type="button"
-                                            onClick={() => deleteTimetableSlot(slot.id)}
-                                            className="text-red-500 hover:text-red-700 text-[10px] no-print mt-1 underline cursor-pointer"
-                                          >
-                                            حذف
-                                          </button>
+                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 dark:border-zinc-800 pt-1">
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditingSlot(slot);
+                                                setSlotTeacherId(slot.teacherId || safeTeachers[0]?.id || '');
+                                                setSlotSubject(slot.subject || safeSubjects[0]?.name || '');
+                                                setSlotGrade(slot.grade || safeGrades[0]?.name || '');
+                                                setSlotSection(slot.section || 'أ');
+                                                setSlotDay(slot.day || 'الإثنين');
+                                                setSlotPeriod(slot.period || 1);
+                                                setSlotPeriodTime(slot.periodTime || '08:00 - 08:45');
+                                              }}
+                                              className="text-purple-600 hover:text-purple-800 text-[10px] font-extrabold underline cursor-pointer"
+                                            >
+                                              {isAr ? 'تعديل ✏️' : 'Edit'}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => deleteTimetableSlot(slot.id)}
+                                              className="text-red-500 hover:text-red-700 text-[10px] font-bold underline cursor-pointer"
+                                            >
+                                              {isAr ? 'حذف' : 'Delete'}
+                                            </button>
+                                          </div>
                                         )}
                                       </div>
                                     ) : (
@@ -1244,6 +1306,153 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               <button type="button" onClick={() => setShowAddSlotModal(false)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
               <button type="submit" className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
                 <CheckCircle2 className="w-4 h-4" /> {isAr ? 'حفظ وتثبيت الحصة 🌟' : 'Save Slot'}
+              </button>
+            </div>
+          </form>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Modal: Edit Timetable Slot ─────────────────────────────────────────── */}
+      {editingSlot && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <form
+            onSubmit={handleUpdateSlotSubmit}
+            className="bg-white border-2 border-purple-600 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative my-auto"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-purple-700 flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-purple-600" />
+                <span>{isAr ? 'تعديل وتحديث الحصة الدراسية ✏️' : 'Edit Timetable Slot'}</span>
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setEditingSlot(null)} 
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Select Teacher */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">{isAr ? 'المعلم المعني بالحصة' : 'Select Teacher'} <span className="text-red-500">*</span></label>
+              <select
+                value={slotTeacherId}
+                onChange={(e) => setSlotTeacherId(e.target.value)}
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 cursor-pointer"
+              >
+                {safeTeachers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} - ({t.subject || 'معلم'})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Select Subject */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">{isAr ? 'المادة المعتمدة' : 'Select Subject'}</label>
+              <select
+                value={slotSubject}
+                onChange={(e) => setSlotSubject(e.target.value)}
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 cursor-pointer"
+              >
+                {safeSubjects.map((sub) => (
+                  <option key={sub.id} value={sub.name}>
+                    {sub.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Grade & Section */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'الصف الدراسي' : 'Grade'}</label>
+                <select
+                  value={slotGrade}
+                  onChange={(e) => setSlotGrade(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
+                >
+                  {safeGrades.map((g) => (
+                    <option key={g.id} value={g.name}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'الشعبة' : 'Section'}</label>
+                <select
+                  value={slotSection}
+                  onChange={(e) => setSlotSection(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
+                >
+                  <option value="أ">الشعبة (أ)</option>
+                  <option value="ب">الشعبة (ب)</option>
+                  <option value="ج">الشعبة (ج)</option>
+                  <option value="د">الشعبة (د)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Day & Period */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'اليوم' : 'Day'}</label>
+                <select
+                  value={slotDay}
+                  onChange={(e) => setSlotDay(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
+                >
+                  <option value="الإثنين">الإثنين (Monday)</option>
+                  <option value="الثلاثاء">الثلاثاء (Tuesday)</option>
+                  <option value="الأربعاء">الأربعاء (Wednesday)</option>
+                  <option value="الخميس">الخميس (Thursday)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'ترتيب الحصة' : 'Period'}</label>
+                <select
+                  value={slotPeriod}
+                  onChange={(e) => {
+                    const p = Number(e.target.value);
+                    setSlotPeriod(p);
+                    if (p === 1) setSlotPeriodTime('07:30 - 08:20');
+                    if (p === 2) setSlotPeriodTime('08:20 - 09:10');
+                    if (p === 3) setSlotPeriodTime('09:30 - 10:20');
+                    if (p === 4) setSlotPeriodTime('10:20 - 11:10');
+                    if (p === 5) setSlotPeriodTime('11:10 - 12:00');
+                  }}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none cursor-pointer"
+                >
+                  <option value={1}>الحصة 1</option>
+                  <option value={2}>الحصة 2</option>
+                  <option value={3}>الحصة 3</option>
+                  <option value={4}>الحصة 4</option>
+                  <option value={5}>الحصة 5</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Manual Period Time Range Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">{isAr ? 'توقيت الحصة (يدوياً)' : 'Lesson Time (Manual)'}</label>
+              <input
+                type="text"
+                required
+                value={slotPeriodTime}
+                onChange={(e) => setSlotPeriodTime(e.target.value)}
+                placeholder="مثال: 07:30 - 08:20..."
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-purple-600 text-right"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button type="button" onClick={() => setEditingSlot(null)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
+              <button type="submit" className="px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
+                <CheckCircle2 className="w-4 h-4" /> {isAr ? 'حفظ تعديل الحصة 💾' : 'Update Slot'}
               </button>
             </div>
           </form>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
+import { SubjectBadge } from './SubjectBadge';
 import { 
   Building2, 
   Plus, 
@@ -848,11 +849,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                                 return (
                                   <td key={periodNum} className="p-2.5 text-center align-top border-e border-slate-300">
                                     {slot ? (
-                                      <div className="space-y-1 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-200">
-                                        <span className="font-extrabold text-xs text-[#0284C7] block">📚 {slot.subject}</span>
+                                      <div className="space-y-1.5 bg-[#F8FAFC] p-2 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
+                                        <SubjectBadge subjectName={slot.subject} />
                                         <span className="text-[11px] font-bold text-slate-700 block">👨‍🏫 {slot.teacherName}</span>
                                         {currentRole === 'admin' && (
-                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 pt-1">
+                                          <div className="flex items-center justify-center gap-2 no-print mt-1 border-t border-slate-200 pt-1 w-full">
                                             <button
                                               type="button"
                                               onClick={() => {

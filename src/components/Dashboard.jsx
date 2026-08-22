@@ -982,24 +982,17 @@ export const Dashboard = ({ setActiveTab }) => {
             (s) => s.grade === activeStudent.grade && s.section === (activeStudent.classRoom || 'أ')
           );
 
-          // Get exact array of active subject names created in the system
-          const activeSubjectNames = safeSubjects.length > 0 
-            ? safeSubjects.map(s => s.name) 
-            : ['اللغة الانكليزية', 'اللغة العربية', 'رياضيات', 'تربية مدنية', 'تربية اسلامية', 'علوم', 'تفاعل ومشاركة'];
-
-          const getSubjectNameAt = (idx) => activeSubjectNames[idx % activeSubjectNames.length] || activeSubjectNames[0];
-
-          const getSubjectForPeriod = (dayName, periodNum, defaultIdx) => {
+          const getSubjectForPeriod = (dayName, periodNum) => {
             const slot = studentDbSlots.find(s => s.day === dayName && Number(s.period) === periodNum);
-            return slot ? slot.subject : getSubjectNameAt(defaultIdx);
+            return slot ? slot.subject : null;
           };
 
           const timetableRows = [
-            { day: 'الإثنين', p1: getSubjectForPeriod('الإثنين', 1, 2), p2: getSubjectForPeriod('الإثنين', 2, 5), p3: getSubjectForPeriod('الإثنين', 3, 0), p4: getSubjectForPeriod('الإثنين', 4, 1), p5: getSubjectForPeriod('الإثنين', 5, 4) },
-            { day: 'الثلاثاء', p1: getSubjectForPeriod('الثلاثاء', 1, 1), p2: getSubjectForPeriod('الثلاثاء', 2, 2), p3: getSubjectForPeriod('الثلاثاء', 3, 4), p4: getSubjectForPeriod('الثلاثاء', 4, 5), p5: getSubjectForPeriod('الثلاثاء', 5, 3) },
-            { day: 'الأربعاء', p1: getSubjectForPeriod('الأربعاء', 1, 5), p2: getSubjectForPeriod('الأربعاء', 2, 4), p3: getSubjectForPeriod('الأربعاء', 3, 2), p4: getSubjectForPeriod('الأربعاء', 4, 0), p5: getSubjectForPeriod('الأربعاء', 5, 6) },
-            { day: 'الخميس', p1: getSubjectForPeriod('الخميس', 1, 0), p2: getSubjectForPeriod('الخميس', 2, 3), p3: getSubjectForPeriod('الخميس', 3, 5), p4: getSubjectForPeriod('الخميس', 4, 2), p5: getSubjectForPeriod('الخميس', 5, 1) },
-            { day: 'الجمعة', p1: getSubjectForPeriod('الجمعة', 1, 2), p2: getSubjectForPeriod('الجمعة', 2, 1), p3: getSubjectForPeriod('الجمعة', 3, 6), p4: getSubjectForPeriod('الجمعة', 4, 4), p5: getSubjectForPeriod('الجمعة', 5, 3) },
+            { day: 'الإثنين', p1: getSubjectForPeriod('الإثنين', 1), p2: getSubjectForPeriod('الإثنين', 2), p3: getSubjectForPeriod('الإثنين', 3), p4: getSubjectForPeriod('الإثنين', 4), p5: getSubjectForPeriod('الإثنين', 5) },
+            { day: 'الثلاثاء', p1: getSubjectForPeriod('الثلاثاء', 1), p2: getSubjectForPeriod('الثلاثاء', 2), p3: getSubjectForPeriod('الثلاثاء', 3), p4: getSubjectForPeriod('الثلاثاء', 4), p5: getSubjectForPeriod('الثلاثاء', 5) },
+            { day: 'الأربعاء', p1: getSubjectForPeriod('الأربعاء', 1), p2: getSubjectForPeriod('الأربعاء', 2), p3: getSubjectForPeriod('الأربعاء', 3), p4: getSubjectForPeriod('الأربعاء', 4), p5: getSubjectForPeriod('الأربعاء', 5) },
+            { day: 'الخميس', p1: getSubjectForPeriod('الخميس', 1), p2: getSubjectForPeriod('الخميس', 2), p3: getSubjectForPeriod('الخميس', 3), p4: getSubjectForPeriod('الخميس', 4), p5: getSubjectForPeriod('الخميس', 5) },
+            { day: 'الجمعة', p1: getSubjectForPeriod('الجمعة', 1), p2: getSubjectForPeriod('الجمعة', 2), p3: getSubjectForPeriod('الجمعة', 3), p4: getSubjectForPeriod('الجمعة', 4), p5: getSubjectForPeriod('الجمعة', 5) },
           ];
 
           return (
@@ -1011,11 +1004,11 @@ export const Dashboard = ({ setActiveTab }) => {
                 </h3>
                 {studentDbSlots.length > 0 ? (
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    {isAr ? 'مستمد من الخطة الدراسية 🟢' : 'Loaded from Master Timetable 🟢'}
+                    {isAr ? `مستمد من الخطة الدراسية (${studentDbSlots.length} حصة مضافة) 🟢` : `Loaded from Master Timetable 🟢`}
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
-                    {isAr ? 'الجدول الافتراضي (معاينة) 🟡' : 'Default Preview Timetable 🟡'}
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-600 border border-slate-300">
+                    {isAr ? 'جدول فارغ (في انتظار توزيع الحصص من قبل المدير) 📌' : 'Empty Timetable (Awaiting Admin) 📌'}
                   </span>
                 )}
               </div>
@@ -1036,11 +1029,11 @@ export const Dashboard = ({ setActiveTab }) => {
                     {timetableRows.map((row, idx) => (
                       <tr key={idx} className="hover:bg-sky-50/50 transition-colors">
                         <td className="p-3 font-bold text-[#0284C7] text-right bg-[#F8FAFC]">{row.day}</td>
-                        <td className="p-3"><SubjectBadge subjectName={row.p1} /></td>
-                        <td className="p-3"><SubjectBadge subjectName={row.p2} /></td>
-                        <td className="p-3"><SubjectBadge subjectName={row.p3} /></td>
-                        <td className="p-3"><SubjectBadge subjectName={row.p4} /></td>
-                        <td className="p-3"><SubjectBadge subjectName={row.p5} /></td>
+                        <td className="p-3">{row.p1 ? <SubjectBadge subjectName={row.p1} /> : <span className="text-[11px] text-slate-300 font-bold block py-1">-</span>}</td>
+                        <td className="p-3">{row.p2 ? <SubjectBadge subjectName={row.p2} /> : <span className="text-[11px] text-slate-300 font-bold block py-1">-</span>}</td>
+                        <td className="p-3">{row.p3 ? <SubjectBadge subjectName={row.p3} /> : <span className="text-[11px] text-slate-300 font-bold block py-1">-</span>}</td>
+                        <td className="p-3">{row.p4 ? <SubjectBadge subjectName={row.p4} /> : <span className="text-[11px] text-slate-300 font-bold block py-1">-</span>}</td>
+                        <td className="p-3">{row.p5 ? <SubjectBadge subjectName={row.p5} /> : <span className="text-[11px] text-slate-300 font-bold block py-1">-</span>}</td>
                       </tr>
                     ))}
                   </tbody>

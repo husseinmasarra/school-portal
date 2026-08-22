@@ -38,8 +38,14 @@ export const FinanceModule = () => {
     addStaffEmployee, 
     updateStaffEmployee, 
     deleteStaffEmployee, 
-    payStaffSalary 
+    payStaffSalary,
+    updateTeacherSalary,
+    resetFinancialAccounts
   } = useApp();
+
+  const [editingTeacher, setEditingTeacher] = useState(null);
+  const [teacherNewSalary, setTeacherNewSalary] = useState('');
+  const [showResetFinModal, setShowResetFinModal] = useState(false);
 
   const [activeFinanceTab, setActiveFinanceTab] = useState('payroll');
   const [salaryToast, setSalaryToast] = useState('');
@@ -336,6 +342,16 @@ export const FinanceModule = () => {
           >
             <span>📁 {lang === 'ar' ? 'التقارير المالية المطبوعة 🖨️' : 'Printable Financial Reports 🖨️'}</span>
           </button>
+
+          {currentRole === 'admin' && (
+            <button
+              onClick={() => setShowResetFinModal(true)}
+              className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer transition-colors"
+              title="تصفير الأقساط والمالية والبدء بسجل نظيف"
+            >
+              <span>🧹 تصفير الحسابات (مرة واحدة)</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -644,7 +660,7 @@ export const FinanceModule = () => {
                             )}
                           </td>
 
-                          <td className="p-3 flex items-center justify-center gap-1.5">
+                          <td className="p-3 flex items-center justify-center gap-1.5 flex-wrap">
                             <button
                               onClick={() => setShowAdvanceModal({ id: tch.id, name: tch.name, salary: totalDue })}
                               className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-[11px] font-bold cursor-pointer transition-all"
@@ -662,6 +678,20 @@ export const FinanceModule = () => {
                             >
                               <span>{isPaid ? 'إعادة الصرف 🔄' : 'صرف الصافي 💰'}</span>
                             </button>
+
+                            {currentRole === 'admin' && (
+                              <button
+                                onClick={() => {
+                                  setEditingTeacher(tch);
+                                  setTeacherNewSalary(salary.toString());
+                                }}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer transition-all flex items-center gap-1"
+                                title="تعديل قيمة الراتب الشهري للمعلم"
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-[#0A5C36]" />
+                                <span className="text-[10px] font-bold hidden sm:inline">تعديل الراتب</span>
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
@@ -1462,6 +1492,121 @@ export const FinanceModule = () => {
           document.body
         );
       })()}
+
+      {/* ✏️ EDIT TEACHER SALARY MODAL */}
+      {editingTeacher && createPortal(
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 animate-scale-up text-slate-900 dark:text-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <h3 className="text-sm font-extrabold text-[#0A5C36] dark:text-emerald-400 flex items-center gap-2">
+                <Edit3 className="w-5 h-5" />
+                <span>تعديل الراتب الشهري للمعلم: {editingTeacher.name}</span>
+              </h3>
+              <button
+                onClick={() => setEditingTeacher(null)}
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 flex items-center justify-center font-bold text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!teacherNewSalary || Number(teacherNewSalary) <= 0) return;
+                updateTeacherSalary(editingTeacher.id, teacherNewSalary);
+                setSalaryToast(`تم تعديل راتب المعلم (${editingTeacher.name}) إلى $${Number(teacherNewSalary).toLocaleString()} USD بنجاح 🟢`);
+                setTimeout(() => setSalaryToast(''), 4000);
+                setEditingTeacher(null);
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">الراتب الشهري الجديد ($ USD):</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={teacherNewSalary}
+                    onChange={(e) => setTeacherNewSalary(e.target.value)}
+                    required
+                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-sm font-bold font-mono focus:outline-none focus:border-[#0A5C36]"
+                  />
+                  <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400 font-mono">$ USD</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingTeacher(null)}
+                  className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#0A5C36] hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow cursor-pointer"
+                >
+                  حفظ تعديل الراتب 💾
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 🧹 ONE-TIME FINANCIAL ACCOUNTS RESET MODAL */}
+      {showResetFinModal && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border-2 border-red-500 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 animate-scale-up text-slate-900 dark:text-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <h3 className="text-base font-black text-red-600 dark:text-red-400 flex items-center gap-2">
+                <span>🧹 تصفير كافة الحسابات والمالية (مرة واحدة فقط)</span>
+              </h3>
+              <button
+                onClick={() => setShowResetFinModal(false)}
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 flex items-center justify-center font-bold text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 bg-red-50 dark:bg-red-950/40 p-4 rounded-2xl border border-red-200 dark:border-red-900 text-xs">
+              <p className="font-extrabold text-red-900 dark:text-red-200 text-sm">⚠️ تنبيه هام مخصص لمدير المنظومة:</p>
+              <ul className="list-disc list-inside space-y-1 text-red-800 dark:text-red-300 font-bold leading-relaxed">
+                <li>سيتم تصفير جميع المبالغ المدفوعة في الأقساط المدرسية للطلاب إلى ($0 USD).</li>
+                <li>سيتم تفريغ كافة سجلات وإيصالات الصرفيات والمصاريف والرواتب السابقة.</li>
+                <li>تظل حسابات الموظفين والمعلمين والطلاب موجودة بالكامل دون أي مسح.</li>
+                <li>يساعد هذا الخيار على بدء سجل مالي صافٍ جديد للمدرسة.</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowResetFinModal(false)}
+                className="px-4 py-2.5 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 cursor-pointer"
+              >
+                إلغاء الأمر
+              </button>
+              <button
+                onClick={() => {
+                  resetFinancialAccounts();
+                  setShowResetFinModal(false);
+                  setSalaryToast('تم تصفير وبدء السجلات المالية والأقساط بنجاح! 🧹');
+                  setTimeout(() => setSalaryToast(''), 4500);
+                }}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow-lg cursor-pointer flex items-center gap-1.5"
+              >
+                <span>تأكيد وتصفير الحسابات والمالية 🧹</span>
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
     </div>
   );

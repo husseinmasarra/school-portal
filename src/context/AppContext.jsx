@@ -1454,6 +1454,47 @@ export const AppProvider = ({ children }) => {
     setSystemUsers((prev) => prev.filter((u) => u.id !== userId));
   };
 
+  const updateTeacherSalary = (teacherId, newSalary) => {
+    const numericSalary = Number(newSalary) || 0;
+    setTeachers((prev) => {
+      const updated = prev.map((t) => (t.id === teacherId ? { ...t, monthlySalary: numericSalary, baseSalary: numericSalary } : t));
+      dbSaveCollection('school_teachers', updated);
+      return updated;
+    });
+  };
+
+  const resetFinancialAccounts = () => {
+    setStudents((prev) => {
+      const updated = prev.map((s) => ({ ...s, tuitionPaid: 0 }));
+      dbSaveCollection('school_students', updated);
+      return updated;
+    });
+
+    setExpenses([]);
+    dbSaveCollection('school_expenses', []);
+
+    setStaffEmployees((prev) => {
+      const updated = prev.map((e) => ({ ...e, salaryStatus: 'unpaid', salaryPaid: false, paidDate: null }));
+      dbSaveCollection('school_staff', updated);
+      return updated;
+    });
+
+    setTeachers((prev) => {
+      const updated = prev.map((t) => ({ ...t, salaryStatus: 'unpaid', salaryPaid: false, paidDate: null }));
+      dbSaveCollection('school_teachers', updated);
+      return updated;
+    });
+
+    localStorage.removeItem('school_payment_history');
+    localStorage.removeItem('school_employee_advances');
+
+    addNotification({
+      title: 'تم تصفير وبدء السجلات المالية والأقساط 🧹',
+      message: 'تم تصفير الأقساط المدفوعة وسجلات الصرفيات والرواتب بنجاح وبدء سجل مالي جديد.',
+      type: 'system'
+    });
+  };
+
   // ─── Academic Years Archives & Reset Options ─────────────────────────────
   const [academicYearsArchive, setAcademicYearsArchive] = useState(() => dbLoadCollection('school_academic_years_archive', []));
 
@@ -1637,6 +1678,8 @@ export const AppProvider = ({ children }) => {
     deleteStudyResource,
     getHonorRollStudents,
     academicYearsArchive,
+    updateTeacherSalary,
+    resetFinancialAccounts,
     clearDemoData,
     startNewAcademicYear
   };

@@ -26,10 +26,14 @@ export const StudentCardPage = () => {
     );
   }
 
-  const realQrCodeUrl = getRealQRCodeURL(student);
-  const totalTuition = Number(student?.tuitionTotal || 1500);
+  const baseTuition = Number(student?.tuitionTotal || 1500);
+  const adminFees = Number(student?.adminFees || 0);
+  const transportFee = student?.hasTransport ? (Number(student?.transportFee) || 0) : 0;
+  const totalTuition = Math.max(0, baseTuition + adminFees + transportFee);
+  const discountTuition = Number(student?.tuitionDiscount || student?.discount || 0);
   const paidTuition = Number(student?.tuitionPaid || 0);
-  const remainingTuition = Math.max(0, totalTuition - paidTuition);
+  const netTuition = Math.max(0, totalTuition - discountTuition);
+  const remainingTuition = Math.max(0, netTuition - paidTuition);
 
   return (
     <div className="space-y-6 animate-fade-in printable-card-container text-[#0F172A]">
@@ -99,11 +103,18 @@ export const StudentCardPage = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+        <div className={`grid grid-cols-1 ${discountTuition > 0 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-4 text-xs font-mono`}>
           <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0] space-y-1">
             <span className="text-slate-500 block text-[11px]">{t('totalTuition')} ($ USD):</span>
             <span className="text-base font-extrabold text-[#0F172A]">${totalTuition.toLocaleString()} USD</span>
           </div>
+
+          {discountTuition > 0 && (
+            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-300 space-y-1 shadow-xs">
+              <span className="text-emerald-800 font-extrabold block text-[11px]">🏷️ {isAr ? 'الخصم والتخفيض' : 'Tuition Discount'}:</span>
+              <span className="text-base font-black text-emerald-700">-${discountTuition.toLocaleString()} USD</span>
+            </div>
+          )}
 
           <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0] space-y-1">
             <span className="text-slate-500 block text-[11px]">{t('paidAmount')} ($ USD):</span>

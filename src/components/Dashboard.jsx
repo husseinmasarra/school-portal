@@ -65,10 +65,22 @@ export const Dashboard = ({ setActiveTab }) => {
   };
 
   const studentTuitionTotal = Number(activeStudent?.tuitionTotal || 1600);
+  const studentAdminFees    = Number(activeStudent?.adminFees || 0);
+  const studentTransportFee = activeStudent?.hasTransport ? (Number(activeStudent?.transportFee) || 0) : 0;
+  const studentDiscount     = Number(activeStudent?.tuitionDiscount || activeStudent?.discount || 0);
   const studentTuitionPaid  = Number(activeStudent?.tuitionPaid || 0);
-  const studentRemainingUSD = Math.max(0, studentTuitionTotal - studentTuitionPaid);
 
-  const totalTuitionExpectedUSD = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionTotal) || 0), 0);
+  const studentGrandTotal   = Math.max(0, studentTuitionTotal + studentAdminFees + studentTransportFee);
+  const studentNetTuition   = Math.max(0, studentGrandTotal - studentDiscount);
+  const studentRemainingUSD = Math.max(0, studentNetTuition - studentTuitionPaid);
+
+  const totalTuitionExpectedUSD = safeStudents.reduce((sum, s) => {
+    const tot = Number(s?.tuitionTotal) || 0;
+    const adm = Number(s?.adminFees) || 0;
+    const trs = s?.hasTransport ? (Number(s?.transportFee) || 0) : 0;
+    const disc = Number(s?.tuitionDiscount || s?.discount) || 0;
+    return sum + Math.max(0, tot + adm + trs - disc);
+  }, 0);
   const totalTuitionCollectedUSD = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionPaid) || 0), 0);
   const tuitionRate = totalTuitionExpectedUSD > 0 ? Math.round((totalTuitionCollectedUSD / totalTuitionExpectedUSD) * 100) : 0;
 
@@ -756,15 +768,35 @@ export const Dashboard = ({ setActiveTab }) => {
             <p className="text-2xl font-black text-red-600 mt-2 font-mono">
               ${studentRemainingUSD.toLocaleString()} USD
             </p>
-            {/* Display total and paid tuition details */}
-            <div className="text-[10px] text-slate-500 font-bold flex justify-between border-t border-slate-100 pt-2 mt-2">
-              <span>{isAr ? 'إجمالي القسط:' : 'Total:'} <span className="font-mono font-black text-slate-700">${studentTuitionTotal}</span></span>
-              <span>{isAr ? 'المدفوع:' : 'Paid:'} <span className="font-mono font-black text-emerald-600">${studentTuitionPaid}</span></span>
+            {/* Display total, discount, and paid tuition details */}
+            <div className="text-[10px] text-slate-500 font-bold space-y-1 border-t border-slate-100 pt-2 mt-2">
+              <div className="flex justify-between items-center">
+                <span>{isAr ? 'إجمالي القسط الأكاديمي:' : 'Total Tuition:'}</span>
+                <span className="font-mono font-black text-slate-700">${studentGrandTotal.toLocaleString()}</span>
+              </div>
+
+              {studentDiscount > 0 && (
+                <div className="flex justify-between items-center text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                  <span className="font-extrabold flex items-center gap-1">🏷️ {isAr ? 'خصم وتخفيض القسط:' : 'Tuition Discount:'}</span>
+                  <span className="font-mono font-black">-${studentDiscount.toLocaleString()} USD</span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center">
+                <span>{isAr ? 'المدفوع الواصل:' : 'Paid Amount:'}</span>
+                <span className="font-mono font-black text-emerald-600">${studentTuitionPaid.toLocaleString()}</span>
+              </div>
             </div>
-            <div className="text-xs mt-2 flex items-center justify-between">
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${studentRemainingUSD === 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                {studentRemainingUSD === 0 ? (isAr ? 'مسدد بالكامل' : 'Paid in Full') : (isAr ? 'يوجد قسط متبقي' : 'Balance Pending')}
+
+            <div className="text-xs mt-3 flex items-center justify-between">
+              <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${studentRemainingUSD === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}`}>
+                {studentRemainingUSD === 0 ? (isAr ? 'مسدد بالكامل 🟢' : 'Paid in Full 🟢') : (isAr ? 'يوجد قسط متبقي ⚠️' : 'Balance Pending ⚠️')}
               </span>
+              {studentDiscount > 0 && (
+                <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  تخفيض مكتسب 🎉
+                </span>
+              )}
             </div>
           </div>
 

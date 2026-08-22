@@ -392,21 +392,6 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
               <span className="sm:hidden text-xs">{themeMode === 'dark' ? '☀️' : '🌙'}</span>
             </button>
 
-            {/* Language Switcher */}
-            <button
-              onClick={() => switchLang(lang === 'ar' ? 'en' : 'ar')}
-              className="p-1.5 sm:px-3 sm:py-1.5 bg-[#0284C7]/20 hover:bg-[#0284C7]/40 border border-[#0EA5E9]/20 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
-              title={lang === 'ar' ? 'تغيير اللغة' : 'Switch Language'}
-            >
-              <span className="hidden sm:inline-flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-[#EF4444]" />
-                <span>{lang === 'ar' ? 'English' : 'العربية'}</span>
-              </span>
-              <span className="sm:hidden font-mono font-bold text-[11px] text-amber-300">
-                {lang === 'ar' ? 'EN' : 'ع'}
-              </span>
-            </button>
-
             {/* Logout Button */}
             <button
               onClick={logout}

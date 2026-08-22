@@ -109,8 +109,17 @@ export const initialSystemUsers = [
 ];
 
 export const AppProvider = ({ children }) => {
-  const [lang, setLang] = useState(() => localStorage.getItem('school_lang') || 'ar');
-  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const lang = 'ar';
+  const dir = 'rtl';
+  const switchLang = () => {};
+
+  useEffect(() => {
+    localStorage.setItem('school_lang', 'ar');
+    document.documentElement.dir = 'rtl';
+    document.documentElement.lang = 'ar';
+  }, []);
+
+  const t = (key) => translations['ar']?.[key] || key;
 
   const [activePillar, setActivePillar] = useState(() => localStorage.getItem('school_pillar') || 'academic');
 
@@ -729,12 +738,7 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('school_logged_user', JSON.stringify(currentUser));
   }, [currentUser]);
 
-  const switchLang = (newLang) => setLang(newLang);
-
-  const t = (key) => {
-    const val = translations[lang]?.[key] ?? translations['ar']?.[key];
-    return val !== undefined ? val : key;
-  };
+  // Login logic
 
   const login = (usernameInput, passwordInput) => {
     const cleanUser = (usernameInput || '').trim().toLowerCase();

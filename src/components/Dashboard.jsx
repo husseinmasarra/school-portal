@@ -841,7 +841,9 @@ export const Dashboard = ({ setActiveTab }) => {
 
                     {topStudent && (
                       <div className="flex items-center gap-3">
-                        <img src={topStudent.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"} alt={topStudent.name} className="w-12 h-12 rounded-full object-cover border-2 border-amber-500 shadow" />
+                        <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-400 text-amber-600 flex items-center justify-center font-bold text-base shadow-sm shrink-0">
+                          🏆
+                        </div>
                         <div>
                           <h4 className="text-xs font-black text-[#0F172A] dark:text-white">{topStudent.name}</h4>
                           <span className="text-[10px] font-mono font-bold text-emerald-600 block">المعدل الممتاز: {topGpa}% 🌟</span>
@@ -1278,13 +1280,8 @@ export const Dashboard = ({ setActiveTab }) => {
                     className="bg-white border-2 border-amber-200 p-4.5 rounded-2xl flex items-center justify-between gap-3 shadow-sm hover:border-amber-500 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <img
-                          src={stu.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
-                          alt={stu.name}
-                          className="w-11 h-11 rounded-full object-cover border-2 border-amber-400 shadow"
-                        />
-                        <span className="absolute -bottom-1 -right-1 text-base">{medal}</span>
+                      <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 border border-amber-300 flex items-center justify-center font-bold text-lg shadow-sm shrink-0">
+                        {medal}
                       </div>
                       <div>
                         <h4 className="text-xs font-black text-[#0F172A]">{stu.name}</h4>

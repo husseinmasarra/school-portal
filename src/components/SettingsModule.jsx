@@ -45,7 +45,17 @@ export const SettingsModule = () => {
 
   const [showNewYearModal, setShowNewYearModal] = useState(false);
   const [newYearNameInput, setNewYearNameInput] = useState('2027/2028');
+  const [adminPasswordConfirm, setAdminPasswordConfirm] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [showArchivesModal, setShowArchivesModal] = useState(false);
+
+  const [showClearDemoModal, setShowClearDemoModal] = useState(false);
+  const [clearDemoPasswordInput, setClearDemoPasswordInput] = useState('');
+  const [clearDemoPasswordError, setClearDemoPasswordError] = useState('');
+
+  // Dynamically resolve current Admin password
+  const adminAccount = (systemUsers || []).find(u => u.role === 'admin' || u.username === 'admin');
+  const currentAdminPassword = adminAccount?.password || '123123123';
 
   const [schoolName, setSchoolName] = useState(siteSettings?.schoolName || 'مدرسة الدعم التعليمي');
   const [schoolNameEn, setSchoolNameEn] = useState(siteSettings?.schoolNameEn || 'Educational Support School');
@@ -874,7 +884,7 @@ export const SettingsModule = () => {
                 <Calendar className="w-5 h-5 text-amber-500" />
                 <span>بدء وتفعيل عام دراسي جديد 🎓</span>
               </h3>
-              <button onClick={() => setShowNewYearModal(false)}
+              <button onClick={() => { setShowNewYearModal(false); setAdminPasswordConfirm(''); setPasswordError(''); }}
                 className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs cursor-pointer">✕</button>
             </div>
             <div className="space-y-3 text-xs">
@@ -897,17 +907,50 @@ export const SettingsModule = () => {
                   className="w-full bg-[#F8FAFC] border border-slate-300 text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-amber-500"
                 />
               </div>
+
+              {/* 🔑 Admin Security Password Confirmation */}
+              <div className="bg-sky-50 border border-sky-200 p-3.5 rounded-2xl space-y-1.5">
+                <label className="text-xs font-bold text-[#032541] flex items-center gap-1.5">
+                  <KeyRound className="w-4 h-4 text-amber-500" />
+                  <span>أدخل كلمة سر المدير المعتمدة لتأكيد البدء: <span className="text-red-500">*</span></span>
+                </label>
+                <input
+                  type="password"
+                  value={adminPasswordConfirm}
+                  onChange={(e) => { setAdminPasswordConfirm(e.target.value); setPasswordError(''); }}
+                  placeholder="أدخل كلمة سر المدير هنا..."
+                  className="w-full bg-white border border-sky-300 text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-amber-500"
+                />
+                <p className="text-[10px] text-slate-500 font-bold">كلمة السر المطلوبة هي نفس كلمة سر حساب المدير الحالية وتتحدث تلقائياً عند تغييرها.</p>
+              </div>
+
+              {passwordError && (
+                <div className="bg-red-50 border border-red-300 p-2.5 rounded-xl text-red-700 text-xs font-bold animate-shake text-center">
+                  {passwordError}
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-              <button onClick={() => setShowNewYearModal(false)}
+              <button onClick={() => { setShowNewYearModal(false); setAdminPasswordConfirm(''); setPasswordError(''); }}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">إلغاء</button>
               <button
                 onClick={() => {
-                  if (!newYearNameInput) return;
+                  if (!newYearNameInput) {
+                    setPasswordError('يرجى إدخال مسمى العام الدراسي الجديد');
+                    return;
+                  }
+                  if (adminPasswordConfirm !== currentAdminPassword) {
+                    setPasswordError('🔒 كلمة سر المدير غير صحيحة! يرجى إدخال كلمة سر المدير المعتمدة.');
+                    return;
+                  }
+
+                  // Password matches!
                   startNewAcademicYear(newYearNameInput);
                   setShowNewYearModal(false);
-                  alert(`تم بدء العام الدراسي الجديد (${newYearNameInput}) وأرشفة العام السالف بنجاح! 🚀`);
+                  setAdminPasswordConfirm('');
+                  setPasswordError('');
+                  alert(`تم إدخال كلمة السر بنجاح وبدء العام الدراسي الجديد (${newYearNameInput}) وأرشفة العام السالف! 🚀`);
                 }}
                 className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-5 py-2 rounded-xl text-xs font-black shadow cursor-pointer flex items-center gap-1.5"
               >

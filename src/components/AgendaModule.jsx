@@ -132,17 +132,84 @@ export const AgendaModule = () => {
   const safeAgenda = agenda || [];
   const safeGrades = grades || [];
 
+  const normStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الصف', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\-\_\s]/g, '');
+
+  const isGradeMatch = (g1, g2) => {
+    if (!g1 || !g2) return true;
+    const n1 = normStr(g1);
+    const n2 = normStr(g2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
+
+  const isSecMatch = (s1, s2) => {
+    if (!s1 || !s2) return true;
+    const n1 = normStr(s1);
+    const n2 = normStr(s2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
+
+  const getSectionLetter = (str) => {
+    if (!str) return '';
+    const m = str.match(/[\(\s\-\_]([أبجدA-Z])[\)\s\-\_]?$/) || str.match(/([أبجدA-Z])/g);
+    return m ? m[m.length - 1] : '';
+  };
+
+  // Find active teacher record and assigned classrooms
+  const activeTeacher = (teachers || []).find((t) => t.id === currentUser?.id || t.username === currentUser?.username || t.name === currentUser?.name) || (teachers || [])[0];
+  const teacherAssignedList = (currentRole === 'teacher')
+    ? (currentUser?.assignedClassrooms || currentUser?.assignedClasses || activeTeacher?.assignedClassrooms || [])
+    : [];
+
+  // Filter available grades for the current role
+  const availableGradesForRole = safeGrades.filter((g) => {
+    if (currentRole !== 'teacher' || teacherAssignedList.length === 0) return true;
+    return teacherAssignedList.some((assignedStr) => isGradeMatch(g.name, assignedStr));
+  });
+
   const currentStudent = safeStudents.find(s => s.id === currentUser?.id || s.name === currentUser?.name) || safeStudents[0];
 
-  const [selectedGrade, setSelectedGrade] = useState(() => currentStudent?.grade || 'الصف السادس');
-  const [selectedClass, setSelectedClass] = useState(() => currentStudent?.classRoom || currentStudent?.classroom || 'أ');
+  const [selectedGrade, setSelectedGrade] = useState(() => {
+    if (currentRole === 'teacher' && availableGradesForRole.length > 0) return availableGradesForRole[0].name;
+    return currentStudent?.grade || safeGrades[0]?.name || 'الصف الأول الابتدائي';
+  });
+
+  // Filter available sections for the current role and selectedGrade
+  const allSections = ['أ', 'ب', 'ج', 'د'];
+  const availableSectionsForRole = allSections.filter((secLetter) => {
+    if (currentRole !== 'teacher' || teacherAssignedList.length === 0) return true;
+    return teacherAssignedList.some((assignedStr) => {
+      const gradeOk = isGradeMatch(selectedGrade, assignedStr);
+      const secLetterAssigned = getSectionLetter(assignedStr);
+      return gradeOk && (!secLetterAssigned || secLetterAssigned === secLetter);
+    });
+  });
+
+  const [selectedClass, setSelectedClass] = useState(() => {
+    if (currentRole === 'teacher' && availableSectionsForRole.length > 0) return availableSectionsForRole[0];
+    return currentStudent?.classRoom || currentStudent?.classroom || 'أ';
+  });
 
   useEffect(() => {
     if (currentStudent && (currentRole === 'student' || currentRole === 'parent')) {
       if (currentStudent.grade) setSelectedGrade(currentStudent.grade);
       if (currentStudent.classRoom || currentStudent.classroom) setSelectedClass(currentStudent.classRoom || currentStudent.classroom);
+    } else if (currentRole === 'teacher' && teacherAssignedList.length > 0) {
+      if (availableGradesForRole.length > 0 && !availableGradesForRole.some(g => isGradeMatch(g.name, selectedGrade))) {
+        setSelectedGrade(availableGradesForRole[0].name);
+      }
+      if (availableSectionsForRole.length > 0 && !availableSectionsForRole.includes(selectedClass)) {
+        setSelectedClass(availableSectionsForRole[0]);
+      }
     }
-  }, [currentStudent, currentRole]);
+  }, [currentStudent, currentRole, teacherAssignedList, selectedGrade, selectedClass]);
 
   // Selected Calendar Date state (default to today)
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -379,30 +446,6 @@ export const AgendaModule = () => {
     setTimeout(() => setAttendanceSavedToast(false), 3000);
   };
 
-  const normStr = (str) => (str || '')
-    .toLowerCase()
-    .replace(/[أإآ]/g, 'ا')
-    .replace('الابتدائي', '')
-    .replace('المتوسط', '')
-    .replace('الثانوي', '')
-    .replace('الصف', '')
-    .replace('الشعبة', '')
-    .replace(/[\(\)\-\_\s]/g, '');
-
-  const isGradeMatch = (g1, g2) => {
-    if (!g1 || !g2) return true;
-    const n1 = normStr(g1);
-    const n2 = normStr(g2);
-    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
-  };
-
-  const isSecMatch = (s1, s2) => {
-    if (!s1 || !s2) return true;
-    const n1 = normStr(s1);
-    const n2 = normStr(s2);
-    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
-  };
-
   const filteredAgenda = safeAgenda.filter((item) => {
     const matchesGrade = isGradeMatch(item.grade, selectedGrade);
     const matchesClass = isSecMatch(item.classRoom, selectedClass);
@@ -446,7 +489,7 @@ export const AgendaModule = () => {
               onChange={(e) => setSelectedGrade(e.target.value)}
               className="bg-transparent text-xs font-bold text-[#0F172A] focus:outline-none cursor-pointer"
             >
-              {safeGrades.map((g) => (
+              {availableGradesForRole.map((g) => (
                 <option key={g.id} value={g.name}>{isAr ? g.name : g.nameEn}</option>
               ))}
             </select>
@@ -460,10 +503,9 @@ export const AgendaModule = () => {
               onChange={(e) => setSelectedClass(e.target.value)}
               className="bg-transparent text-xs font-bold text-[#0F172A] focus:outline-none cursor-pointer"
             >
-              <option value="أ">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
-              <option value="ب">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
-              <option value="ج">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
-              <option value="د">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
+              {availableSectionsForRole.map((secLetter) => (
+                <option key={secLetter} value={secLetter}>{isAr ? `الشعبة (${secLetter})` : `Section ${secLetter}`}</option>
+              ))}
             </select>
           </div>
 
@@ -857,7 +899,7 @@ export const AgendaModule = () => {
                   onChange={(e) => setModalGrade(e.target.value)}
                   className="w-full bg-white border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7] cursor-pointer"
                 >
-                  {safeGrades.map((g) => (
+                  {availableGradesForRole.map((g) => (
                     <option key={g.id} value={g.name}>{isAr ? g.name : g.nameEn}</option>
                   ))}
                 </select>
@@ -870,10 +912,9 @@ export const AgendaModule = () => {
                   onChange={(e) => setModalClass(e.target.value)}
                   className="w-full bg-white border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7] cursor-pointer"
                 >
-                  <option value="أ">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
-                  <option value="ب">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
-                  <option value="ج">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
-                  <option value="د">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
+                  {availableSectionsForRole.map((secLetter) => (
+                    <option key={secLetter} value={secLetter}>{isAr ? `الشعبة (${secLetter})` : `Section ${secLetter}`}</option>
+                  ))}
                 </select>
               </div>
             </div>

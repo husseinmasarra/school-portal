@@ -28,6 +28,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     lang, 
     t, 
     currentRole, 
+    currentUser,
     students, 
     teachers, 
     grades = [],

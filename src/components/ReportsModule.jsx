@@ -4,7 +4,7 @@ import { Printer, FileSpreadsheet, CheckCircle2, GraduationCap, DollarSign, Sear
 
 export const ReportsModule = () => {
   const { 
-    lang, t, currentRole, students = [], subjects = [], selectedStudentId,
+    lang, t, currentRole, currentUser, students = [], subjects = [], selectedStudentId,
     dailyMarks = [], addDailyMark, deleteDailyMark,
     getStudentSubjectScores, getStudentOverallGpa, behaviorRecords = []
   } = useApp();

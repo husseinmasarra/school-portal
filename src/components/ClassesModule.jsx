@@ -122,13 +122,73 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
+  const normStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الصف', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\-\_\s]/g, '');
+
+  const isGradeMatch = (g1, g2) => {
+    if (!g1 || !g2) return true;
+    const n1 = normStr(g1);
+    const n2 = normStr(g2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
+
+  const isSecMatch = (s1, s2) => {
+    if (!s1 || !s2) return true;
+    const n1 = normStr(s1);
+    const n2 = normStr(s2);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  };
+
   const filteredTimetableSlots = safeTimetable.filter((s) => {
     const matchDay = slotFilterDay === 'all' || s.day === slotFilterDay;
     const matchTeacher = slotFilterTeacher === 'all' || s.teacherId === slotFilterTeacher;
-    const matchGrade = slotFilterGrade === 'all' || s.grade === slotFilterGrade;
-    const matchSection = slotFilterSection === 'all' || s.section === slotFilterSection;
+    const matchGrade = slotFilterGrade === 'all' || isGradeMatch(s.grade, slotFilterGrade);
+    const matchSection = slotFilterSection === 'all' || isSecMatch(s.section, slotFilterSection);
     return matchDay && matchTeacher && matchGrade && matchSection;
   });
+
+  // Extract unique Grade & Section classroom list for separated independent tables
+  const uniqueClassroomsList = (() => {
+    const map = new Map();
+
+    // 1. From safeClassrooms
+    safeClassrooms.forEach((c) => {
+      const gName = c.gradeName || c.grade || 'الصف الأول الابتدائي';
+      const secLet = (c.sectionName || c.section || 'أ').replace('الشعبة', '').replace(/[\(\)]/g, '').trim();
+      const key = `${normStr(gName)}_${secLet}`;
+      if (!map.has(key)) map.set(key, { gradeName: gName, sectionLetter: secLet });
+    });
+
+    // 2. From safeTimetable slots
+    safeTimetable.forEach((s) => {
+      const gName = s.grade;
+      const secLet = (s.section || 'أ').replace('الشعبة', '').replace(/[\(\)]/g, '').trim();
+      const key = `${normStr(gName)}_${secLet}`;
+      if (!map.has(key)) map.set(key, { gradeName: gName, sectionLetter: secLet });
+    });
+
+    // 3. Fallback from safeGrades
+    if (map.size === 0) {
+      safeGrades.forEach((g) => {
+        ['أ', 'ب', 'ج'].forEach((sec) => {
+          map.set(`${normStr(g.name)}_${sec}`, { gradeName: g.name, sectionLetter: sec });
+        });
+      });
+    }
+
+    return Array.from(map.values()).filter((c) => {
+      const matchGrade = slotFilterGrade === 'all' || isGradeMatch(c.gradeName, slotFilterGrade);
+      const matchSection = slotFilterSection === 'all' || isSecMatch(c.sectionLetter, slotFilterSection);
+      return matchGrade && matchSection;
+    });
+  })();
 
   // Add Grade Modal State
   const [showAddGradeModal, setShowAddGradeModal] = useState(false);
@@ -202,15 +262,6 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     setSuccessMsg(isAr ? 'تم إضافة الشعبة والقاعة الدراسية بنجاح!' : 'Classroom section added successfully!');
     setTimeout(() => setSuccessMsg(''), 4000);
   };
-
-  const normStr = (str) => (str || '')
-    .toLowerCase()
-    .replace(/[أإآ]/g, 'ا')
-    .replace('الابتدائي', '')
-    .replace('المتوسط', '')
-    .replace('الثانوي', '')
-    .replace('الشعبة', '')
-    .replace(/[\(\)\s]/g, '');
 
   // Filter students for the opened modal
   const getModalStudents = () => {
@@ -519,46 +570,82 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
       {/* TAB 3: MASTER WEEKLY TIMETABLE & CLASS ALLOCATION */}
       {activeTab === 'timetable' && (
         <div className="space-y-6 animate-fade-in text-[#0F172A]">
-          {/* Header Banner & Add Slot Button */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-6 rounded-3xl shadow-sm">
+          {/* Print CSS Overlay */}
+          <style>{`
+            @media print {
+              body * {
+                visibility: hidden !important;
+              }
+              .class-timetable-print-card, .class-timetable-print-card * {
+                visibility: visible !important;
+              }
+              .class-timetable-print-card {
+                position: relative !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                margin-bottom: 2rem !important;
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+            }
+          `}</style>
+
+          {/* Header Banner & Add Slot / Print Buttons */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-6 rounded-3xl shadow-sm no-print">
             <div className="space-y-1">
               <h3 className="text-base font-bold text-purple-700 flex items-center gap-2">
                 <span>⏱️</span>
-                <span>{isAr ? 'جدول توزيع الحصص والشُعب الأسبوعية لجميع المدرسين' : 'Master Weekly Schedule for All Teachers'}</span>
+                <span>{isAr ? 'جدول توزيع الحصص والشُعب الأسبوعية (كل صف وشعبة منفصلة 🖨️)' : 'Weekly Timetable (Separated per Grade & Section)'}</span>
               </h3>
               <p className="text-xs text-slate-500">
                 {isAr 
-                  ? 'منظومة توزيع حصص المدرسين والصفوف. الحصص المضافة من الإدارة تظهر فوراً في جدول كل مدرس وفي هذه الصفحة الشاملة.'
-                  : 'Weekly teaching timetable. Admin assigned slots automatically sync to each teacher\'s private portal.'}
+                  ? 'تم فصل وتخصيص جدول كل صف وشعبة بجدول مستقل بذاته لسهولة المراجعة والطباعة بصفحة مستقلة لكافة صفوف المنظومة.'
+                  : 'Class timetables are completely separated per grade and section for independent printouts.'}
               </p>
             </div>
 
-            {currentRole === 'admin' && (
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
               <button
-                onClick={() => setShowAddSlotModal(true)}
-                className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                onClick={() => window.print()}
+                className="px-4 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
               >
-                <Plus className="w-4 h-4" />
-                <span>{isAr ? 'إضافة وتوزيع حصة لمدرس +' : 'Assign Teacher Slot +'}</span>
+                <Printer className="w-4 h-4" />
+                <span>{isAr ? 'طباعة جداول كافة الصفوف 🖨️ (صفحة لكل شعبة)' : 'Print All Classes Timetables 🖨️'}</span>
               </button>
-            )}
+
+              {currentRole === 'admin' && (
+                <button
+                  onClick={() => setShowAddSlotModal(true)}
+                  className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{isAr ? 'توزيع حصة لمدرس +' : 'Assign Slot +'}</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Filter Bar */}
-          <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs no-print">
             <div className="flex items-center gap-3 flex-wrap">
               
-              {/* Grade and Section filters for Admin and Teacher (Rendered first!) */}
+              {/* Grade and Section filters */}
               {(currentRole === 'admin' || currentRole === 'teacher') && (
                 <>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-purple-700 dark:text-purple-400">{isAr ? 'الصف الدراسي:' : 'Grade:'}</span>
+                    <span className="font-bold text-purple-700 dark:text-purple-400">{isAr ? 'اختيار الصف:' : 'Grade:'}</span>
                     <select
                       value={slotFilterGrade}
                       onChange={(e) => setSlotFilterGrade(e.target.value)}
-                      className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 text-purple-950 dark:text-purple-300 rounded-xl px-3 py-1.5 font-bold focus:outline-none"
+                      className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 text-purple-950 dark:text-purple-300 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer"
                     >
-                      <option value="all">{isAr ? 'جميع الصفوف' : 'All Grades'}</option>
+                      <option value="all">{isAr ? 'جميع الصفوف (مفصلة)' : 'All Grades (Separated)'}</option>
                       {safeGrades.map((g) => (
                         <option key={g.id} value={g.name}>{g.name}</option>
                       ))}
@@ -570,12 +657,13 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                     <select
                       value={slotFilterSection}
                       onChange={(e) => setSlotFilterSection(e.target.value)}
-                      className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 text-purple-950 dark:text-purple-300 rounded-xl px-3 py-1.5 font-bold focus:outline-none"
+                      className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 text-purple-950 dark:text-purple-300 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer"
                     >
                       <option value="all">{isAr ? 'جميع الشعب' : 'All Sections'}</option>
                       <option value="أ">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
                       <option value="ب">{isAr ? 'الشعبة (ب)' : 'Section B'}</option>
                       <option value="ج">{isAr ? 'الشعبة (ج)' : 'Section C'}</option>
+                      <option value="د">{isAr ? 'الشعبة (د)' : 'Section D'}</option>
                     </select>
                   </div>
                 </>
@@ -590,26 +678,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               )}
 
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-600 dark:text-slate-300">{isAr ? 'اليوم:' : 'Day:'}</span>
-                <select
-                  value={slotFilterDay}
-                  onChange={(e) => setSlotFilterDay(e.target.value)}
-                  className="bg-[#F8FAFC] dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 font-bold focus:outline-none"
-                >
-                  <option value="all">{isAr ? 'جميع الأيام (الإثنين - الخميس)' : 'All Days (Mon - Thu)'}</option>
-                  <option value="الإثنين">الإثنين (Monday)</option>
-                  <option value="الثلاثاء">الثلاثاء (Tuesday)</option>
-                  <option value="الأربعاء">الأربعاء (Wednesday)</option>
-                  <option value="الخميس">الخميس (Thursday)</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-1.5">
                 <span className="font-bold text-slate-600 dark:text-slate-300">{isAr ? 'تصفية حسب المعلم:' : 'Filter Teacher:'}</span>
                 <select
                   value={slotFilterTeacher}
                   onChange={(e) => setSlotFilterTeacher(e.target.value)}
-                  className="bg-[#F8FAFC] dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 font-bold focus:outline-none"
+                  className="bg-[#F8FAFC] dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer"
                 >
                   <option value="all">{isAr ? 'جميع المعلمين' : 'All Teachers'}</option>
                   {safeTeachers.map((t) => (
@@ -620,174 +693,150 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
             </div>
 
             <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
-              {isAr ? `إجمالي الحصص الموزعة: ${filteredTimetableSlots.length} حصة` : `Total Slots: ${filteredTimetableSlots.length}`}
+              {isAr ? `عدد الصفوف والشُعب المعروضة: ${uniqueClassroomsList.length} شعبة` : `Classrooms: ${uniqueClassroomsList.length}`}
             </span>
           </div>
 
-          {/* Timetable Grid View */}
-          <div className="bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm overflow-x-auto">
-            <table className="w-full text-right rtl:text-right border-collapse min-w-[750px]">
-              <thead>
-                <tr className="bg-[#F8FAFC] dark:bg-[#1E293B] text-[11px] font-black text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-[#334155]">
-                  <th className="p-3 w-28">{isAr ? 'اليوم' : 'Day'}</th>
-                  <th className="p-3 text-center">{isAr ? 'الحصة 1 (07:30 - 08:20)' : 'Period 1 (07:30 - 08:20)'}</th>
-                  <th className="p-3 text-center">{isAr ? 'الحصة 2 (08:20 - 09:10)' : 'Period 2 (08:20 - 09:10)'}</th>
-                  <th className="p-3 text-center bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold">
-                    {isAr 
-                      ? `☕ ${siteSettings?.recessLabel || 'الفسحة والاستراحة'} (${siteSettings?.recessStartTime || '09:10'} - ${siteSettings?.recessEndTime || '09:30'})` 
-                      : `Break (${siteSettings?.recessStartTime || '09:10'} - ${siteSettings?.recessEndTime || '09:30'})`}
-                  </th>
-                  <th className="p-3 text-center">{isAr ? 'الحصة 3 (09:30 - 10:20)' : 'Period 3 (09:30 - 10:20)'}</th>
-                  <th className="p-3 text-center">{isAr ? 'الحصة 4 (10:20 - 11:10)' : 'Period 4 (10:20 - 11:10)'}</th>
-                  <th className="p-3 text-center">{isAr ? 'الحصة 5 (11:10 - 12:00)' : 'Period 5 (11:10 - 12:00)'}</th>
-                </tr>
-              </thead>
-              <tbody className="text-xs font-bold divide-y divide-slate-100 dark:divide-[#334155]">
-                {['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'].map((dayName) => {
-                  if (slotFilterDay !== 'all' && slotFilterDay !== dayName) return null;
-                  
-                  return (
-                    <tr key={dayName} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3 font-extrabold text-purple-700 dark:text-purple-400 bg-purple-50/40 dark:bg-purple-950/30 rounded-r-xl border-l border-slate-100 dark:border-[#334155]">
-                        {dayName}
-                      </td>
+          {/* Separated Timetable Cards per Grade & Section */}
+          {uniqueClassroomsList.length === 0 ? (
+            <div className="bg-white border border-[#E2E8F0] p-12 rounded-3xl text-center space-y-2 text-slate-400">
+              <Calendar className="w-12 h-12 mx-auto opacity-30 text-purple-600" />
+              <p className="text-xs font-bold">{isAr ? 'لا يوجد جداول مضافة تطابق الفلتر المحدد.' : 'No timetables found matching filter.'}</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {uniqueClassroomsList.map((clsItem) => {
+                const classGradeName = clsItem.gradeName;
+                const classSecLetter = clsItem.sectionLetter;
+                const classSlots = safeTimetable.filter((s) => {
+                  const matchGrade = isGradeMatch(s.grade, classGradeName);
+                  const matchSec = isSecMatch(s.section, classSecLetter);
+                  const matchTeacher = slotFilterTeacher === 'all' || s.teacherId === slotFilterTeacher;
+                  const matchDay = slotFilterDay === 'all' || s.day === slotFilterDay;
+                  return matchGrade && matchSec && matchTeacher && matchDay;
+                });
 
-                      {/* Period 1 & Period 2 */}
-                      {[1, 2].map((periodNum) => {
-                        const slotsInPeriod = filteredTimetableSlots.filter(
-                          (s) => s.day === dayName && Number(s.period) === periodNum
-                        );
+                const classSupervisor = (safeTeachers || []).find(t => (t.assignedClassrooms || []).some(c => isGradeMatch(c, classGradeName) && isSecMatch(c, classSecLetter)))?.name || (isAr ? 'إدارة المدرسة' : 'Administration');
 
-                        return (
-                          <td key={periodNum} className="p-2 text-center align-top border-x border-slate-100 dark:border-[#334155]">
-                            {slotsInPeriod.length === 0 ? (
-                              <span className="text-[10px] text-slate-300 dark:text-slate-600 font-normal block py-2">{isAr ? 'فارغ' : 'Empty'}</span>
-                            ) : (
-                              <div className="space-y-1.5">
-                                {slotsInPeriod.map((slot) => {
-                                  const isCurrentTeacherSlot = currentRole === 'teacher' && (currentUser?.name === slot.teacherName || currentUser?.id === slot.teacherId);
+                return (
+                  <div key={`${classGradeName}_${classSecLetter}`} className="bg-white border-2 border-purple-200 dark:border-purple-900/60 rounded-3xl p-6 shadow-sm space-y-4 class-timetable-print-card">
+                    {/* Header Banner for this Classroom */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-100 dark:border-purple-900 pb-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="p-2 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded-xl text-sm font-black">🏫</span>
+                          <h4 className="text-base font-black text-purple-900 dark:text-purple-300">
+                            {isAr ? `جدول حصص: ${classGradeName} (${classSecLetter.includes('الشعبة') ? classSecLetter : `الشعبة ${classSecLetter}`})` : `Timetable: ${classGradeName} (Section ${classSecLetter})`}
+                          </h4>
+                        </div>
+                        <p className="text-xs text-slate-500 font-bold me-1">
+                          {isAr ? `مربّي الصف والمشرف: ${classSupervisor} | إجمالي حصص الأسبوع: ${classSlots.length} حصة` : `Homeroom Teacher: ${classSupervisor} | Total Slots: ${classSlots.length}`}
+                        </p>
+                      </div>
 
-                                  return (
-                                    <div
-                                      key={slot.id}
-                                      className={`p-2.5 rounded-xl border text-right space-y-1 relative group transition-all ${
-                                        isCurrentTeacherSlot
-                                          ? 'bg-purple-100 dark:bg-purple-950 border-purple-500 text-purple-950 dark:text-purple-200 shadow-md ring-2 ring-purple-400'
-                                          : 'bg-[#F8FAFC] dark:bg-[#1E293B] border-slate-200 dark:border-[#334155] text-slate-800 dark:text-slate-200'
-                                      }`}
-                                    >
-                                      {/* Subject first in bold */}
-                                      <div className="flex items-center justify-between gap-1 border-b border-slate-100 dark:border-[#334155] pb-1">
-                                        <span className="font-extrabold text-[11px] text-[#0284C7] dark:text-sky-400 block">
-                                          📚 {slot.subject}
-                                        </span>
+                      <div className="flex items-center gap-2 no-print">
+                        <button
+                          onClick={() => window.print()}
+                          className="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-xl text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-all"
+                        >
+                          <Printer className="w-4 h-4 text-purple-700" />
+                          <span>{isAr ? 'طباعة هذا الصف 🖨️' : 'Print Class Timetable 🖨️'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Timetable Table Grid for this Class */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-right rtl:text-right border-collapse border border-slate-200 dark:border-slate-700 min-w-[700px] text-xs">
+                        <thead>
+                          <tr className="bg-purple-50 dark:bg-purple-950/60 text-[11px] font-black text-purple-950 dark:text-purple-200 border-b border-slate-300 dark:border-slate-700">
+                            <th className="p-3 w-28 border-e border-slate-300 dark:border-slate-700 text-center">{isAr ? 'اليوم' : 'Day'}</th>
+                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 1 (07:30 - 08:20)' : 'P1 (07:30 - 08:20)'}</th>
+                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 2 (08:20 - 09:10)' : 'P2 (08:20 - 09:10)'}</th>
+                            <th className="p-3 text-center bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 font-extrabold border-e border-slate-300 dark:border-slate-700">
+                              {isAr ? `☕ الفسحة (${siteSettings?.recessStartTime || '09:10'} - ${siteSettings?.recessEndTime || '09:30'})` : `Break`}
+                            </th>
+                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 3 (09:30 - 10:20)' : 'P3 (09:30 - 10:20)'}</th>
+                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 4 (10:20 - 11:10)' : 'P4 (10:20 - 11:10)'}</th>
+                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 5 (11:10 - 12:00)' : 'P5 (11:10 - 12:00)'}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="font-bold divide-y divide-slate-200 dark:divide-slate-700">
+                          {['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'].map((dayName) => (
+                            <tr key={dayName} className="hover:bg-purple-50/20 dark:hover:bg-purple-950/20 border-b border-slate-200 dark:border-slate-700">
+                              <td className="p-3 font-extrabold text-purple-900 dark:text-purple-300 bg-purple-50/50 dark:bg-purple-950/40 text-center border-e border-slate-300 dark:border-slate-700">
+                                {dayName}
+                              </td>
+
+                              {[1, 2].map((periodNum) => {
+                                const slot = classSlots.find(s => s.day === dayName && Number(s.period) === periodNum);
+                                return (
+                                  <td key={periodNum} className="p-2.5 text-center align-top border-e border-slate-300 dark:border-slate-700">
+                                    {slot ? (
+                                      <div className="space-y-1 bg-[#F8FAFC] dark:bg-zinc-900 p-2.5 rounded-2xl border border-slate-200 dark:border-zinc-800">
+                                        <span className="font-extrabold text-xs text-[#0284C7] dark:text-sky-400 block">📚 {slot.subject}</span>
+                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">👨‍🏫 {slot.teacherName}</span>
                                         {currentRole === 'admin' && (
                                           <button
                                             type="button"
                                             onClick={() => deleteTimetableSlot(slot.id)}
-                                            className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 cursor-pointer"
-                                            title="حذف الحصة"
+                                            className="text-red-500 hover:text-red-700 text-[10px] no-print mt-1 underline cursor-pointer"
                                           >
-                                            <Trash2 className="w-3.5 h-3.5" />
+                                            حذف
                                           </button>
                                         )}
                                       </div>
+                                    ) : (
+                                      <span className="text-[10px] text-slate-300 dark:text-slate-600 block py-3">-</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
 
-                                      {/* Teacher name */}
-                                      <div className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
-                                        👨‍🏫 {slot.teacherName}
-                                      </div>
+                              <td className="p-2 text-center align-middle bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-bold border-e border-slate-300 dark:border-slate-700 text-[10px]">
+                                ☕ الفسحة
+                              </td>
 
-                                      {/* Grade & Section */}
-                                      <div className="flex items-center justify-between text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold pt-0.5">
-                                        <span>🏫 {slot.grade} ({slot.section})</span>
-                                        {isCurrentTeacherSlot && (
-                                          <span className="bg-purple-700 text-white px-1.5 py-0.5 rounded-full text-[9px]">حصتك ✨</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-
-                      {/* ☕ Recess / Break Column */}
-                      <td className="p-2 text-center align-middle bg-amber-500/5 dark:bg-amber-500/10 border-x border-slate-100 dark:border-[#334155]">
-                        <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-950/60 px-2 py-1 rounded-lg border border-amber-300/40 inline-block shadow-xs">
-                          ☕ {siteSettings?.recessLabel || 'استراحة ووجبة فطور'}
-                        </span>
-                      </td>
-
-                      {/* Period 3, Period 4 & Period 5 */}
-                      {[3, 4, 5].map((periodNum) => {
-                        const slotsInPeriod = filteredTimetableSlots.filter(
-                          (s) => s.day === dayName && Number(s.period) === periodNum
-                        );
-
-                        return (
-                          <td key={periodNum} className="p-2 text-center align-top border-x border-slate-100 dark:border-[#334155]">
-                            {slotsInPeriod.length === 0 ? (
-                              <span className="text-[10px] text-slate-300 dark:text-slate-600 font-normal block py-2">{isAr ? 'فارغ' : 'Empty'}</span>
-                            ) : (
-                              <div className="space-y-1.5">
-                                {slotsInPeriod.map((slot) => {
-                                  const isCurrentTeacherSlot = currentRole === 'teacher' && (currentUser?.name === slot.teacherName || currentUser?.id === slot.teacherId);
-
-                                  return (
-                                    <div
-                                      key={slot.id}
-                                      className={`p-2.5 rounded-xl border text-right space-y-1 relative group transition-all ${
-                                        isCurrentTeacherSlot
-                                          ? 'bg-purple-100 dark:bg-purple-950 border-purple-500 text-purple-950 dark:text-purple-200 shadow-md ring-2 ring-purple-400'
-                                          : 'bg-[#F8FAFC] dark:bg-[#1E293B] border-slate-200 dark:border-[#334155] text-slate-800 dark:text-slate-200'
-                                      }`}
-                                    >
-                                      {/* Subject first in bold */}
-                                      <div className="flex items-center justify-between gap-1 border-b border-slate-100 dark:border-[#334155] pb-1">
-                                        <span className="font-extrabold text-[11px] text-[#0284C7] dark:text-sky-400 block">
-                                          📚 {slot.subject}
-                                        </span>
+                              {[3, 4, 5].map((periodNum) => {
+                                const slot = classSlots.find(s => s.day === dayName && Number(s.period) === periodNum);
+                                return (
+                                  <td key={periodNum} className="p-2.5 text-center align-top border-e border-slate-300 dark:border-slate-700">
+                                    {slot ? (
+                                      <div className="space-y-1 bg-[#F8FAFC] dark:bg-zinc-900 p-2.5 rounded-2xl border border-slate-200 dark:border-zinc-800">
+                                        <span className="font-extrabold text-xs text-[#0284C7] dark:text-sky-400 block">📚 {slot.subject}</span>
+                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">👨‍🏫 {slot.teacherName}</span>
                                         {currentRole === 'admin' && (
                                           <button
                                             type="button"
                                             onClick={() => deleteTimetableSlot(slot.id)}
-                                            className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 cursor-pointer"
-                                            title="حذف الحصة"
+                                            className="text-red-500 hover:text-red-700 text-[10px] no-print mt-1 underline cursor-pointer"
                                           >
-                                            <Trash2 className="w-3.5 h-3.5" />
+                                            حذف
                                           </button>
                                         )}
                                       </div>
+                                    ) : (
+                                      <span className="text-[10px] text-slate-300 dark:text-slate-600 block py-3">-</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
-                                      {/* Teacher name */}
-                                      <div className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
-                                        👨‍🏫 {slot.teacherName}
-                                      </div>
-
-                                      {/* Grade & Section */}
-                                      <div className="flex items-center justify-between text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold pt-0.5">
-                                        <span>🏫 {slot.grade} ({slot.section})</span>
-                                        {isCurrentTeacherSlot && (
-                                          <span className="bg-purple-700 text-white px-1.5 py-0.5 rounded-full text-[9px]">حصتك ✨</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    {/* Printable Footer Stamp Line */}
+                    <div className="hidden print:flex items-center justify-between pt-4 border-t border-slate-300 text-xs font-bold text-slate-700">
+                      <div>توقيع وتصديق مربّي الصف: ..........................</div>
+                      <div>اعتماد وتصديق إدارة المدرسة: ..........................</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

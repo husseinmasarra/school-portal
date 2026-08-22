@@ -445,7 +445,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
         <button
           onClick={() => setActiveTab('timetable')}
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-            activeTab === 'timetable' ? 'bg-purple-600 text-white shadow-md' : 'bg-[#F8FAFC] text-slate-600 hover:bg-slate-200'
+            activeTab === 'timetable' ? 'bg-[#0284C7] text-white shadow-md' : 'bg-[#F8FAFC] text-slate-600 hover:bg-slate-200'
           }`}
         >
           <span>⏱️</span>
@@ -664,7 +664,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
           {/* Header Banner & Add Slot / Print Buttons */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-6 rounded-3xl shadow-sm no-print">
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-purple-700 dark:text-purple-400 flex items-center gap-2">
+              <h3 className="text-base font-bold text-[#0284C7] dark:text-sky-400 flex items-center gap-2">
                 <span>⏱️</span>
                 <span>{isAr ? 'جدول توزيع الحصص والشُعب الأسبوعية (حسب الفلتر والطباعة 🖨️)' : 'Weekly Timetable (Filtered Print View)'}</span>
               </h3>
@@ -678,7 +678,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
             <div className="flex items-center gap-2 flex-wrap shrink-0">
               <button
                 onClick={handlePrintAllFilteredCards}
-                className="px-4 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
+                className="px-4 py-2.5 bg-[#0284C7] hover:bg-sky-700 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
               >
                 <Printer className="w-4 h-4" />
                 <span>
@@ -691,7 +691,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               {currentRole === 'admin' && (
                 <button
                   onClick={() => setShowAddSlotModal(true)}
-                  className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   <span>{isAr ? 'توزيع حصة لمدرس +' : 'Assign Slot +'}</span>
@@ -708,11 +708,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               {(currentRole === 'admin' || currentRole === 'teacher') && (
                 <>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-purple-700 dark:text-purple-400">{isAr ? 'اختيار الصف:' : 'Grade:'}</span>
+                    <span className="font-bold text-[#0284C7] dark:text-sky-400">{isAr ? 'اختيار الصف:' : 'Grade:'}</span>
                     <select
                       value={slotFilterGrade}
                       onChange={(e) => setSlotFilterGrade(e.target.value)}
-                      className="bg-white dark:bg-zinc-800 border-2 border-purple-200 dark:border-purple-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer text-xs"
+                      className="bg-white dark:bg-zinc-800 border-2 border-sky-200 dark:border-sky-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-[#0284C7] cursor-pointer text-xs"
                     >
                       <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع الصفوف (مفصلة)' : 'All Grades (Separated)'}</option>
                       {safeGrades.map((g) => (
@@ -722,11 +722,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-purple-700 dark:text-purple-400">{isAr ? 'الشعبة:' : 'Section:'}</span>
+                    <span className="font-bold text-[#0284C7] dark:text-sky-400">{isAr ? 'الشعبة:' : 'Section:'}</span>
                     <select
                       value={slotFilterSection}
                       onChange={(e) => setSlotFilterSection(e.target.value)}
-                      className="bg-white dark:bg-zinc-800 border-2 border-purple-200 dark:border-purple-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer text-xs"
+                      className="bg-white dark:bg-zinc-800 border-2 border-sky-200 dark:border-sky-900 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-[#0284C7] cursor-pointer text-xs"
                     >
                       <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'جميع الشعب' : 'All Sections'}</option>
                       <option value="أ" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-bold py-1">{isAr ? 'الشعبة (أ)' : 'Section A'}</option>
@@ -761,7 +761,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               </div>
             </div>
 
-            <span className="text-[11px] font-bold text-purple-700 bg-purple-50 dark:bg-purple-950/50 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
+            <span className="text-[11px] font-bold text-[#0284C7] bg-sky-50 dark:bg-sky-950/50 px-3 py-1 rounded-full border border-sky-200 dark:border-sky-800">
               {isAr ? `عدد الصفوف والشُعب المعروضة: ${uniqueClassroomsList.length} شعبة` : `Classrooms: ${uniqueClassroomsList.length}`}
             </span>
           </div>
@@ -769,7 +769,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
           {/* Separated Timetable Cards per Grade & Section */}
           {uniqueClassroomsList.length === 0 ? (
             <div className="bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 p-12 rounded-3xl text-center space-y-2 text-slate-400">
-              <Calendar className="w-12 h-12 mx-auto opacity-30 text-purple-600" />
+              <Calendar className="w-12 h-12 mx-auto opacity-30 text-[#0284C7]" />
               <p className="text-xs font-bold">{isAr ? 'لا يوجد جداول مضافة تطابق الفلتر المحدد.' : 'No timetables found matching filter.'}</p>
             </div>
           ) : (
@@ -793,14 +793,14 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 return (
                   <div
                     key={cardKey}
-                    className={`bg-white dark:bg-zinc-900 border-2 border-purple-200 dark:border-purple-900/60 rounded-3xl p-6 shadow-sm space-y-4 class-timetable-print-card ${isTargetCard ? 'target-single-card' : ''}`}
+                    className={`bg-white dark:bg-zinc-900 border-2 border-sky-200 dark:border-sky-900/60 rounded-3xl p-6 shadow-sm space-y-4 class-timetable-print-card ${isTargetCard ? 'target-single-card' : ''}`}
                   >
                     {/* Header Banner for this Classroom */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-100 dark:border-purple-900 pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sky-100 dark:border-sky-900/50 pb-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="p-2 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded-xl text-sm font-black">🏫</span>
-                          <h4 className="text-base font-black text-purple-900 dark:text-purple-300">
+                          <span className="p-2 bg-sky-100 dark:bg-sky-950 text-[#0284C7] dark:text-sky-300 rounded-xl text-sm font-black">🏫</span>
+                          <h4 className="text-base font-black text-sky-950 dark:text-sky-300">
                             {isAr ? `جدول حصص: ${classGradeName} (${classSecLetter.includes('الشعبة') ? classSecLetter : `الشعبة ${classSecLetter}`})` : `Timetable: ${classGradeName} (Section ${classSecLetter})`}
                           </h4>
                         </div>
@@ -812,9 +812,9 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                       <div className="flex items-center gap-2 no-print">
                         <button
                           onClick={() => handlePrintSingleClassCard(cardKey)}
-                          className="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-xl text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-all"
+                          className="px-4 py-2 bg-sky-50 hover:bg-sky-100 text-[#0284C7] border border-sky-300 rounded-xl text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-all"
                         >
-                          <Printer className="w-4 h-4 text-purple-700" />
+                          <Printer className="w-4 h-4 text-[#0284C7]" />
                           <span>{isAr ? 'طباعة هذا الصف فقط 🖨️' : 'Print This Class Only 🖨️'}</span>
                         </button>
                       </div>
@@ -824,22 +824,22 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                     <div className="overflow-x-auto">
                       <table className="w-full text-right rtl:text-right border-collapse border border-slate-200 dark:border-slate-700 min-w-[700px] text-xs">
                         <thead>
-                          <tr className="bg-purple-50 dark:bg-purple-950/60 text-[11px] font-black text-purple-950 dark:text-purple-200 border-b border-slate-300 dark:border-slate-700">
-                            <th className="p-3 w-28 border-e border-slate-300 dark:border-slate-700 text-center">{isAr ? 'اليوم' : 'Day'}</th>
-                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 1 (07:30 - 08:20)' : 'P1 (07:30 - 08:20)'}</th>
-                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 2 (08:20 - 09:10)' : 'P2 (08:20 - 09:10)'}</th>
-                            <th className="p-3 text-center bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 font-extrabold border-e border-slate-300 dark:border-slate-700">
+                          <tr className="bg-[#0284C7] dark:bg-sky-950/80 text-[11px] font-black text-white dark:text-sky-200 border-b border-sky-600 dark:border-slate-700">
+                            <th className="p-3 w-28 border-e border-sky-600/50 dark:border-slate-700 text-center">{isAr ? 'اليوم' : 'Day'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 1 (07:30 - 08:20)' : 'P1 (07:30 - 08:20)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 2 (08:20 - 09:10)' : 'P2 (08:20 - 09:10)'}</th>
+                            <th className="p-3 text-center bg-amber-500 text-white font-extrabold border-e border-sky-600/50 dark:border-slate-700">
                               {isAr ? `☕ الفسحة (${siteSettings?.recessStartTime || '09:10'} - ${siteSettings?.recessEndTime || '09:30'})` : `Break`}
                             </th>
-                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 3 (09:30 - 10:20)' : 'P3 (09:30 - 10:20)'}</th>
-                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 4 (10:20 - 11:10)' : 'P4 (10:20 - 11:10)'}</th>
-                            <th className="p-3 text-center border-e border-slate-300 dark:border-slate-700">{isAr ? 'الحصة 5 (11:10 - 12:00)' : 'P5 (11:10 - 12:00)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 3 (09:30 - 10:20)' : 'P3 (09:30 - 10:20)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 4 (10:20 - 11:10)' : 'P4 (10:20 - 11:10)'}</th>
+                            <th className="p-3 text-center border-e border-sky-600/50 dark:border-slate-700">{isAr ? 'الحصة 5 (11:10 - 12:00)' : 'P5 (11:10 - 12:00)'}</th>
                           </tr>
                         </thead>
                         <tbody className="font-bold divide-y divide-slate-200 dark:divide-slate-700">
                           {['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'].map((dayName) => (
-                            <tr key={dayName} className="hover:bg-purple-50/20 dark:hover:bg-purple-950/20 border-b border-slate-200 dark:border-slate-700">
-                              <td className="p-3 font-extrabold text-purple-900 dark:text-purple-300 bg-purple-50/50 dark:bg-purple-950/40 text-center border-e border-slate-300 dark:border-slate-700">
+                            <tr key={dayName} className="hover:bg-sky-50/30 dark:hover:bg-sky-950/20 border-b border-slate-200 dark:border-slate-700">
+                              <td className="p-3 font-extrabold text-[#0284C7] dark:text-sky-300 bg-sky-50/60 dark:bg-sky-950/40 text-center border-e border-slate-300 dark:border-slate-700">
                                 {dayName}
                               </td>
 
@@ -865,7 +865,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                                                 setSlotPeriod(slot.period || 1);
                                                 setSlotPeriodTime(slot.periodTime || '08:00 - 08:45');
                                               }}
-                                              className="text-purple-600 hover:text-purple-800 text-[10px] font-extrabold underline cursor-pointer"
+                                              className="text-[#0284C7] hover:text-sky-700 text-[10px] font-extrabold underline cursor-pointer"
                                             >
                                               {isAr ? 'تعديل ✏️' : 'Edit'}
                                             </button>
@@ -912,7 +912,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                                                 setSlotPeriod(slot.period || 1);
                                                 setSlotPeriodTime(slot.periodTime || '08:00 - 08:45');
                                               }}
-                                              className="text-purple-600 hover:text-purple-800 text-[10px] font-extrabold underline cursor-pointer"
+                                              className="text-[#0284C7] hover:text-sky-700 text-[10px] font-extrabold underline cursor-pointer"
                                             >
                                               {isAr ? 'تعديل ✏️' : 'Edit'}
                                             </button>

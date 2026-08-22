@@ -6,7 +6,7 @@ export const ReportsModule = () => {
   const { 
     lang, t, currentRole, currentUser, students = [], subjects = [], selectedStudentId,
     dailyMarks = [], addDailyMark, deleteDailyMark,
-    getStudentSubjectScores, getStudentOverallGpa, behaviorRecords = []
+    getStudentSubjectScores, getStudentOverallGpa, calculateStudentLevel, behaviorRecords = []
   } = useApp();
 
   const isAr = lang === 'ar';
@@ -493,16 +493,35 @@ export const ReportsModule = () => {
               <div className="space-y-1">
                 <span className="text-xs font-bold text-[#0284C7] dark:text-[#38BDF8] block">العام الدراسي والمرحلة:</span>
                 <span className="text-sm font-black text-[#0F172A] dark:text-white block">{getDynamicAcademicYear()} (الفصل الثاني)</span>
-                <span className="text-xs block font-bold">
+                <div className="text-xs font-bold pt-1 space-y-0.5">
                   {(() => {
-                    const hasFailedSubject = dynamicSubjectScores.some(s => s.total > 0 && s.total < 40);
-                    const isOverallFail = hasFailedSubject || (Number(computedGpa) > 0 && Number(computedGpa) < 40);
-                    if (isOverallFail) {
-                      return <span className="text-red-600 dark:text-red-400">الحالة: راسب 🔴 (أقل من 40%)</span>;
-                    }
-                    return <span className="text-emerald-600 dark:text-emerald-400">الحالة: ناجح ومجتاز 🟢</span>;
+                    const level = calculateStudentLevel ? calculateStudentLevel(computedGpa) : (computedGpa >= 90 ? 'ممتاز' : computedGpa >= 80 ? 'جيد جداً' : computedGpa >= 70 ? 'جيد' : computedGpa >= 50 ? 'مقبول' : 'راسب');
+                    const hasFailedSubject = dynamicSubjectScores.some(s => s.total > 0 && s.total < 50);
+                    const isOverallFail = level === 'راسب' || hasFailedSubject;
+                    
+                    return (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[#0284C7] font-black flex items-center gap-1">
+                          <span>المستوى للتلميذ:</span>
+                          <span className={`px-2 py-0.5 rounded-md text-xs font-black ${
+                            level === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                            level === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border border-sky-300' :
+                            level === 'جيد' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                            level === 'مقبول' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                            'bg-red-100 text-red-800 border border-red-300'
+                          }`}>{level}</span>
+                        </span>
+                        <span>
+                          {isOverallFail ? (
+                            <span className="text-red-600 font-extrabold">الحالة المدرسية: راسب 🔴</span>
+                          ) : (
+                            <span className="text-emerald-600 font-extrabold">الحالة المدرسية: ناجح ومجتاز 🟢</span>
+                          )}
+                        </span>
+                      </div>
+                    );
                   })()}
-                </span>
+                </div>
               </div>
             </div>
 
@@ -523,7 +542,7 @@ export const ReportsModule = () => {
                       <th className="p-3 border border-sky-700 text-center">منتصف الفصل (20)</th>
                       <th className="p-3 border border-sky-700 text-center">النهائي (40)</th>
                       <th className="p-3 border border-sky-700 text-center">المجموع (100)</th>
-                      <th className="p-3 border border-sky-700 text-center">التقدير الرسمي</th>
+                      <th className="p-3 border border-sky-700 text-center">مستوى التلميذ (التقدير)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-[#334155]">
@@ -558,7 +577,14 @@ export const ReportsModule = () => {
                             {row.total}
                           </td>
                           <td className="p-3 border border-slate-200 dark:border-[#334155] text-center">
-                            <span className="px-2.5 py-1 rounded-md text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                            <span className={`px-2.5 py-1 rounded-md text-xs font-black border ${
+                              row.grade === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                              row.grade === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border-sky-300' :
+                              row.grade === 'جيد' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                              row.grade === 'مقبول' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                              row.grade === 'راسب' ? 'bg-red-100 text-red-800 border-red-300' :
+                              'bg-slate-100 text-slate-600 border-slate-300'
+                            }`}>
                               {row.grade}
                             </span>
                           </td>

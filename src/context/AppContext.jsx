@@ -521,12 +521,12 @@ export const AppProvider = ({ children }) => {
         total = sub.directTotal;
       }
 
-      let grade = 'ناجح - ممتاز (A+)';
-      if (total >= 90) grade = 'ناجح - ممتاز (A+)';
-      else if (total >= 80) grade = 'ناجح - جيد جداً (A)';
-      else if (total >= 65) grade = 'ناجح - جيد (B)';
-      else if (total >= 40) grade = 'ناجح - مقبول (C)';
-      else if (total > 0) grade = 'راسب 🔴 (F)';
+      let grade = 'غير مرصود';
+      if (total >= 90) grade = 'ممتاز';
+      else if (total >= 80) grade = 'جيد جداً';
+      else if (total >= 70) grade = 'جيد';
+      else if (total >= 50) grade = 'مقبول';
+      else if (total > 0 || (sub.hw > 0 || sub.quiz > 0 || sub.midterm > 0 || sub.final > 0)) grade = 'راسب';
       else grade = 'غير مرصود';
 
       return {
@@ -552,6 +552,16 @@ export const AppProvider = ({ children }) => {
     
     const sum = gradedScores.reduce((acc, curr) => acc + (curr.total || 0), 0);
     return (sum / gradedScores.length).toFixed(1);
+  };
+
+  // Dynamic formula helper per user directive: >=90 "ممتاز", >=80 "جيد جداً", >=70 "جيد", >=50 "مقبول", <50 "راسب"
+  const calculateStudentLevel = (score) => {
+    const val = Number(score) || 0;
+    if (val >= 90) return 'ممتاز';
+    if (val >= 80) return 'جيد جداً';
+    if (val >= 70) return 'جيد';
+    if (val >= 50) return 'مقبول';
+    return 'راسب';
   };
 
   // System Users (admin/teacher/driver accounts)
@@ -1655,6 +1665,7 @@ export const AppProvider = ({ children }) => {
     deleteDailyMark,
     getStudentSubjectScores,
     getStudentOverallGpa,
+    calculateStudentLevel,
     themeMode,
     toggleThemeMode,
     attendance,

@@ -234,6 +234,22 @@ export const AppProvider = ({ children }) => {
       dbSaveCollection('school_homework_submissions', updated);
       return updated;
     });
+
+    setNotifications((prev) => {
+      const newNotif = {
+        id: `NOT-${Date.now().toString().slice(-4)}`,
+        title: `🌟 تم تصحيح وتقييم إجابتك من المعلم!`,
+        message: `النتيجة: ${gradeScore || '20/20'} | ملاحظات المعلم: ${teacherNote || 'إجابة ممتازة 👏'}`,
+        type: 'grade',
+        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toISOString().split('T')[0],
+        read: false,
+        targetRole: 'student'
+      };
+      const updatedNotifs = [newNotif, ...prev];
+      dbSaveCollection('school_notifications', updatedNotifs);
+      return updatedNotifs;
+    });
   };
 
   // ─── Attendance Records ───────────────────────────────────────────────────
@@ -1120,7 +1136,28 @@ export const AppProvider = ({ children }) => {
       date: new Date().toISOString().split('T')[0],
       ...msg
     };
-    setMessages((prev) => [newMsg, ...prev]);
+    setMessages((prev) => {
+      const updated = [newMsg, ...prev];
+      dbSaveCollection('school_messages', updated);
+      return updated;
+    });
+
+    setNotifications((prev) => {
+      const newNotif = {
+        id: `NOT-${Date.now().toString().slice(-4)}`,
+        title: `💬 رسالة موجهة من المعلم: ${msg.title || 'رسالة جديدة'}`,
+        message: msg.content || 'تم إرسال رسالة جديدة لك في البوابة المدرسية.',
+        type: 'message',
+        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toISOString().split('T')[0],
+        read: false,
+        targetGrade: msg.targetGrade,
+        targetRole: 'student'
+      };
+      const updatedNotifs = [newNotif, ...prev];
+      dbSaveCollection('school_notifications', updatedNotifs);
+      return updatedNotifs;
+    });
   };
 
   const addAgendaItem = (item) => {
@@ -1131,8 +1168,26 @@ export const AppProvider = ({ children }) => {
     };
     setAgenda((prev) => {
       const updated = [newItem, ...prev];
-      localStorage.setItem('school_agenda', JSON.stringify(updated));
+      dbSaveCollection('school_agenda', updated);
       return updated;
+    });
+
+    setNotifications((prev) => {
+      const newNotif = {
+        id: `NOT-${Date.now().toString().slice(-4)}`,
+        title: `📚 درس/واجب جديد من المعلم: ${item.subject || 'مادة دراسية'}`,
+        message: `${item.title || ''} - (${item.grade || ''} - الشعبة ${item.classRoom || 'أ'})`,
+        type: 'agenda',
+        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toISOString().split('T')[0],
+        read: false,
+        targetGrade: item.grade,
+        targetSection: item.classRoom,
+        targetRole: 'student'
+      };
+      const updatedNotifs = [newNotif, ...prev];
+      dbSaveCollection('school_notifications', updatedNotifs);
+      return updatedNotifs;
     });
   };
 

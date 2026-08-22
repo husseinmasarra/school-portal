@@ -159,7 +159,21 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
     }
   };
 
-  const unreadCount = (notifications || []).filter(n => !n.isRead).length;
+  const normStr = (str) => (str || '').toLowerCase().replace(/[أإآ]/g, 'ا').replace(/[\(\)\-\_\s]/g, '');
+
+  const userNotifications = (notifications || []).filter((n) => {
+    if (currentRole === 'admin') return true;
+    if (n.targetStudentId && (n.targetStudentId === currentUser?.id || n.targetStudentId === activeStudent?.id)) return true;
+    if (n.targetUser && (n.targetUser === currentUser?.username || n.targetUser === currentUser?.name || n.targetUser === activeStudent?.name)) return true;
+    if (n.targetGrade && activeStudent?.grade && normStr(n.targetGrade).includes(normStr(activeStudent.grade))) {
+      return true;
+    }
+    if (n.targetRole && (n.targetRole === currentRole || n.targetRole === 'all')) return true;
+    if (!n.targetStudentId && !n.targetUser && !n.targetGrade && !n.targetRole) return true;
+    return false;
+  });
+
+  const unreadCount = userNotifications.filter(n => !n.isRead && !n.read).length;
 
   const handleAvatarFileUpload = (e) => {
     const file = e.target.files[0];
@@ -328,24 +342,24 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
                     </div>
 
                     <div className="max-h-64 overflow-y-auto space-y-2.5 pe-1 custom-scrollbar">
-                      {(notifications || []).length === 0 ? (
+                      {userNotifications.length === 0 ? (
                         <div className="text-center py-8 text-slate-400 dark:text-slate-500 text-xs font-bold space-y-2">
                           <Bell className="w-7 h-7 text-slate-300 dark:text-slate-700 mx-auto opacity-40" />
-                          <p>{lang === 'ar' ? 'لا يوجد تنبيهات أو إشعارات حالياً 🔔' : 'No notifications currently 🔔'}</p>
+                          <p>{lang === 'ar' ? 'لا يوجد تنبيهات أو إشعارات موجهة لك حالياً 🔔' : 'No notifications currently 🔔'}</p>
                         </div>
                       ) : (
-                        notifications.map((notif) => (
+                        userNotifications.map((notif) => (
                           <div
                             key={notif.id}
                             className={`p-3 rounded-2xl border text-right space-y-1 transition-all ${
-                              !notif.isRead 
+                              !notif.isRead && !notif.read
                                 ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-850 font-bold' 
                                 : 'bg-[#F8FAFC] dark:bg-[#0F172A] border-slate-100 dark:border-[#1E293B] opacity-80'
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <h5 className="text-[11px] sm:text-xs font-extrabold text-[#0284C7] dark:text-sky-300">{notif.title}</h5>
-                              <span className="text-[9px] text-slate-400 dark:text-slate-500 font-mono">{notif.timestamp}</span>
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 font-mono">{notif.timestamp || notif.time}</span>
                             </div>
                             <p className="text-[11px] sm:text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{notif.message}</p>
                           </div>
@@ -353,7 +367,7 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
                       )}
                     </div>
 
-                    {(notifications || []).length > 0 && (
+                    {userNotifications.length > 0 && (
                       <div className="pt-2 border-t border-slate-100 dark:border-[#334155] flex justify-end">
                         <button
                           onClick={clearNotifications}

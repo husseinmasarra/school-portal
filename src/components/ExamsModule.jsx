@@ -30,9 +30,28 @@ export const ExamsModule = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGradeFilter, setSelectedGradeFilter] = useState('all');
 
+  const normalizeArabic = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/[أإآ]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  };
+
+  // Dynamically collect unique grades from registered students
+  const availableGrades = Array.from(new Set(safeStudents.map(s => s.grade).filter(Boolean)));
+
   const filteredStudents = safeStudents.filter((stu) => {
-    const nameMatch = (stu.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (stu.nameEn || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const gradeMatch = selectedGradeFilter === 'all' || stu.grade === selectedGradeFilter;
+    const normSearch = normalizeArabic(searchTerm);
+    const normName = normalizeArabic(stu.name || '') + ' ' + (stu.nameEn || '').toLowerCase();
+    const nameMatch = !normSearch || normName.includes(normSearch);
+
+    const normFilterGrade = normalizeArabic(selectedGradeFilter);
+    const normStuGrade = normalizeArabic(stu.grade || '');
+    const gradeMatch = selectedGradeFilter === 'all' || normStuGrade.includes(normFilterGrade) || normFilterGrade.includes(normStuGrade);
+
     return nameMatch && gradeMatch;
   });
 
@@ -308,15 +327,12 @@ export const ExamsModule = () => {
               <select
                 value={selectedGradeFilter}
                 onChange={(e) => setSelectedGradeFilter(e.target.value)}
-                className="bg-[#F8FAFC] border-2 border-slate-200 text-xs font-bold text-[#0F172A] rounded-2xl px-3 py-1.5 focus:outline-none cursor-pointer"
+                className="bg-[#F8FAFC] border-2 border-slate-200 text-xs font-extrabold text-[#0F172A] rounded-2xl px-3 py-1.5 focus:outline-none cursor-pointer"
               >
                 <option value="all">{isAr ? 'جميع الصفوف 🏫' : 'All Grades 🏫'}</option>
-                <option value="الصف الأول">الصف الأول</option>
-                <option value="الصف الثاني">الصف الثاني</option>
-                <option value="الصف الثالث">الصف الثالث</option>
-                <option value="الصف الرابع">الصف الرابع</option>
-                <option value="الصف الخامس">الصف الخامس</option>
-                <option value="الصف السادس">الصف السادس</option>
+                {availableGrades.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
               </select>
 
               <button

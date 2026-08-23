@@ -571,10 +571,16 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   });
 
   const handleExportStudentsExcel = () => {
-    const headers = ['المعرف', 'اسم الطالب', 'Name En', 'الصف', 'الشعبة', 'اسم ولي الأمر', 'هاتف ولي الأمر', 'الحساب المقبوض ($)', 'المتبقي ($)'];
-    const rows = (safeStudents || []).map(s => [
-      s.id, s.name, s.nameEn || '', s.grade, s.classRoom || '', s.parentName || '', s.parentPhone || '', s.tuitionPaid || 0, Math.max(0, (s.tuitionTotal || 1600) - (s.tuitionPaid || 0))
-    ]);
+    const headers = ['المعرف', 'اسم الطالب', 'Name En', 'الصف', 'الشعبة', 'اسم ولي الأمر', 'هاتف ولي الأمر', 'القسط السنوي ($)', 'الخصم الممنوح ($)', 'المبلغ المدفوع ($)', 'المبلغ المتبقي ($)'];
+    const rows = (safeStudents || []).map(s => {
+      const tot = Number(s.tuitionTotal) || 0;
+      const disc = Number(s.tuitionDiscount) || 0;
+      const paid = Number(s.tuitionPaid) || 0;
+      const rem = Math.max(0, tot - disc - paid);
+      return [
+        s.id, s.name, s.nameEn || '', s.grade, s.classRoom || '', s.parentName || '', s.parentPhone || '', tot, disc, paid, rem
+      ];
+    });
     exportToExcelCSV(`kashf-tullab-${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
   };
 
@@ -2235,6 +2241,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                 <th className="p-2 border border-slate-300 font-extrabold">الصف والشعبة</th>
                 <th className="p-2 border border-slate-300 font-extrabold">هاتف ولي الأمر</th>
                 <th className="p-2 border border-slate-300 font-extrabold">إجمالي القسط السنوي</th>
+                <th className="p-2 border border-slate-300 font-extrabold text-amber-800 bg-amber-50">الخصم الممنوح</th>
                 <th className="p-2 border border-slate-300 font-extrabold">المبلغ المدفوع</th>
                 <th className="p-2 border border-slate-300 font-extrabold">المبلغ المتبقي</th>
                 <th className="p-2 border border-slate-300 font-extrabold">رقم الإفادة الوزارية</th>
@@ -2242,15 +2249,19 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             </thead>
             <tbody>
               {filteredStudents.map((s) => {
-                const remaining = (s.tuitionTotal || 0) - (s.tuitionPaid || 0);
+                const total = Number(s.tuitionTotal) || 0;
+                const discount = Number(s.tuitionDiscount) || 0;
+                const paid = Number(s.tuitionPaid) || 0;
+                const remaining = Math.max(0, total - discount - paid);
                 return (
                   <tr key={s.id} className="border border-slate-300">
                     <td className="p-2 border border-slate-300 font-mono font-bold">{s.id}</td>
                     <td className="p-2 border border-slate-300 font-extrabold">{s.name}</td>
                     <td className="p-2 border border-slate-300 font-bold">{s.grade} ({s.classRoom || 'أ'})</td>
                     <td className="p-2 border border-slate-300 font-mono">{s.phone || s.parentPhone || 'غير مسجل'}</td>
-                    <td className="p-2 border border-slate-300 font-mono font-bold">${s.tuitionTotal || 0}</td>
-                    <td className="p-2 border border-slate-300 font-mono font-bold text-emerald-700">${s.tuitionPaid || 0}</td>
+                    <td className="p-2 border border-slate-300 font-mono font-bold">${total}</td>
+                    <td className="p-2 border border-slate-300 font-mono font-bold text-amber-700 bg-amber-50/50">-${discount}</td>
+                    <td className="p-2 border border-slate-300 font-mono font-bold text-emerald-700">${paid}</td>
                     <td className="p-2 border border-slate-300 font-mono font-bold text-red-600">${remaining}</td>
                     <td className="p-2 border border-slate-300 font-mono">{s.ministryClearance || 'لا يوجد'}</td>
                   </tr>

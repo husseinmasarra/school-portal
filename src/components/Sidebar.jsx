@@ -8,7 +8,6 @@ import {
   BookOpen, 
   Wallet, 
   MessageSquareText, 
-  IdCard, 
   Bus, 
   Settings, 
   KeyRound,
@@ -24,8 +23,6 @@ import {
   Building2,
   Calendar,
   Clock,
-  Smartphone,
-  Presentation,
   X 
 } from 'lucide-react';
 
@@ -65,6 +62,22 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
     }
   };
 
+  const getItemClass = (tabName, isSub = false) => {
+    const isActive = activeTab === tabName;
+    if (isSub) {
+      return `w-full text-right rtl:text-right ltr:text-left py-2 px-3 rounded-xl transition-all flex items-center justify-between cursor-pointer text-xs font-semibold ${
+        isActive 
+          ? 'bg-white/20 text-white font-bold shadow-xs' 
+          : 'text-sky-100/80 hover:text-white hover:bg-white/10'
+      }`;
+    }
+    return `w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-xs font-bold transition-all cursor-pointer ${
+      isActive
+        ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-md border border-sky-400/40 ring-1 ring-sky-400/30'
+        : 'text-white/90 hover:bg-white/12 dark:hover:bg-zinc-900/60 border border-transparent'
+    }`;
+  };
+
   return (
     <>
       {/* Mobile Backdrop Overlay */}
@@ -83,21 +96,21 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
         }`}
       >
         {/* Top Brand Header */}
-        <div className="p-6 border-b border-sky-600/50 dark:border-zinc-800 flex items-center justify-between">
+        <div className="p-5 border-b border-sky-600/50 dark:border-zinc-800 flex items-center justify-between">
           <div 
             onClick={() => handleNavClick('dashboard')}
             className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
             title={isAr ? 'العودة للوحة التحكم الرئيسية' : 'Go to Dashboard'}
           >
-            <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-lg border border-white shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-md border border-white shrink-0 overflow-hidden">
               <img src={siteSettings?.schoolLogo || "/emblem.png"} alt="Logo" className="w-full h-full object-contain" />
             </div>
 
             <div>
-              <h1 className="text-sm font-black text-white leading-tight">
+              <h1 className="text-xs sm:text-sm font-black text-white leading-tight">
                 {isAr ? (siteSettings?.schoolName || t('schoolName')) : (siteSettings?.schoolNameEn || t('schoolName'))}
               </h1>
-              <span className="text-[10px] text-amber-300 font-bold block">
+              <span className="text-[10px] text-amber-300 font-extrabold block">
                 {isAr ? 'منصة الإدارة الرقمية الذكية' : 'Smart Educational Platform'}
               </span>
             </div>
@@ -105,26 +118,26 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
 
           <button
             onClick={() => setIsOpen && setIsOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
+            className="lg:hidden text-slate-300 hover:text-white p-1 rounded-lg cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Scrollable Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-1.5 custom-scrollbar">
           
           {/* 1. لوحة التحكم */}
           <button
             onClick={() => handleNavClick('dashboard')}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs sm:text-sm font-black transition-all shadow-md cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs sm:text-xs font-black transition-all shadow-sm cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-lg ring-2 ring-[#EF4444] scale-[1.02]'
-                : 'bg-white/15 dark:bg-zinc-900/50 hover:bg-white/25 text-white border border-white/20'
+                ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-md border border-amber-400/50 ring-1 ring-amber-400/30'
+                : 'bg-white/10 dark:bg-zinc-900/50 hover:bg-white/20 text-white border border-white/10'
             }`}
           >
             <div className="flex items-center gap-3">
-              <LayoutDashboard className="w-5 h-5 text-[#EF4444]" />
+              <LayoutDashboard className="w-4 h-4 text-amber-300" />
               <span>
                 {currentRole === 'student'
                   ? (isAr ? 'لوحة تحكم الطالب' : 'Student Dashboard')
@@ -135,7 +148,7 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
                   : t('navDashboard')}
               </span>
             </div>
-            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
           </button>
 
           {/* ── 1. الصفوف والجداول الدراسية ── */}
@@ -143,14 +156,10 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           {(currentRole === 'admin' || currentRole === 'teacher') && (
             <button
               onClick={() => handleNavClick('classes', 'academic')}
-              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'classes'
-                  ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                  : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-              }`}
+              className={getItemClass('classes')}
             >
               <div className="flex items-center gap-3">
-                <Building2 className="w-5 h-5 text-[#EF4444]" />
+                <Building2 className="w-4 h-4 text-sky-200" />
                 <span>{isAr ? 'الصفوف والشُعب الدراسية' : 'Grades & Sections'}</span>
               </div>
             </button>
@@ -160,14 +169,10 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           {(currentRole === 'student' || currentRole === 'parent') && (
             <button
               onClick={() => handleNavClick('schedule', 'academic')}
-              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'schedule'
-                  ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                  : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-              }`}
+              className={getItemClass('schedule')}
             >
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-[#EF4444]" />
+                <Clock className="w-4 h-4 text-sky-200" />
                 <span>{isAr ? 'جدول وتوزيع الحصص الأسبوعي' : 'Weekly Timetable'}</span>
               </div>
             </button>
@@ -177,18 +182,14 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           {/* 2.1 الأجندة والدروس اليومية (للجميع) */}
           <button
             onClick={() => handleNavClick('agenda', 'academic')}
-            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'agenda'
-                ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md ring-2 ring-[#EF4444]'
-                : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-            }`}
+            className={getItemClass('agenda')}
           >
             <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-[#EF4444]" />
+              <Calendar className="w-4 h-4 text-sky-200" />
               <span>{isAr ? 'الأجندة والدروس اليومية' : 'Daily Agenda & Lessons'}</span>
             </div>
-            <span className="bg-[#EF4444] text-white text-[9px] px-2 py-0.5 rounded-full font-bold">
-              {isAr ? 'يومية 📅' : 'Daily'}
+            <span className="bg-white/20 text-white text-[9px] px-2 py-0.5 rounded-full font-bold border border-white/20">
+              {isAr ? 'اليومية' : 'Daily'}
             </span>
           </button>
 
@@ -197,24 +198,22 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
             <div className="space-y-1">
               <button
                 onClick={() => toggleSection('subjects', 'subjects', 'academic')}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'subjects'
-                    ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                    : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-                }`}
+                className={getItemClass('subjects')}
               >
                 <div className="flex items-center gap-3">
-                  <BookOpen className="w-5 h-5 text-[#EF4444]" />
+                  <BookOpen className="w-4 h-4 text-sky-200" />
                   <span>{isAr ? 'المواد الدراسية والدروس' : 'Subjects & Lessons'}</span>
                 </div>
-                {openSections.subjects ? <ChevronUp className="w-4 h-4 text-white/80" /> : <ChevronDown className="w-4 h-4 text-white/80" />}
+                {openSections.subjects ? <ChevronUp className="w-3.5 h-3.5 text-white/70" /> : <ChevronDown className="w-3.5 h-3.5 text-white/70" />}
               </button>
 
               {openSections.subjects && (
-                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-8 border-r-2' : 'pl-8 border-l-2'} border-white/40`}>
-                  <button onClick={() => handleNavClick('subjects', 'academic')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <Palette className="w-3.5 h-3.5 text-[#EF4444]" />
-                    <span>{isAr ? 'قائمة المواد والألوان' : 'Subjects & Colors'}</span>
+                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-6 border-r-2' : 'pl-6 border-l-2'} border-white/20 my-1`}>
+                  <button onClick={() => handleNavClick('subjects', 'academic')} className={getItemClass('subjects', true)}>
+                    <div className="flex items-center gap-2">
+                      <Palette className="w-3.5 h-3.5 text-sky-200" />
+                      <span>{isAr ? 'قائمة المواد والألوان' : 'Subjects & Colors'}</span>
+                    </div>
                   </button>
                 </div>
               )}
@@ -222,14 +221,10 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           ) : (
             <button
               onClick={() => handleNavClick('subjects', 'academic')}
-              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'subjects'
-                  ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                  : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-              }`}
+              className={getItemClass('subjects')}
             >
               <div className="flex items-center gap-3">
-                <BookOpen className="w-5 h-5 text-[#EF4444]" />
+                <BookOpen className="w-4 h-4 text-sky-200" />
                 <span>{isAr ? 'المواد والدروس المطلوبة' : 'Enrolled Subjects & Lessons'}</span>
               </div>
             </button>
@@ -240,32 +235,36 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           <div className="space-y-1">
             <button
               onClick={() => toggleSection('exams', 'exams', 'academic')}
-              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'exams' || activeTab === 'reports'
-                  ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                  : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
+                  ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-md border border-sky-400/40'
+                  : 'text-white/90 hover:bg-white/12 dark:hover:bg-zinc-900/60 border border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Award className="w-5 h-5 text-[#EF4444]" />
+                <Award className="w-4 h-4 text-amber-300" />
                 <span>
                   {currentRole === 'student' || currentRole === 'parent'
                     ? (isAr ? 'النتائج والشهادات الدراسية' : 'Grades & Report Cards')
                     : (isAr ? 'الاختبارات والنتائج' : 'Exams & Grades')}
                 </span>
               </div>
-              {openSections.exams ? <ChevronUp className="w-4 h-4 text-white/80" /> : <ChevronDown className="w-4 h-4 text-white/80" />}
+              {openSections.exams ? <ChevronUp className="w-3.5 h-3.5 text-white/70" /> : <ChevronDown className="w-3.5 h-3.5 text-white/70" />}
             </button>
 
             {openSections.exams && (
-              <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-8 border-r-2' : 'pl-8 border-l-2'} border-white/40`}>
-                <button onClick={() => handleNavClick('exams', 'academic')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                  <Award className="w-3.5 h-3.5 text-[#EF4444]" />
-                  <span>{currentRole === 'student' || currentRole === 'parent' ? (isAr ? 'علاماتي الدراسية' : 'My Grades') : (isAr ? 'رصد العلامات والترتيب' : 'Exam Marks & Rankings')}</span>
+              <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-6 border-r-2' : 'pl-6 border-l-2'} border-white/20 my-1`}>
+                <button onClick={() => handleNavClick('exams', 'academic')} className={getItemClass('exams', true)}>
+                  <div className="flex items-center gap-2">
+                    <Award className="w-3.5 h-3.5 text-amber-300" />
+                    <span>{currentRole === 'student' || currentRole === 'parent' ? (isAr ? 'علاماتي الدراسية' : 'My Grades') : (isAr ? 'رصد العلامات والترتيب' : 'Exam Marks & Rankings')}</span>
+                  </div>
                 </button>
-                <button onClick={() => handleNavClick('reports', 'academic')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                  <Printer className="w-3.5 h-3.5 text-sky-200" />
-                  <span>{isAr ? 'طباعة الشهادة الأكاديمية' : 'Academic Report Card'}</span>
+                <button onClick={() => handleNavClick('reports', 'academic')} className={getItemClass('reports', true)}>
+                  <div className="flex items-center gap-2">
+                    <Printer className="w-3.5 h-3.5 text-sky-200" />
+                    <span>{isAr ? 'طباعة الشهادة الأكاديمية' : 'Academic Report Card'}</span>
+                  </div>
                 </button>
               </div>
             )}
@@ -274,36 +273,29 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           {/* 3.2 سجل الحضور والغياب (للجميع) */}
           <button
             onClick={() => handleNavClick('attendance', 'academic')}
-            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'attendance'
-                ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md ring-2 ring-[#EF4444]'
-                : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-            }`}
+            className={getItemClass('attendance')}
           >
             <div className="flex items-center gap-3">
-              <UserCheck className="w-5 h-5 text-amber-300" />
+              <UserCheck className="w-4 h-4 text-emerald-300" />
               <span>{isAr ? 'سجل الحضور والغياب' : 'Attendance Tracker'}</span>
             </div>
-            <span className="bg-emerald-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">
-              {isAr ? 'مباشر 🟢' : 'Live'}
+            <span className="flex items-center gap-1.5 text-[9px] bg-emerald-500/20 text-emerald-200 px-2 py-0.5 rounded-full font-bold border border-emerald-400/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>{isAr ? 'مباشر' : 'Live'}</span>
             </span>
           </button>
 
           {/* 3.3 رصد السلوك والتوجيه (للجميع) */}
           <button
             onClick={() => handleNavClick('behavior', 'academic')}
-            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'behavior'
-                ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md ring-2 ring-[#EF4444]'
-                : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-            }`}
+            className={getItemClass('behavior')}
           >
             <div className="flex items-center gap-3">
-              <Award className="w-5 h-5 text-amber-300" />
+              <Award className="w-4 h-4 text-amber-300" />
               <span>{isAr ? 'رصد السلوك والتوجيه' : 'Behavior & Guidance'}</span>
             </div>
-            <span className="bg-amber-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">
-              {isAr ? 'سلوكي 🌟' : 'Notes'}
+            <span className="bg-amber-400/20 text-amber-200 text-[9px] px-2 py-0.5 rounded-full font-bold border border-amber-400/30">
+              {isAr ? 'سلوكي' : 'Notes'}
             </span>
           </button>
 
@@ -313,29 +305,33 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
             <div className="space-y-1">
               <button
                 onClick={() => toggleSection('students', 'directory', 'academic')}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'directory' || activeTab === 'documents'
-                    ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                    : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
+                    ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-md border border-sky-400/40'
+                    : 'text-white/90 hover:bg-white/12 dark:hover:bg-zinc-900/60 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <GraduationCap className="w-5 h-5 text-[#EF4444]" />
+                  <GraduationCap className="w-4 h-4 text-sky-200" />
                   <span>{isAr ? 'إضافة طلاب' : 'Add Students'}</span>
                 </div>
-                {openSections.students ? <ChevronUp className="w-4 h-4 text-white/80" /> : <ChevronDown className="w-4 h-4 text-white/80" />}
+                {openSections.students ? <ChevronUp className="w-3.5 h-3.5 text-white/70" /> : <ChevronDown className="w-3.5 h-3.5 text-white/70" />}
               </button>
 
               {openSections.students && (
-                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-8 border-r-2' : 'pl-8 border-l-2'} border-white/40`}>
-                  <button onClick={() => handleNavClick('directory', 'academic')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <Users className="w-3.5 h-3.5 text-[#EF4444]" />
-                    <span>{isAr ? 'دليل الطلاب' : 'Student Directory'}</span>
+                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-6 border-r-2' : 'pl-6 border-l-2'} border-white/20 my-1`}>
+                  <button onClick={() => handleNavClick('directory', 'academic')} className={getItemClass('directory', true)}>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5 text-sky-200" />
+                      <span>{isAr ? 'دليل الطلاب' : 'Student Directory'}</span>
+                    </div>
                   </button>
                   {currentRole === 'admin' && (
-                    <button onClick={() => handleNavClick('documents', 'academic')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                      <FolderArchive className="w-3.5 h-3.5 text-sky-200" />
-                      <span>{isAr ? 'أرشفة الوثائق الثبوتية' : 'Documents Archiving'}</span>
+                    <button onClick={() => handleNavClick('documents', 'academic')} className={getItemClass('documents', true)}>
+                      <div className="flex items-center gap-2">
+                        <FolderArchive className="w-3.5 h-3.5 text-sky-200" />
+                        <span>{isAr ? 'أرشفة الوثائق الثبوتية' : 'Documents Archiving'}</span>
+                      </div>
                     </button>
                   )}
                 </div>
@@ -348,64 +344,69 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
             <div className="space-y-1">
               <button
                 onClick={() => toggleSection('teachers', 'teachers', 'academic')}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'teachers'
-                    ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                    : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
+                    ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-md border border-sky-400/40'
+                    : 'text-white/90 hover:bg-white/12 dark:hover:bg-zinc-900/60 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <UserCheck className="w-5 h-5 text-[#EF4444]" />
+                  <UserCheck className="w-4 h-4 text-sky-200" />
                   <span>{isAr ? 'كادر المعلمين' : 'Teachers'}</span>
                 </div>
-                {openSections.teachers ? <ChevronUp className="w-4 h-4 text-white/80" /> : <ChevronDown className="w-4 h-4 text-white/80" />}
+                {openSections.teachers ? <ChevronUp className="w-3.5 h-3.5 text-white/70" /> : <ChevronDown className="w-3.5 h-3.5 text-white/70" />}
               </button>
 
               {openSections.teachers && (
-                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-8 border-r-2' : 'pl-8 border-l-2'} border-white/40`}>
-                  <button onClick={() => handleNavClick('teachers', 'academic')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <Users className="w-3.5 h-3.5 text-[#EF4444]" />
-                    <span>{isAr ? 'دليل المعلمين المعتمدين' : 'Teachers Directory'}</span>
+                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-6 border-r-2' : 'pl-6 border-l-2'} border-white/20 my-1`}>
+                  <button onClick={() => handleNavClick('teachers', 'academic')} className={getItemClass('teachers', true)}>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5 text-sky-200" />
+                      <span>{isAr ? 'دليل المعلمين المعتمدين' : 'Teachers Directory'}</span>
+                    </div>
                   </button>
-                  <button onClick={() => handleNavClick('schedule', 'academic')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-amber-300 hover:text-white flex items-center gap-2 cursor-pointer font-bold">
-                    <Clock className="w-3.5 h-3.5 text-amber-300" />
-                    <span>{isAr ? 'جدول وتوزيع الحصص الأسبوعية' : 'Master Weekly Timetable'}</span>
+                  <button onClick={() => handleNavClick('schedule', 'academic')} className={getItemClass('schedule', true)}>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-amber-300" />
+                      <span>{isAr ? 'جدول وتوزيع الحصص الأسبوعية' : 'Master Weekly Timetable'}</span>
+                    </div>
                   </button>
                 </div>
               )}
             </div>
           )}
 
-
-
-
           {/* ── 5. الشؤون المالية والرواتب (للإدارة فقط) ── */}
           {currentRole === 'admin' && (
             <div className="space-y-1">
               <button
                 onClick={() => toggleSection('finance', 'tuition', 'financial')}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'tuition' || activeTab === 'finance'
-                    ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                    : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
+                    ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-md border border-sky-400/40'
+                    : 'text-white/90 hover:bg-white/12 dark:hover:bg-zinc-900/60 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Wallet className="w-5 h-5 text-[#EF4444]" />
+                  <Wallet className="w-4 h-4 text-amber-300" />
                   <span>{isAr ? 'الشؤون المالية والرواتب' : 'Staff & Finance'}</span>
                 </div>
-                {openSections.finance ? <ChevronUp className="w-4 h-4 text-white/80" /> : <ChevronDown className="w-4 h-4 text-white/80" />}
+                {openSections.finance ? <ChevronUp className="w-3.5 h-3.5 text-white/70" /> : <ChevronDown className="w-3.5 h-3.5 text-white/70" />}
               </button>
 
               {openSections.finance && (
-                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-8 border-r-2' : 'pl-8 border-l-2'} border-white/40`}>
-                  <button onClick={() => handleNavClick('tuition', 'financial')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <CreditCard className="w-3.5 h-3.5 text-[#EF4444]" />
-                    <span>{isAr ? 'أقساط الطلاب والخصومات' : 'Tuition & Installments'}</span>
+                <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-6 border-r-2' : 'pl-6 border-l-2'} border-white/20 my-1`}>
+                  <button onClick={() => handleNavClick('tuition', 'financial')} className={getItemClass('tuition', true)}>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-3.5 h-3.5 text-amber-300" />
+                      <span>{isAr ? 'أقساط الطلاب والخصومات' : 'Tuition & Installments'}</span>
+                    </div>
                   </button>
-                  <button onClick={() => handleNavClick('finance', 'financial')} className="w-full text-right rtl:text-right ltr:text-left py-1.5 text-white/90 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <TrendingUp className="w-3.5 h-3.5 text-sky-200" />
-                    <span>{isAr ? 'رواتب الموظفين والنفقات' : 'Staff Payroll & Expenses'}</span>
+                  <button onClick={() => handleNavClick('finance', 'financial')} className={getItemClass('finance', true)}>
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-3.5 h-3.5 text-sky-200" />
+                      <span>{isAr ? 'رواتب الموظفين والنفقات' : 'Staff Payroll & Expenses'}</span>
+                    </div>
                   </button>
                 </div>
               )}
@@ -416,14 +417,10 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           {/* 6.1 رسائل الإدارة والتعاميم (للجميع) */}
           <button
             onClick={() => handleNavClick('messages', 'communications')}
-            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'messages'
-                ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-            }`}
+            className={getItemClass('messages')}
           >
             <div className="flex items-center gap-3">
-              <MessageSquareText className="w-5 h-5 text-[#EF4444]" />
+              <MessageSquareText className="w-4 h-4 text-sky-200" />
               <span>
                 {currentRole === 'student' || currentRole === 'parent'
                   ? (isAr ? 'رسائل الإدارة والتعاميم' : 'Announcements & Messages')
@@ -435,14 +432,10 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           {/* 6.2 الأنشطة والدورات (للجميع) */}
           <button
             onClick={() => handleNavClick('tutoring', 'academic')}
-            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'tutoring'
-                ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-            }`}
+            className={getItemClass('tutoring')}
           >
             <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-[#EF4444]" />
+              <Sparkles className="w-4 h-4 text-amber-300" />
               <span>{isAr ? 'الأنشطة والدورات' : 'Courses & Activities'}</span>
             </div>
           </button>
@@ -450,48 +443,36 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
           {/* 6.3 النقل والحافلات (للجميع) */}
           <button
             onClick={() => handleNavClick('bus', 'services')}
-            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'bus'
-                ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-            }`}
+            className={getItemClass('bus')}
           >
             <div className="flex items-center gap-3">
-              <Bus className="w-5 h-5 text-[#EF4444]" />
+              <Bus className="w-4 h-4 text-sky-200" />
               <span>{currentRole === 'student' || currentRole === 'parent' ? (isAr ? 'حافلة النقل المدرسي' : 'School Bus') : (isAr ? 'النقل والحافلات' : 'School Transport')}</span>
             </div>
           </button>
 
           {/* ── 7. إدارة المستخدمين والإعدادات (للإدارة فقط) ── */}
           {currentRole === 'admin' && (
-            <div className="space-y-1">
+            <div className="space-y-1 pt-1 border-t border-white/10">
               <button
                 onClick={() => handleNavClick('users', 'settings')}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'users'
-                    ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                    : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-                }`}
+                className={getItemClass('users')}
               >
                 <div className="flex items-center gap-3">
-                  <KeyRound className="w-5 h-5 text-amber-300" />
+                  <KeyRound className="w-4 h-4 text-amber-300" />
                   <span>{isAr ? 'إدارة المستخدمين والصلاحيات' : 'Users & Permissions'}</span>
                 </div>
-                <span className="bg-amber-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">
-                  {isAr ? 'الحسابات 🔑' : 'Users'}
+                <span className="bg-amber-400/20 text-amber-200 text-[9px] px-2 py-0.5 rounded-full font-bold border border-amber-400/30">
+                  {isAr ? 'الحسابات' : 'Users'}
                 </span>
               </button>
 
               <button
                 onClick={() => handleNavClick('settings', 'settings')}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'settings'
-                    ? 'bg-[#032541] dark:bg-zinc-900 text-white border border-[#EF4444] shadow-md'
-                    : 'text-white dark:text-slate-300 hover:bg-white/15 dark:hover:bg-zinc-900/60 border border-transparent'
-                }`}
+                className={getItemClass('settings')}
               >
                 <div className="flex items-center gap-3">
-                  <Settings className="w-5 h-5 text-[#EF4444]" />
+                  <Settings className="w-4 h-4 text-sky-200" />
                   <span>{isAr ? 'إعدادات المنظومة' : 'System Settings'}</span>
                 </div>
               </button>
@@ -501,12 +482,12 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
         </div>
 
         {/* Footer info badge */}
-        <div className="p-4 border-t border-[#E2E8F0] dark:border-zinc-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+        <div className="p-4 border-t border-sky-600/60 dark:border-zinc-800 text-[11px] text-sky-100 dark:text-slate-400 flex items-center justify-between bg-sky-900/30 dark:bg-zinc-950">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{isAr ? (siteSettings?.schoolName || 'مدرسة الدعم التعليمي') : (siteSettings?.schoolNameEn || 'Educational Support School')}</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-extrabold">{isAr ? (siteSettings?.schoolName || 'مدرسة الدعم التعليمي') : (siteSettings?.schoolNameEn || 'Educational Support School')}</span>
           </div>
-          <span className="bg-[#EF4444] text-white text-[9px] px-2 py-0.5 rounded-full font-bold">
+          <span className="bg-[#032541] border border-sky-400/30 text-white text-[9px] px-2.5 py-0.5 rounded-full font-bold">
             {currentUser?.roleTitle || currentUser?.role || 'عضو'}
           </span>
         </div>

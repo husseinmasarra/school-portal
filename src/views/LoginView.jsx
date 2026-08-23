@@ -48,14 +48,16 @@ export const LoginView = () => {
           </span>
         </div>
 
-        {/* Contact Developer Button at Top Header in English */}
+        {/* Contact Developer Badge at Top Header in English */}
         <a
           href="https://wa.me/96181713408"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebd59] text-white px-3.5 py-2 rounded-2xl text-xs font-black transition-all shadow-md hover:scale-105 cursor-pointer font-mono"
+          className="flex items-center gap-2 bg-white border-2 border-[#0284C7]/30 hover:border-[#0284C7] text-[#0284C7] hover:bg-[#0284C7] hover:text-white px-4 py-2 rounded-2xl text-xs font-black transition-all shadow-xs hover:shadow-md cursor-pointer font-mono group"
+          title="Direct WhatsApp Support with System Developer"
         >
-          💬 Contact Developer: +96181713408
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse group-hover:bg-white transition-colors shrink-0" />
+          <span>Contact Developer: +96181713408 💬</span>
         </a>
       </div>
 
@@ -131,7 +133,14 @@ export const LoginView = () => {
       {/* Footer */}
       <div className="text-center text-[11px] text-slate-400 font-semibold space-y-1">
         <div>{t('appName')} © 2026 - جميع الحقوق محفوظة</div>
-        <div className="text-[10px] text-[#0284C7] font-bold">System Developer Support: +96181713408</div>
+        <a 
+          href="https://wa.me/96181713408"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[11px] text-[#0284C7] font-bold hover:underline font-mono"
+        >
+          <span>System Developer Support: +96181713408</span>
+        </a>
       </div>
 
     </div>

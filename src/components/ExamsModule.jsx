@@ -10,7 +10,11 @@ import {
 } from 'lucide-react';
 
 export const ExamsModule = () => {
-  const { lang, t, currentRole, currentUser, exams = [], subjects = [], students = [], addExam, gradeExamResult, calculateStudentLevel } = useApp();
+  const { 
+    lang, t, currentRole, currentUser, 
+    exams = [], subjects = [], students = [], 
+    addExam, gradeExamResult, calculateStudentLevel, addDailyMark 
+  } = useApp();
 
   const isAr = lang === 'ar';
   const safeExams = exams || [];
@@ -89,8 +93,24 @@ export const ExamsModule = () => {
     );
   }
 
-  const [selectedExamId, setSelectedExamId] = useState('');
+  const [selectedSubjectId, setSelectedSubjectId] = useState(() => safeSubjects[0]?.id || 'SUB-01');
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Currently active subject object
+  const selectedSubject = safeSubjects.find(s => s.id === selectedSubjectId) || safeSubjects[0] || { id: 'SUB-01', name: 'الرياضيات' };
+
+  // Resolve exam object associated with current subject
+  const currentExam = safeExams.find(ex => ex.subjectId === selectedSubject.id || (ex.subject && ex.subject.trim() === selectedSubject.name.trim())) || {
+    id: `EXM-AUTO-${selectedSubject.id}`,
+    title: `اختبار ${selectedSubject.name}`,
+    subjectId: selectedSubject.id,
+    subject: selectedSubject.name,
+    results: []
+  };
+
+  // Grading state
+  const [gradingMarks, setGradingMarks] = useState({});
+  const [savedToast, setSavedToast] = useState(false);
 
   // New Exam state
   const [examTitle, setExamTitle] = useState('');
@@ -98,39 +118,6 @@ export const ExamsModule = () => {
   const [subjectId, setSubjectId] = useState(safeSubjects[0]?.id || 'SUB-01');
   const [grade, setGrade] = useState('الصف السادس');
   const [classRoom, setClassRoom] = useState('أ');
-
-  // Grading state
-  const [gradingMarks, setGradingMarks] = useState({});
-  const [gradingEvals, setGradingEvals] = useState({});
-  const [savedToast, setSavedToast] = useState(false);
-
-  // Combine custom created exams with default subject exam entries for ALL active subjects in the website!
-  const allActiveExams = [...safeExams];
-  safeSubjects.forEach((sub) => {
-    const subNameClean = (sub.name || '').trim().toLowerCase();
-    const hasExam = allActiveExams.some((ex) => {
-      const exSubClean = (ex.subject || '').trim().toLowerCase();
-      const exTitleClean = (ex.title || '').trim().toLowerCase();
-      return ex.subjectId === sub.id || (exSubClean && exSubClean === subNameClean) || (exTitleClean && exTitleClean.includes(subNameClean));
-    });
-    if (!hasExam) {
-      allActiveExams.push({
-        id: `EXM-AUTO-${sub.id}`,
-        title: `اختبار ${sub.name} التقييمي - الشهر الأول (${sub.name})`,
-        titleEn: `${sub.nameEn || sub.name} Monthly Exam`,
-        subjectId: sub.id,
-        subject: sub.name,
-        grade: 'جميع الصفوف',
-        classRoom: 'أ',
-        results: []
-      });
-    }
-  });
-
-  // Safely resolve selected exam or fallback to first available
-  const selectedExam = (allActiveExams.length > 0 && selectedExamId)
-    ? allActiveExams.find((e) => e.id === selectedExamId) || allActiveExams[0]
-    : allActiveExams[0] || null;
 
   const handleAddExamSubmit = (e) => {
     e.preventDefault();
@@ -141,7 +128,7 @@ export const ExamsModule = () => {
       : (safeSubjects[0]?.id || '');
     const sub = safeSubjects.find((s) => s.id === finalSubId) || safeSubjects[0];
 
-    const newEx = addExam({
+    addExam({
       title: examTitle,
       titleEn: examTitleEn || examTitle,
       subjectId: sub ? sub.id : 'SUB-01',
@@ -150,24 +137,33 @@ export const ExamsModule = () => {
       classRoom
     });
 
-    if (newEx?.id) {
-      setSelectedExamId(newEx.id);
-    }
-
     setExamTitle('');
     setExamTitleEn('');
-    setSubjectId('');
     setShowAddModal(false);
   };
 
   const handleSaveGrading = (studentId) => {
     const mark = gradingMarks[studentId];
-    if (!selectedExam || mark === undefined || mark === '') return;
+    if (mark === undefined || mark === '') return;
 
     const markNum = Number(mark);
     const evalText = calculateStudentLevel ? calculateStudentLevel(markNum) : (markNum >= 90 ? 'ممتاز' : markNum >= 80 ? 'جيد جداً' : markNum >= 70 ? 'جيد' : markNum >= 50 ? 'مقبول' : 'راسب');
 
-    gradeExamResult(selectedExam.id, studentId, markNum, evalText);
+    gradeExamResult(currentExam.id, studentId, markNum, evalText);
+
+    if (addDailyMark) {
+      addDailyMark({
+        studentId,
+        subjectId: selectedSubject.id,
+        subjectName: selectedSubject.name,
+        score: markNum,
+        maxScore: 100,
+        type: 'النهائي',
+        notes: evalText,
+        date: new Date().toISOString().split('T')[0]
+      });
+    }
+
     setSavedToast(true);
     setTimeout(() => setSavedToast(false), 3000);
   };
@@ -198,7 +194,7 @@ export const ExamsModule = () => {
       {savedToast && (
         <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold animate-fade-in shadow-lg">
           <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
-          <span>{isAr ? 'تم حفظ رصد علامة الطالب وتحديث المستوى والترتيب بنجاح! 💾' : 'Student mark saved successfully!'}</span>
+          <span>{isAr ? `تم حفظ رصد علامة مادة (${selectedSubject.name}) للمواضيع والتطبيقات بنجاح! 💾` : 'Student mark saved successfully!'}</span>
         </div>
       )}
 
@@ -238,24 +234,20 @@ export const ExamsModule = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-[#0284C7]" />
-            <span>{isAr ? 'دفتر رصد علامات المادة الدراسية 📝' : 'Subject Marks Registry Sheet 📝'}</span>
+            <span>{isAr ? `دفتر رصد علامات مادة: (${selectedSubject.name}) 📝` : `Subject Marks Registry Sheet (${selectedSubject.name}) 📝`}</span>
           </h3>
 
           {safeSubjects.length > 0 && (
             <div className="flex items-center gap-2 bg-[#F8FAFC] border-2 border-[#0284C7]/40 px-4 py-2 rounded-2xl shadow-sm">
               <span className="text-xs font-black text-[#0284C7] shrink-0">{isAr ? 'اختر المادة الدراسية لرصد العلامة:' : 'Select Subject:'}</span>
               <select
-                value={selectedExam?.subjectId || safeSubjects[0]?.id}
-                onChange={(e) => {
-                  const targetSubId = e.target.value;
-                  const matchExam = allActiveExams.find(ex => ex.subjectId === targetSubId || ex.subject === safeSubjects.find(s=>s.id===targetSubId)?.name);
-                  if (matchExam) setSelectedExamId(matchExam.id);
-                }}
-                className="bg-white text-xs font-extrabold text-[#0F172A] border border-slate-300 rounded-xl px-3 py-1 focus:outline-none cursor-pointer"
+                value={selectedSubject.id}
+                onChange={(e) => setSelectedSubjectId(e.target.value)}
+                className="bg-white text-xs font-extrabold text-[#0F172A] border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none cursor-pointer"
               >
                 {safeSubjects.map((sub) => (
                   <option key={sub.id} value={sub.id} className="bg-white text-slate-900 font-bold py-1">
-                    {sub.icon || '📚'} {sub.name}
+                    {sub.icon || '📚'} مادة: {sub.name}
                   </option>
                 ))}
               </select>
@@ -263,85 +255,78 @@ export const ExamsModule = () => {
           )}
         </div>
 
-        {!selectedExam ? (
-          <div className="text-center py-10 space-y-3 bg-[#F8FAFC] rounded-2xl border border-dashed border-slate-300">
-            <FileSpreadsheet className="w-10 h-10 text-slate-400 mx-auto" />
-            <h4 className="text-sm font-bold text-[#0284C7]">{isAr ? 'لم يتم العثور على مواد رصد 📝' : 'No Subjects Found'}</h4>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right rtl:text-right ltr:text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-[#0284C7] bg-[#F8FAFC] font-black">
-                  <th className="p-3 text-right">اسم الطالب</th>
-                  <th className="p-3 text-right">الصف والشعبة</th>
-                  <th className="p-3 text-center">وضع العلامة (/100)</th>
-                  <th className="p-3 text-center">المستوى والتقدير (تلقائي)</th>
-                  <th className="p-3 text-center">إجراء الحفظ</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-right rtl:text-right ltr:text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 text-[#0284C7] bg-[#F8FAFC] font-black">
+                <th className="p-3 text-right">اسم الطالب</th>
+                <th className="p-3 text-right">الصف والشعبة</th>
+                <th className="p-3 text-center">وضع العلامة (/100)</th>
+                <th className="p-3 text-center">المستوى والتقدير (تلقائي)</th>
+                <th className="p-3 text-center">إجراء الحفظ</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {safeStudents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-6 text-slate-400 text-xs font-bold">
+                    {isAr ? 'لا يوجد طلاب مسجلون حالياً لرصد العلامات.' : 'No students added yet.'}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {safeStudents.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-6 text-slate-400 text-xs font-bold">
-                      {isAr ? 'لا يوجد طلاب مسجلون حالياً لرصد العلامات.' : 'No students added yet.'}
-                    </td>
-                  </tr>
-                ) : (
-                  safeStudents.map((stu) => {
-                    const existingRes = (selectedExam?.results || []).find((r) => r.studentId === stu.id);
-                    const currentMark = gradingMarks[stu.id] ?? (existingRes ? existingRes.score : '');
-                    const currentMarkNum = Number(currentMark);
-                    const currentLevel = currentMark !== '' && !isNaN(currentMarkNum)
-                      ? (calculateStudentLevel ? calculateStudentLevel(currentMarkNum) : (currentMarkNum >= 90 ? 'ممتاز' : currentMarkNum >= 80 ? 'جيد جداً' : currentMarkNum >= 70 ? 'جيد' : currentMarkNum >= 50 ? 'مقبول' : 'راسب'))
-                      : 'غير مرصود';
+              ) : (
+                safeStudents.map((stu) => {
+                  const existingRes = (currentExam?.results || []).find((r) => r.studentId === stu.id);
+                  const currentMark = gradingMarks[stu.id] ?? (existingRes ? existingRes.score : '');
+                  const currentMarkNum = Number(currentMark);
+                  const currentLevel = currentMark !== '' && !isNaN(currentMarkNum)
+                    ? (calculateStudentLevel ? calculateStudentLevel(currentMarkNum) : (currentMarkNum >= 90 ? 'ممتاز' : currentMarkNum >= 80 ? 'جيد جداً' : currentMarkNum >= 70 ? 'جيد' : currentMarkNum >= 50 ? 'مقبول' : 'راسب'))
+                    : 'غير مرصود';
 
-                    return (
-                      <tr key={stu.id} className="hover:bg-[#F8FAFC] transition-all">
-                        <td className="p-3 font-black text-sm flex items-center gap-2 text-[#0F172A]">
-                          <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
-                          <span>{isAr ? stu.name : stu.nameEn}</span>
-                        </td>
-                        <td className="p-3 text-slate-600 font-bold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})</td>
-                        <td className="p-3 text-center">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={currentMark}
-                            onChange={(e) => setGradingMarks({ ...gradingMarks, [stu.id]: e.target.value })}
-                            placeholder="مثال: 95"
-                            className="w-24 bg-white border-2 border-slate-200 text-[#0F172A] rounded-xl px-3 py-1.5 text-sm font-black text-center focus:outline-none focus:border-[#0284C7] shadow-sm"
-                          />
-                        </td>
-                        <td className="p-3 text-center">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-black border ${
-                            currentLevel === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                            currentLevel === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border-sky-300' :
-                            currentLevel === 'جيد' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                            currentLevel === 'مقبول' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                            currentLevel === 'راسب' ? 'bg-red-100 text-red-800 border-red-300' :
-                            'bg-slate-100 text-slate-500 border-slate-300'
-                          }`}>
-                            {currentLevel}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center">
-                          <button
-                            onClick={() => handleSaveGrading(stu.id)}
-                            className="btn-mustard px-4 py-1.5 rounded-xl text-xs font-black shadow cursor-pointer hover:scale-105 transition-all"
-                          >
-                            حفظ رصد العلامة 💾
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  return (
+                    <tr key={stu.id} className="hover:bg-[#F8FAFC] transition-all">
+                      <td className="p-3 font-black text-sm flex items-center gap-2 text-[#0F172A]">
+                        <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
+                        <span>{isAr ? stu.name : stu.nameEn}</span>
+                      </td>
+                      <td className="p-3 text-slate-600 font-bold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})</td>
+                      <td className="p-3 text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={currentMark}
+                          onChange={(e) => setGradingMarks({ ...gradingMarks, [stu.id]: e.target.value })}
+                          placeholder="مثال: 95"
+                          className="w-24 bg-white border-2 border-slate-200 text-[#0F172A] rounded-xl px-3 py-1.5 text-sm font-black text-center focus:outline-none focus:border-[#0284C7] shadow-sm"
+                        />
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-3 py-1 rounded-lg text-xs font-black border ${
+                          currentLevel === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                          currentLevel === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border-sky-300' :
+                          currentLevel === 'جيد' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                          currentLevel === 'مقبول' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                          currentLevel === 'راسب' ? 'bg-red-100 text-red-800 border-red-300' :
+                          'bg-slate-100 text-slate-500 border-slate-300'
+                        }`}>
+                          {currentLevel}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleSaveGrading(stu.id)}
+                          className="btn-mustard px-4 py-1.5 rounded-xl text-xs font-black shadow cursor-pointer hover:scale-105 transition-all"
+                        >
+                          حفظ رصد العلامة 💾
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Add Exam Modal - Teleported to document.body */}

@@ -33,6 +33,7 @@ export const SettingsModule = () => {
     updateSiteSettings,
     systemUsers,
     addSystemUser,
+    updateSystemUser,
     updateSystemUserPermissions,
     deleteSystemUser,
     generateStrong8CharPassword,
@@ -95,8 +96,6 @@ export const SettingsModule = () => {
   const [newUserPermissions, setNewUserPermissions] = useState(['send_lessons', 'manage_grades', 'send_messages']);
 
   // Edit Permissions State
-  const [editingPermissionsUser, setEditingPermissionsUser] = useState(null);
-  const [editPermissionsList, setEditPermissionsList] = useState([]);
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -171,16 +170,41 @@ export const SettingsModule = () => {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  const handleOpenEditPermissions = (usr) => {
-    setEditingPermissionsUser(usr);
+  // Edit System User Full Modal State
+  const [editingSystemUser, setEditingSystemUser] = useState(null);
+  const [editUserName, setEditUserName] = useState('');
+  const [editUserNameEn, setEditUserNameEn] = useState('');
+  const [editUserUsername, setEditUserUsername] = useState('');
+  const [editUserPassword, setEditUserPassword] = useState('');
+  const [editUserRoleTitle, setEditUserRoleTitle] = useState('');
+  const [editPermissionsList, setEditPermissionsList] = useState([]);
+
+  const handleOpenEditUser = (usr) => {
+    setEditingSystemUser(usr);
+    setEditUserName(usr.name || '');
+    setEditUserNameEn(usr.nameEn || usr.name || '');
+    setEditUserUsername(usr.username || '');
+    setEditUserPassword(usr.password || '');
+    setEditUserRoleTitle(usr.roleTitle || usr.role || '');
     setEditPermissionsList(usr.permissions || []);
   };
 
-  const handleSaveEditPermissions = () => {
-    if (!editingPermissionsUser) return;
-    updateSystemUserPermissions(editingPermissionsUser.id, editPermissionsList);
-    setEditingPermissionsUser(null);
-    setToastMessage(isAr ? 'تم تحديث صلاحيات المستخدم بنجاح 🟢' : 'Permissions updated successfully!');
+  const handleSaveEditUser = (e) => {
+    if (e) e.preventDefault();
+    if (!editingSystemUser) return;
+    if (!editUserName || !editUserUsername || !editUserPassword) return;
+
+    updateSystemUser(editingSystemUser.id, {
+      name: editUserName,
+      nameEn: editUserNameEn || editUserName,
+      username: editUserUsername,
+      password: editUserPassword,
+      roleTitle: editUserRoleTitle,
+      permissions: editPermissionsList
+    });
+
+    setEditingSystemUser(null);
+    setToastMessage(isAr ? 'تم تحديث الاسم، كلمة السر، وبيانات الحساب بنجاح 🟢' : 'User account updated successfully!');
     setTimeout(() => setToastMessage(''), 3500);
   };
 
@@ -322,11 +346,12 @@ export const SettingsModule = () => {
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button
-                        onClick={() => handleOpenEditPermissions(usr)}
-                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-[#0284C7] rounded-lg cursor-pointer"
-                        title="تعديل الصلاحيات"
+                        onClick={() => handleOpenEditUser(usr)}
+                        className="p-1.5 bg-sky-50 hover:bg-sky-100 text-[#0284C7] border border-sky-200 rounded-lg cursor-pointer flex items-center gap-1 font-bold text-[11px]"
+                        title="تعديل الاسم وكلمة السر والصلاحيات"
                       >
                         <Edit className="w-3.5 h-3.5" />
+                        <span>تعديل ✏️</span>
                       </button>
 
                       {usr.id !== 'USER-ADMIN-01' && (
@@ -842,35 +867,123 @@ export const SettingsModule = () => {
         document.body
       )}
 
-      {/* Edit Permissions Modal */}
-      {editingPermissionsUser && createPortal(
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4">
-          <div className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A]">
+      {/* Edit User Details & Permissions Modal */}
+      {editingSystemUser && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 overflow-y-auto">
+          <form onSubmit={handleSaveEditUser} className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] my-auto max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5" />
-                تعديل صلاحيات: {isAr ? editingPermissionsUser.name : editingPermissionsUser.nameEn}
+                <Edit className="w-5 h-5" />
+                <span>تعديل اسم الحساب، كلمة السر الصلاحيات ✏️</span>
               </h3>
-              <button onClick={() => setEditingPermissionsUser(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs cursor-pointer">✕</button>
+              <button 
+                type="button"
+                onClick={() => setEditingSystemUser(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
-            <div className="grid grid-cols-1 gap-2 pt-1">
-              {systemPermissionOptions.map(perm => (
-                <label key={perm.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 cursor-pointer hover:text-[#0284C7] p-2 rounded-xl bg-[#F8FAFC] border border-slate-100 hover:border-[#0284C7]/40 transition-all">
-                  <input type="checkbox" checked={editPermissionsList.includes(perm.id)}
-                    onChange={() => toggleEditPermissionCheckbox(perm.id)}
-                    className="accent-[#0284C7] w-4 h-4 rounded cursor-pointer" />
-                  <span>{isAr ? perm.name : (perm.nameEn || perm.name)}</span>
-                </label>
-              ))}
+
+            <div className="space-y-3">
+              {/* Full Name */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block">الاسم الكامل للمستخدم <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  required
+                  value={editUserName}
+                  onChange={(e) => setEditUserName(e.target.value)}
+                  placeholder="مثال: أحمد علي..."
+                  className="w-full mt-1 bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
+                />
+              </div>
+
+              {/* Username & Password */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block">اسم الدخول (Username) <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    value={editUserUsername}
+                    onChange={(e) => setEditUserUsername(e.target.value)}
+                    placeholder="admin, student.101..."
+                    className="w-full mt-1 bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-[#0284C7]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 block">كلمة السر <span className="text-red-500">*</span></label>
+                    <button
+                      type="button"
+                      onClick={() => setEditUserPassword(generateStrong8CharPassword())}
+                      className="text-[10px] text-[#0284C7] font-bold cursor-pointer hover:underline"
+                    >
+                      توليد جديدة 🔑
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={editUserPassword}
+                    onChange={(e) => setEditUserPassword(e.target.value)}
+                    className="w-full mt-1 bg-[#F8FAFC] border border-[#E2E8F0] text-red-600 rounded-xl px-3 py-2 text-xs font-mono font-extrabold focus:outline-none focus:border-[#0284C7]"
+                  />
+                </div>
+              </div>
+
+              {/* Role Title */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block">المسمى الوظيفي والدور</label>
+                <input
+                  type="text"
+                  value={editUserRoleTitle}
+                  onChange={(e) => setEditUserRoleTitle(e.target.value)}
+                  placeholder="مدير عام النظام، مدرس معتمد، طالب..."
+                  className="w-full mt-1 bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
+                />
+              </div>
+
+              {/* Permissions Matrix */}
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-3 space-y-2">
+                <p className="text-xs font-extrabold text-[#0284C7] flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#0284C7]" />
+                  <span>الصلاحيات الممنوحة للمستخدم:</span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  {systemPermissionOptions.map((perm) => (
+                    <label key={perm.id} className="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer p-2 rounded-xl bg-white border border-slate-100 hover:border-[#0284C7]/40 shadow-xs transition-all">
+                      <input
+                        type="checkbox"
+                        checked={editPermissionsList.includes(perm.id)}
+                        onChange={() => toggleEditPermissionCheckbox(perm.id)}
+                        className="accent-[#0284C7] w-4 h-4 rounded cursor-pointer"
+                      />
+                      <span>{isAr ? perm.name : (perm.nameEn || perm.name)}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
+
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-              <button onClick={() => setEditingPermissionsUser(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">إلغاء</button>
-              <button onClick={handleSaveEditPermissions}
-                className="btn-mustard px-5 py-2 rounded-xl text-xs font-bold shadow cursor-pointer">حفظ الصلاحيات ✅</button>
+              <button 
+                type="button" 
+                onClick={() => setEditingSystemUser(null)}
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
+              >
+                إلغاء
+              </button>
+              <button 
+                type="submit"
+                className="btn-mustard px-5 py-2 rounded-xl text-xs font-bold shadow cursor-pointer flex items-center gap-1.5"
+              >
+                <span>حفظ البيانات والتعديلات ✅</span>
+              </button>
             </div>
-          </div>
+          </form>
         </div>,
         document.body
       )}

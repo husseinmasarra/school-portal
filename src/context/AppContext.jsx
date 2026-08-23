@@ -1459,14 +1459,60 @@ export const AppProvider = ({ children }) => {
     });
   };
 
+  const updateSystemUser = (userId, updatedFields) => {
+    setSystemUsers((prev) => {
+      const updated = prev.map((u) => (u.id === userId ? { ...u, ...updatedFields } : u));
+      localStorage.setItem('school_system_users', JSON.stringify(updated));
+      dbSaveCollection('school_system_users', updated);
+      return updated;
+    });
+
+    // Sync with students array if applicable
+    setStudents((prev) => {
+      const match = prev.find((s) => s.id === userId || s.username === userId);
+      if (match) {
+        const updated = prev.map((s) => (s.id === match.id ? {
+          ...s,
+          ...(updatedFields.name && { name: updatedFields.name }),
+          ...(updatedFields.username && { username: updatedFields.username }),
+          ...(updatedFields.password && { password: updatedFields.password }),
+        } : s));
+        localStorage.setItem('school_students', JSON.stringify(updated));
+        dbSaveCollection('school_students', updated);
+        return updated;
+      }
+      return prev;
+    });
+
+    // Sync with teachers array if applicable
+    setTeachers((prev) => {
+      const match = prev.find((t) => t.id === userId || t.username === userId);
+      if (match) {
+        const updated = prev.map((t) => (t.id === match.id ? {
+          ...t,
+          ...(updatedFields.name && { name: updatedFields.name }),
+          ...(updatedFields.username && { username: updatedFields.username }),
+          ...(updatedFields.password && { password: updatedFields.password }),
+        } : t));
+        localStorage.setItem('school_teachers', JSON.stringify(updated));
+        dbSaveCollection('school_teachers', updated);
+        return updated;
+      }
+      return prev;
+    });
+  };
+
   const updateSystemUserPermissions = (userId, newPermissions) => {
-    setSystemUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, permissions: newPermissions } : u))
-    );
+    updateSystemUser(userId, { permissions: newPermissions });
   };
 
   const deleteSystemUser = (userId) => {
-    setSystemUsers((prev) => prev.filter((u) => u.id !== userId));
+    setSystemUsers((prev) => {
+      const updated = prev.filter((u) => u.id !== userId);
+      localStorage.setItem('school_system_users', JSON.stringify(updated));
+      dbSaveCollection('school_system_users', updated);
+      return updated;
+    });
   };
 
   const updateTeacherSalary = (teacherId, newSalary) => {
@@ -1663,6 +1709,7 @@ export const AppProvider = ({ children }) => {
     updateStudent,
     systemUsers,
     addSystemUser,
+    updateSystemUser,
     updateSystemUserPermissions,
     deleteSystemUser,
     generateStrong8CharPassword,

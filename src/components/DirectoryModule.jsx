@@ -49,6 +49,27 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const safeClassrooms = classrooms || [];
   const safeSubjects = subjects || [];
 
+  const normalizeArabic = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/[أإآ]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  };
+
+  const getClassroomsForGrade = (targetGrade) => {
+    if (!safeClassrooms || safeClassrooms.length === 0) return [];
+    const normTarget = normalizeArabic(targetGrade);
+    const matched = safeClassrooms.filter((c) => {
+      if (!c.gradeName) return true;
+      const normCG = normalizeArabic(c.gradeName);
+      return normCG.includes(normTarget) || normTarget.includes(normCG);
+    });
+    return matched.length > 0 ? matched : safeClassrooms;
+  };
+
   const [activeTab, setActiveTab] = useState(initialSubTab);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGradeFilter, setSelectedGradeFilter] = useState('all');
@@ -1192,18 +1213,21 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                   onChange={(e) => setStuClassRoom(e.target.value)}
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
                 >
-                  {safeClassrooms.length === 0 ? (
+                  {getClassroomsForGrade(stuGrade).length === 0 ? (
                     <>
                       <option value="أ">الشعبة (أ)</option>
                       <option value="ب">الشعبة (ب)</option>
                       <option value="ج">الشعبة (ج)</option>
                     </>
                   ) : (
-                    safeClassrooms.map((c) => (
-                      <option key={c.id} value={c.sectionName}>
-                        {c.gradeName ? `${c.gradeName} - ` : ''}{isAr ? c.sectionName : c.sectionNameEn}
-                      </option>
-                    ))
+                    getClassroomsForGrade(stuGrade).map((c) => {
+                      const secLabel = c.sectionName ? (c.sectionName.startsWith('الشعبة') ? c.sectionName : `الشعبة (${c.sectionName})`) : (c.sectionNameEn || 'أ');
+                      return (
+                        <option key={c.id} value={c.sectionName}>
+                          {secLabel}
+                        </option>
+                      );
+                    })
                   )}
                 </select>
               </div>
@@ -1302,11 +1326,22 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                             onChange={(e) => updateSiblingField(index, 'classRoom', e.target.value)}
                             className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white rounded-xl px-2.5 py-1.5 text-xs focus:outline-none cursor-pointer font-bold"
                           >
-                            {safeClassrooms.map((c) => (
-                              <option key={c.id} value={c.sectionName}>
-                                {c.gradeName ? `${c.gradeName} - ` : ''}{isAr ? c.sectionName : c.sectionNameEn}
-                              </option>
-                            ))}
+                            {getClassroomsForGrade(sib.grade).length === 0 ? (
+                              <>
+                                <option value="أ">الشعبة (أ)</option>
+                                <option value="ب">الشعبة (ب)</option>
+                                <option value="ج">الشعبة (ج)</option>
+                              </>
+                            ) : (
+                              getClassroomsForGrade(sib.grade).map((c) => {
+                                const secLabel = c.sectionName ? (c.sectionName.startsWith('الشعبة') ? c.sectionName : `الشعبة (${c.sectionName})`) : (c.sectionNameEn || 'أ');
+                                return (
+                                  <option key={c.id} value={c.sectionName}>
+                                    {secLabel}
+                                  </option>
+                                );
+                              })
+                            )}
                           </select>
                         </div>
                       </div>

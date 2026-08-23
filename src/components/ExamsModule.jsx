@@ -13,13 +13,41 @@ export const ExamsModule = () => {
   const { 
     lang, t, currentRole, currentUser, 
     exams = [], subjects = [], students = [], 
-    addExam, gradeExamResult, calculateStudentLevel, addDailyMark 
+    addExam, gradeExamResult, calculateStudentLevel, calculateGrandTotalLevel, addDailyMark, getStudentSubjectScores 
   } = useApp();
 
   const isAr = lang === 'ar';
   const safeExams = exams || [];
   const safeSubjects = subjects || [];
   const safeStudents = students || [];
+
+  // View Mode: 'master' (Master Spreadsheet Table) or 'single' (Single Subject View)
+  const [viewMode, setViewMode] = useState('master');
+  const [selectedSubjectId, setSelectedSubjectId] = useState(() => safeSubjects[0]?.id || 'SUB-01');
+
+  // Currently active subject for single view
+  const selectedSubject = safeSubjects.find(s => s.id === selectedSubjectId) || safeSubjects[0] || { id: 'SUB-01', name: 'الرياضيات' };
+
+  // Matrix marks state: key is `${studentId}_${subjectId}` -> numeric score string
+  const [matrixMarks, setMatrixMarks] = useState({});
+  const [savedToast, setSavedToast] = useState(false);
+  const [savedToastMsg, setSavedToastMsg] = useState('');
+
+  // Pre-fill matrixMarks from existing scores on initial load
+  React.useEffect(() => {
+    if (safeStudents.length > 0 && safeSubjects.length > 0 && getStudentSubjectScores) {
+      const initialMap = {};
+      safeStudents.forEach(stu => {
+        const scores = getStudentSubjectScores(stu.id) || [];
+        scores.forEach(subScore => {
+          if (subScore.total !== undefined && subScore.total > 0) {
+            initialMap[`${stu.id}_${subScore.id}`] = subScore.total;
+          }
+        });
+      });
+      setMatrixMarks(prev => ({ ...initialMap, ...prev }));
+    }
+  }, [safeStudents.length, safeSubjects.length]);
 
   // For Student or Parent: Show ONLY their own exam results
   if (currentRole === 'student' || currentRole === 'parent') {
@@ -93,79 +121,68 @@ export const ExamsModule = () => {
     );
   }
 
-  const [selectedSubjectId, setSelectedSubjectId] = useState(() => safeSubjects[0]?.id || 'SUB-01');
-  const [showAddModal, setShowAddModal] = useState(false);
+  // Save single student marks across all subjects in Master View
+  const handleSaveStudentAllSubjects = (studentId) => {
+    safeSubjects.forEach(sub => {
+      const val = matrixMarks[`${studentId}_${sub.id}`];
+      if (val !== undefined && val !== '') {
+        const markNum = Number(val);
+        const evalText = calculateStudentLevel ? calculateStudentLevel(markNum) : (markNum >= 90 ? 'ممتاز' : markNum >= 80 ? 'جيد جداً' : markNum >= 70 ? 'جيد' : markNum >= 50 ? 'مقبول' : 'راسب');
 
-  // Currently active subject object
-  const selectedSubject = safeSubjects.find(s => s.id === selectedSubjectId) || safeSubjects[0] || { id: 'SUB-01', name: 'الرياضيات' };
+        const examObj = safeExams.find(ex => ex.subjectId === sub.id || (ex.subject && ex.subject.trim() === sub.name.trim())) || { id: `EXM-AUTO-${sub.id}` };
+        gradeExamResult(examObj.id, studentId, markNum, evalText);
 
-  // Resolve exam object associated with current subject
-  const currentExam = safeExams.find(ex => ex.subjectId === selectedSubject.id || (ex.subject && ex.subject.trim() === selectedSubject.name.trim())) || {
-    id: `EXM-AUTO-${selectedSubject.id}`,
-    title: `اختبار ${selectedSubject.name}`,
-    subjectId: selectedSubject.id,
-    subject: selectedSubject.name,
-    results: []
-  };
-
-  // Grading state
-  const [gradingMarks, setGradingMarks] = useState({});
-  const [savedToast, setSavedToast] = useState(false);
-
-  // New Exam state
-  const [examTitle, setExamTitle] = useState('');
-  const [examTitleEn, setExamTitleEn] = useState('');
-  const [subjectId, setSubjectId] = useState(safeSubjects[0]?.id || 'SUB-01');
-  const [grade, setGrade] = useState('الصف السادس');
-  const [classRoom, setClassRoom] = useState('أ');
-
-  const handleAddExamSubmit = (e) => {
-    e.preventDefault();
-    if (!examTitle) return;
-
-    const finalSubId = subjectId && safeSubjects.some(s => s.id === subjectId) 
-      ? subjectId 
-      : (safeSubjects[0]?.id || '');
-    const sub = safeSubjects.find((s) => s.id === finalSubId) || safeSubjects[0];
-
-    addExam({
-      title: examTitle,
-      titleEn: examTitleEn || examTitle,
-      subjectId: sub ? sub.id : 'SUB-01',
-      subject: sub ? sub.name : 'مادة دراسية',
-      grade,
-      classRoom
+        if (addDailyMark) {
+          addDailyMark({
+            studentId,
+            subjectId: sub.id,
+            subjectName: sub.name,
+            score: markNum,
+            maxScore: 100,
+            type: 'النهائي',
+            notes: evalText,
+            date: new Date().toISOString().split('T')[0]
+          });
+        }
+      }
     });
 
-    setExamTitle('');
-    setExamTitleEn('');
-    setShowAddModal(false);
-  };
-
-  const handleSaveGrading = (studentId) => {
-    const mark = gradingMarks[studentId];
-    if (mark === undefined || mark === '') return;
-
-    const markNum = Number(mark);
-    const evalText = calculateStudentLevel ? calculateStudentLevel(markNum) : (markNum >= 90 ? 'ممتاز' : markNum >= 80 ? 'جيد جداً' : markNum >= 70 ? 'جيد' : markNum >= 50 ? 'مقبول' : 'راسب');
-
-    gradeExamResult(currentExam.id, studentId, markNum, evalText);
-
-    if (addDailyMark) {
-      addDailyMark({
-        studentId,
-        subjectId: selectedSubject.id,
-        subjectName: selectedSubject.name,
-        score: markNum,
-        maxScore: 100,
-        type: 'النهائي',
-        notes: evalText,
-        date: new Date().toISOString().split('T')[0]
-      });
-    }
-
+    setSavedToastMsg(isAr ? 'تم حفظ كافة درجات الطالب وتحديث المجموع النهائي والمستوى بنجاح! 💾' : 'Student marks updated!');
     setSavedToast(true);
     setTimeout(() => setSavedToast(false), 3000);
+  };
+
+  // Save ALL students and ALL subjects in one master click
+  const handleSaveAllMasterMatrix = () => {
+    safeStudents.forEach(stu => {
+      safeSubjects.forEach(sub => {
+        const val = matrixMarks[`${stu.id}_${sub.id}`];
+        if (val !== undefined && val !== '') {
+          const markNum = Number(val);
+          const evalText = calculateStudentLevel ? calculateStudentLevel(markNum) : (markNum >= 90 ? 'ممتاز' : markNum >= 80 ? 'جيد جداً' : markNum >= 70 ? 'جيد' : markNum >= 50 ? 'مقبول' : 'راسب');
+
+          const examObj = safeExams.find(ex => ex.subjectId === sub.id || (ex.subject && ex.subject.trim() === sub.name.trim())) || { id: `EXM-AUTO-${sub.id}` };
+          gradeExamResult(examObj.id, stu.id, markNum, evalText);
+
+          if (addDailyMark) {
+            addDailyMark({
+              studentId: stu.id,
+              subjectId: sub.id,
+              subjectName: sub.name,
+              score: markNum,
+              maxScore: 100,
+              type: 'النهائي',
+              notes: evalText,
+              date: new Date().toISOString().split('T')[0]
+            });
+          }
+        }
+      });
+    });
+
+    setSavedToastMsg(isAr ? 'تم حفظ وتثبيت كافة درجات جميع الطلاب لجميع المواد بنجاح! 💾✨' : 'All marks saved successfully!');
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 3500);
   };
 
   // Sort Top Performing Roster
@@ -181,20 +198,45 @@ export const ExamsModule = () => {
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#0284C7]">{isAr ? 'رصد العلامات والدرجات الدراسية' : 'Grade Marks Sheet'}</h2>
+            <h2 className="text-xl font-bold text-[#0284C7]">{isAr ? 'الجدول الشامل لرصد العلامات والدرجات' : 'Master Grade Registry Sheet'}</h2>
             <p className="text-xs text-slate-500 mt-1">
               {isAr 
-                ? "اختر المادة الدراسية وقم برصد درجات التلميذ فوراً لحساب المستوى والترتيب تلقائياً."
-                : "Select subject and enter student marks directly to compute ranks."}
+                ? "رصد كافة علامات المواد في جدول موحد كملف Excel لحساب المجموع التراكمي E15 والمستوى فوراً."
+                : "Master spreadsheet layout to record all subject marks in one grid."}
             </p>
           </div>
+        </div>
+
+        {/* View Mode Toggle Controls */}
+        <div className="flex items-center gap-2 bg-[#F8FAFC] border-2 border-[#0284C7]/30 p-1.5 rounded-2xl shadow-sm shrink-0">
+          <button
+            onClick={() => setViewMode('master')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              viewMode === 'master' 
+                ? 'bg-[#0284C7] text-white shadow-md' 
+                : 'text-slate-600 hover:text-[#0284C7]'
+            }`}
+          >
+            📊 {isAr ? 'جدول كافة المواد الشامل' : 'Master Grid'}
+          </button>
+
+          <button
+            onClick={() => setViewMode('single')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              viewMode === 'single' 
+                ? 'bg-[#0284C7] text-white shadow-md' 
+                : 'text-slate-600 hover:text-[#0284C7]'
+            }`}
+          >
+            📚 {isAr ? 'رصد مادة واحدة' : 'Single Subject'}
+          </button>
         </div>
       </div>
 
       {savedToast && (
         <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold animate-fade-in shadow-lg">
           <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
-          <span>{isAr ? `تم حفظ رصد علامة مادة (${selectedSubject.name}) للمواضيع والتطبيقات بنجاح! 💾` : 'Student mark saved successfully!'}</span>
+          <span>{savedToastMsg}</span>
         </div>
       )}
 
@@ -229,148 +271,239 @@ export const ExamsModule = () => {
         </div>
       )}
 
-      {/* Main Dedicated Marks Sheet */}
-      <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
-            <FileSpreadsheet className="w-5 h-5 text-[#0284C7]" />
-            <span>{isAr ? `دفتر رصد علامات مادة: (${selectedSubject.name}) 📝` : `Subject Marks Registry Sheet (${selectedSubject.name}) 📝`}</span>
-          </h3>
+      {/* MASTER GRID VIEW (📊 جدول رصد كافة المواد الشامل) */}
+      {viewMode === 'master' && (
+        <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-[#0284C7]" />
+              <span>{isAr ? 'الجدول الموحد الشامل لرصد علامات كافة المواد 📊' : 'Master All-Subjects Marks Registry Grid 📊'}</span>
+            </h3>
 
-          {safeSubjects.length > 0 && (
-            <div className="flex items-center gap-2 bg-[#F8FAFC] border-2 border-[#0284C7]/40 px-4 py-2 rounded-2xl shadow-sm">
-              <span className="text-xs font-black text-[#0284C7] shrink-0">{isAr ? 'اختر المادة الدراسية لرصد العلامة:' : 'Select Subject:'}</span>
-              <select
-                value={selectedSubject.id}
-                onChange={(e) => setSelectedSubjectId(e.target.value)}
-                className="bg-white text-xs font-extrabold text-[#0F172A] border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none cursor-pointer"
-              >
-                {safeSubjects.map((sub) => (
-                  <option key={sub.id} value={sub.id} className="bg-white text-slate-900 font-bold py-1">
-                    {sub.icon || '📚'} مادة: {sub.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+            <button
+              onClick={handleSaveAllMasterMatrix}
+              className="btn-mustard px-5 py-2 rounded-2xl text-xs font-black shadow hover:scale-105 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <span>حفظ وتثبيت كافة درجات جميع الطلاب 💾</span>
+            </button>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-right rtl:text-right ltr:text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-[#0284C7] bg-[#F8FAFC] font-black">
-                <th className="p-3 text-right">اسم الطالب</th>
-                <th className="p-3 text-right">الصف والشعبة</th>
-                <th className="p-3 text-center">وضع العلامة (/100)</th>
-                <th className="p-3 text-center">المستوى والتقدير (تلقائي)</th>
-                <th className="p-3 text-center">إجراء الحفظ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {safeStudents.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-6 text-slate-400 text-xs font-bold">
-                    {isAr ? 'لا يوجد طلاب مسجلون حالياً لرصد العلامات.' : 'No students added yet.'}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-right rtl:text-right ltr:text-left text-xs border-collapse border border-slate-200">
+              <thead>
+                <tr className="bg-[#0284C7] text-white font-black text-xs">
+                  <th className="p-3 border border-sky-700 text-right sticky right-0 bg-[#0284C7] min-w-[150px]">اسم الطالب</th>
+                  <th className="p-3 border border-sky-700 text-center min-w-[90px]">الصف</th>
+                  
+                  {/* Dynamic Subject Columns */}
+                  {safeSubjects.map(sub => (
+                    <th key={sub.id} className="p-3 border border-sky-700 text-center min-w-[110px]">
+                      {sub.icon || '📚'} {sub.name}
+                    </th>
+                  ))}
+
+                  <th className="p-3 border border-sky-700 text-center bg-sky-900 min-w-[120px]">
+                    المجموع (E15)
+                  </th>
+                  <th className="p-3 border border-sky-700 text-center bg-sky-950 min-w-[120px]">
+                    التقدير والمستوى العام
+                  </th>
+                  <th className="p-3 border border-sky-700 text-center min-w-[100px]">
+                    إجراء الحفظ
+                  </th>
                 </tr>
-              ) : (
-                safeStudents.map((stu) => {
-                  const existingRes = (currentExam?.results || []).find((r) => r.studentId === stu.id);
-                  const currentMark = gradingMarks[stu.id] ?? (existingRes ? existingRes.score : '');
-                  const currentMarkNum = Number(currentMark);
-                  const currentLevel = currentMark !== '' && !isNaN(currentMarkNum)
-                    ? (calculateStudentLevel ? calculateStudentLevel(currentMarkNum) : (currentMarkNum >= 90 ? 'ممتاز' : currentMarkNum >= 80 ? 'جيد جداً' : currentMarkNum >= 70 ? 'جيد' : currentMarkNum >= 50 ? 'مقبول' : 'راسب'))
-                    : 'غير مرصود';
+              </thead>
 
-                  return (
-                    <tr key={stu.id} className="hover:bg-[#F8FAFC] transition-all">
-                      <td className="p-3 font-black text-sm flex items-center gap-2 text-[#0F172A]">
-                        <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
-                        <span>{isAr ? stu.name : stu.nameEn}</span>
-                      </td>
-                      <td className="p-3 text-slate-600 font-bold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})</td>
-                      <td className="p-3 text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={currentMark}
-                          onChange={(e) => setGradingMarks({ ...gradingMarks, [stu.id]: e.target.value })}
-                          placeholder="مثال: 95"
-                          className="w-24 bg-white border-2 border-slate-200 text-[#0F172A] rounded-xl px-3 py-1.5 text-sm font-black text-center focus:outline-none focus:border-[#0284C7] shadow-sm"
-                        />
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-black border ${
-                          currentLevel === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                          currentLevel === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border-sky-300' :
-                          currentLevel === 'جيد' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                          currentLevel === 'مقبول' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                          currentLevel === 'راسب' ? 'bg-red-100 text-red-800 border-red-300' :
-                          'bg-slate-100 text-slate-500 border-slate-300'
-                        }`}>
-                          {currentLevel}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <button
-                          onClick={() => handleSaveGrading(stu.id)}
-                          className="btn-mustard px-4 py-1.5 rounded-xl text-xs font-black shadow cursor-pointer hover:scale-105 transition-all"
-                        >
-                          حفظ رصد العلامة 💾
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+              <tbody className="divide-y divide-slate-200">
+                {safeStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={safeSubjects.length + 5} className="p-8 text-center text-slate-400 font-bold">
+                      {isAr ? 'لا يوجد طلاب مسجلون حالياً لرصد الدرجات.' : 'No students added yet.'}
+                    </td>
+                  </tr>
+                ) : (
+                  safeStudents.map(stu => {
+                    // Compute live grand total score sum for this student
+                    let stuTotalSum = 0;
+                    safeSubjects.forEach(sub => {
+                      const val = matrixMarks[`${stu.id}_${sub.id}`];
+                      if (val !== undefined && val !== '') {
+                        stuTotalSum += Number(val) || 0;
+                      }
+                    });
+
+                    const maxTotalScore = (safeSubjects.length || 6) * 100;
+                    const grandLevel = calculateGrandTotalLevel 
+                      ? calculateGrandTotalLevel(stuTotalSum)
+                      : (stuTotalSum >= 550 ? 'ممتاز' : stuTotalSum >= 500 ? 'جيد جداً' : stuTotalSum >= 450 ? 'جيد' : stuTotalSum >= 300 ? 'مقبول' : 'راسب');
+
+                    return (
+                      <tr key={stu.id} className="hover:bg-sky-50/50 transition-colors">
+                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] flex items-center gap-2 sticky right-0 bg-white shadow-sm">
+                          <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
+                          <span>{isAr ? stu.name : stu.nameEn}</span>
+                        </td>
+                        <td className="p-3 border border-slate-200 text-center text-slate-600 font-bold">
+                          {isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})
+                        </td>
+
+                        {/* Subject Cell Input Fields */}
+                        {safeSubjects.map(sub => {
+                          const cellKey = `${stu.id}_${sub.id}`;
+                          const cellVal = matrixMarks[cellKey] ?? '';
+
+                          return (
+                            <td key={sub.id} className="p-2 border border-slate-200 text-center">
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={cellVal}
+                                onChange={(e) => setMatrixMarks({ ...matrixMarks, [cellKey]: e.target.value })}
+                                placeholder="0-100"
+                                className="w-20 bg-white border-2 border-slate-200 text-[#0F172A] rounded-xl px-2 py-1.5 text-xs font-black text-center focus:outline-none focus:border-[#0284C7] shadow-sm"
+                              />
+                            </td>
+                          );
+                        })}
+
+                        {/* Grand Total Score Cell (E15) */}
+                        <td className="p-3 border border-slate-200 text-center font-mono font-black text-base text-[#0284C7] bg-sky-50/70">
+                          {stuTotalSum} / {maxTotalScore}
+                        </td>
+
+                        {/* Grand Total Level Cell */}
+                        <td className="p-3 border border-slate-200 text-center bg-slate-50">
+                          <span className={`px-3 py-1 rounded-lg text-xs font-black border ${
+                            grandLevel === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                            grandLevel === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border-sky-300' :
+                            grandLevel === 'جيد' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                            grandLevel === 'مقبول' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                            'bg-red-100 text-red-800 border-red-300'
+                          }`}>
+                            {grandLevel}
+                          </span>
+                        </td>
+
+                        {/* Row Save Action */}
+                        <td className="p-3 border border-slate-200 text-center">
+                          <button
+                            onClick={() => handleSaveStudentAllSubjects(stu.id)}
+                            className="btn-mustard px-3 py-1.5 rounded-xl text-xs font-black shadow cursor-pointer hover:scale-105 transition-all"
+                          >
+                            حفظ 💾
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Add Exam Modal - Teleported to document.body */}
-      {showAddModal && createPortal(
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <form
-            onSubmit={handleAddExamSubmit}
-            className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative"
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
-                <Award className="w-5 h-5 text-[#0284C7]" />
-                <span>{isAr ? 'إضافة اختبار دراسي جديد' : 'Add New Exam'}</span>
-              </h3>
-              <button 
-                type="button" 
-                onClick={() => setShowAddModal(false)} 
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
+      {/* SINGLE SUBJECT VIEW (📚 رصد حسب مادة واحدة) */}
+      {viewMode === 'single' && (
+        <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-[#0284C7]" />
+              <span>{isAr ? `دفتر رصد علامات مادة: (${selectedSubject.name}) 📝` : `Subject Marks Registry Sheet (${selectedSubject.name}) 📝`}</span>
+            </h3>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">{isAr ? 'عنوان الاختبار (عربي)' : 'Exam Title (Arabic)'} <span className="text-red-500">*</span></label>
-              <input type="text" required value={examTitle} onChange={(e) => setExamTitle(e.target.value)} placeholder="اختبار الشهر الأول للفيزياء..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
-            </div>
+            {safeSubjects.length > 0 && (
+              <div className="flex items-center gap-2 bg-[#F8FAFC] border-2 border-[#0284C7]/40 px-4 py-2 rounded-2xl shadow-sm">
+                <span className="text-xs font-black text-[#0284C7] shrink-0">{isAr ? 'اختر المادة الدراسية لرصد العلامة:' : 'Select Subject:'}</span>
+                <select
+                  value={selectedSubject.id}
+                  onChange={(e) => setSelectedSubjectId(e.target.value)}
+                  className="bg-white text-xs font-extrabold text-[#0F172A] border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none cursor-pointer"
+                >
+                  {safeSubjects.map((sub) => (
+                    <option key={sub.id} value={sub.id} className="bg-white text-slate-900 font-bold py-1">
+                      {sub.icon || '📚'} مادة: {sub.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم المادة' : 'Subject'}</label>
-              <select value={subjectId || safeSubjects[0]?.id || ''} onChange={(e) => setSubjectId(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none">
-                {safeSubjects.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-right rtl:text-right ltr:text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-[#0284C7] bg-[#F8FAFC] font-black">
+                  <th className="p-3 text-right">اسم الطالب</th>
+                  <th className="p-3 text-right">الصف والشعبة</th>
+                  <th className="p-3 text-center">وضع العلامة (/100)</th>
+                  <th className="p-3 text-center">المستوى والتقدير (تلقائي)</th>
+                  <th className="p-3 text-center">إجراء الحفظ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {safeStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-6 text-slate-400 text-xs font-bold">
+                      {isAr ? 'لا يوجد طلاب مسجلون حالياً لرصد العلامات.' : 'No students added yet.'}
+                    </td>
+                  </tr>
+                ) : (
+                  safeStudents.map((stu) => {
+                    const cellKey = `${stu.id}_${selectedSubject.id}`;
+                    const currentMark = matrixMarks[cellKey] ?? '';
+                    const currentMarkNum = Number(currentMark);
+                    const currentLevel = currentMark !== '' && !isNaN(currentMarkNum)
+                      ? (calculateStudentLevel ? calculateStudentLevel(currentMarkNum) : (currentMarkNum >= 90 ? 'ممتاز' : currentMarkNum >= 80 ? 'جيد جداً' : currentMarkNum >= 70 ? 'جيد' : currentMarkNum >= 50 ? 'مقبول' : 'راسب'))
+                      : 'غير مرصود';
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-              <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
-              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">{t('save')}</button>
-            </div>
-          </form>
-        </div>,
-        document.body
+                    return (
+                      <tr key={stu.id} className="hover:bg-[#F8FAFC] transition-all">
+                        <td className="p-3 font-black text-sm flex items-center gap-2 text-[#0F172A]">
+                          <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
+                          <span>{isAr ? stu.name : stu.nameEn}</span>
+                        </td>
+                        <td className="p-3 text-slate-600 font-bold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})</td>
+                        <td className="p-3 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={currentMark}
+                            onChange={(e) => setMatrixMarks({ ...matrixMarks, [cellKey]: e.target.value })}
+                            placeholder="مثال: 95"
+                            className="w-24 bg-white border-2 border-slate-200 text-[#0F172A] rounded-xl px-3 py-1.5 text-sm font-black text-center focus:outline-none focus:border-[#0284C7] shadow-sm"
+                          />
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className={`px-3 py-1 rounded-lg text-xs font-black border ${
+                            currentLevel === 'ممتاز' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                            currentLevel === 'جيد جداً' ? 'bg-sky-100 text-sky-800 border-sky-300' :
+                            currentLevel === 'جيد' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                            currentLevel === 'مقبول' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                            currentLevel === 'راسب' ? 'bg-red-100 text-red-800 border-red-300' :
+                            'bg-slate-100 text-slate-500 border-slate-300'
+                          }`}>
+                            {currentLevel}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <button
+                            onClick={() => handleSaveStudentAllSubjects(stu.id)}
+                            className="btn-mustard px-4 py-1.5 rounded-xl text-xs font-black shadow cursor-pointer hover:scale-105 transition-all"
+                          >
+                            حفظ رصد العلامة 💾
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
     </div>

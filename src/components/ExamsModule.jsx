@@ -6,7 +6,8 @@ import {
   Award, 
   Plus, 
   CheckCircle2, 
-  Trophy 
+  Trophy,
+  Search
 } from 'lucide-react';
 
 export const ExamsModule = () => {
@@ -24,6 +25,16 @@ export const ExamsModule = () => {
   // View Mode: 'master' (Master Spreadsheet Table) or 'single' (Single Subject View)
   const [viewMode, setViewMode] = useState('master');
   const [selectedSubjectId, setSelectedSubjectId] = useState(() => safeSubjects[0]?.id || 'SUB-01');
+
+  // Search & Grade Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGradeFilter, setSelectedGradeFilter] = useState('all');
+
+  const filteredStudents = safeStudents.filter((stu) => {
+    const nameMatch = (stu.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (stu.nameEn || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const gradeMatch = selectedGradeFilter === 'all' || stu.grade === selectedGradeFilter;
+    return nameMatch && gradeMatch;
+  });
 
   // Currently active subject for single view
   const selectedSubject = safeSubjects.find(s => s.id === selectedSubjectId) || safeSubjects[0] || { id: 'SUB-01', name: 'الرياضيات' };
@@ -280,12 +291,41 @@ export const ExamsModule = () => {
               <span>{isAr ? 'الجدول الموحد الشامل لرصد علامات كافة المواد 📊' : 'Master All-Subjects Marks Registry Grid 📊'}</span>
             </h3>
 
-            <button
-              onClick={handleSaveAllMasterMatrix}
-              className="btn-mustard px-5 py-2 rounded-2xl text-xs font-black shadow hover:scale-105 transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <span>حفظ وتثبيت كافة درجات جميع الطلاب 💾</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              {/* 🔍 Live Search Box */}
+              <div className="relative flex-1 sm:w-64">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 rtl:right-3 rtl:left-auto ltr:left-3 ltr:right-auto" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={isAr ? "🔍 ابحث عن اسم الطالب..." : "🔍 Search student..."}
+                  className="w-full bg-[#F8FAFC] border-2 border-slate-200 text-[#0F172A] rounded-2xl pr-9 pl-4 py-1.5 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
+                />
+              </div>
+
+              {/* Grade Filter Dropdown */}
+              <select
+                value={selectedGradeFilter}
+                onChange={(e) => setSelectedGradeFilter(e.target.value)}
+                className="bg-[#F8FAFC] border-2 border-slate-200 text-xs font-bold text-[#0F172A] rounded-2xl px-3 py-1.5 focus:outline-none cursor-pointer"
+              >
+                <option value="all">{isAr ? 'جميع الصفوف 🏫' : 'All Grades 🏫'}</option>
+                <option value="الصف الأول">الصف الأول</option>
+                <option value="الصف الثاني">الصف الثاني</option>
+                <option value="الصف الثالث">الصف الثالث</option>
+                <option value="الصف الرابع">الصف الرابع</option>
+                <option value="الصف الخامس">الصف الخامس</option>
+                <option value="الصف السادس">الصف السادس</option>
+              </select>
+
+              <button
+                onClick={handleSaveAllMasterMatrix}
+                className="btn-mustard px-5 py-2 rounded-2xl text-xs font-black shadow hover:scale-105 transition-all flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <span>حفظ وتثبيت كافة درجات جميع الطلاب 💾</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -315,14 +355,14 @@ export const ExamsModule = () => {
               </thead>
 
               <tbody className="divide-y divide-slate-200">
-                {safeStudents.length === 0 ? (
+                {filteredStudents.length === 0 ? (
                   <tr>
                     <td colSpan={safeSubjects.length + 5} className="p-8 text-center text-slate-400 font-bold">
-                      {isAr ? 'لا يوجد طلاب مسجلون حالياً لرصد الدرجات.' : 'No students added yet.'}
+                      {isAr ? 'لا يوجد نتائج تطابق كلمة البحث في جدول الرصد.' : 'No matching students found.'}
                     </td>
                   </tr>
                 ) : (
-                  safeStudents.map(stu => {
+                  filteredStudents.map(stu => {
                     // Compute live grand total score sum for this student
                     let stuTotalSum = 0;
                     safeSubjects.forEach(sub => {
@@ -443,14 +483,14 @@ export const ExamsModule = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {safeStudents.length === 0 ? (
+                {filteredStudents.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-6 text-slate-400 text-xs font-bold">
-                      {isAr ? 'لا يوجد طلاب مسجلون حالياً لرصد العلامات.' : 'No students added yet.'}
+                      {isAr ? 'لا يوجد نتائج تطابق كلمة البحث في جدول الرصد.' : 'No matching students found.'}
                     </td>
                   </tr>
                 ) : (
-                  safeStudents.map((stu) => {
+                  filteredStudents.map((stu) => {
                     const cellKey = `${stu.id}_${selectedSubject.id}`;
                     const currentMark = matrixMarks[cellKey] ?? '';
                     const currentMarkNum = Number(currentMark);

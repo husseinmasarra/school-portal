@@ -758,6 +758,9 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
 
       {/* STUDENTS ROSTER - GROUPED BY GRADE CARDS */}
       {activeTab === 'students' && (() => {
+        // Global set to track rendered family cards across ALL grades (prevents duplicate family cards!)
+        const globalRenderedPhones = new Set();
+
         // Group filtered students by grade
         const studentsByGrade = filteredStudents.reduce((acc, stu) => {
           const g = stu.grade || (isAr ? 'الصف الأول الابتدائي' : 'Grade 1');
@@ -780,6 +783,15 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
           <div className="space-y-8">
             {gradeKeys.map((gradeName) => {
               const gradeStudents = studentsByGrade[gradeName];
+              
+              // Filter out students whose family card was ALREADY rendered in a previous grade section!
+              const unrenderedGradeStudents = gradeStudents.filter((stu) => {
+                const phoneKey = (stu.parentPhone || stu.phone || stu.id).trim();
+                return !globalRenderedPhones.has(phoneKey);
+              });
+
+              if (unrenderedGradeStudents.length === 0) return null;
+
               return (
                 <div key={gradeName} className="space-y-4">
                   {/* Grade Divider Title */}
@@ -788,26 +800,23 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     <h3 className="text-sm font-extrabold text-[#0284C7] flex items-center gap-2">
                       <span>{gradeName}</span>
                       <span className="bg-sky-50 text-[#0284C7] text-[10px] px-2 py-0.5 rounded-full font-black border border-sky-200">
-                        {gradeStudents.length} {isAr ? 'تلميذ' : 'Students'}
+                        {unrenderedGradeStudents.length} {isAr ? 'كارت/عائلة' : 'Cards'}
                       </span>
                     </h3>
                   </div>
 
                   {/* Student Cards Grid (Uniform Height & Visual Distinction) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
-                    {(() => {
-                      const renderedFamilyPhones = new Set();
+                    {unrenderedGradeStudents.map((primaryStu) => {
+                      const phoneKey = (primaryStu.parentPhone || primaryStu.phone || primaryStu.id).trim();
+                      if (globalRenderedPhones.has(phoneKey)) return null;
+                      globalRenderedPhones.add(phoneKey);
 
-                      return gradeStudents.map((primaryStu) => {
-                        const phoneKey = (primaryStu.parentPhone || primaryStu.phone || primaryStu.id).trim();
-                        if (renderedFamilyPhones.has(phoneKey)) return null;
-                        renderedFamilyPhones.add(phoneKey);
-
-                        // Find ALL family members registered under this parent phone across all grades
-                        const familyMembers = safeStudents.filter(s => {
-                          if (!s.parentPhone && !primaryStu.parentPhone) return s.id === primaryStu.id;
-                          return s.parentPhone && s.parentPhone.trim() === phoneKey;
-                        });
+                      // Find ALL family members registered under this parent phone across all grades
+                      const familyMembers = safeStudents.filter(s => {
+                        if (!s.parentPhone && !primaryStu.parentPhone) return s.id === primaryStu.id;
+                        return s.parentPhone && s.parentPhone.trim() === phoneKey;
+                      });
 
                         const isMultiSiblingFamily = familyMembers.length > 1;
 
@@ -977,8 +986,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                             </div>
                           </div>
                         );
-                      }).filter(Boolean);
-                    })()}
+                      })}
                   </div>
                 </div>
               );

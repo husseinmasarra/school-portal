@@ -48,13 +48,15 @@ export const LoginView = () => {
           </span>
         </div>
 
-        <button
-          onClick={() => switchLang(lang === 'ar' ? 'en' : 'ar')}
-          className="flex items-center gap-2 bg-white hover:bg-slate-100 border border-[#E2E8F0] text-[#0F172A] px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+        {/* Contact Developer Button at Top Header in English */}
+        <a
+          href="https://wa.me/96181713408"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebd59] text-white px-3.5 py-2 rounded-2xl text-xs font-black transition-all shadow-md hover:scale-105 cursor-pointer font-mono"
         >
-          <Globe className="w-4 h-4 text-[#0284C7]" />
-          <span>{lang === 'ar' ? 'English' : 'العربية'}</span>
-        </button>
+          💬 Contact Developer: +96181713408
+        </a>
       </div>
 
       {/* Main Login Center Container */}
@@ -121,24 +123,6 @@ export const LoginView = () => {
             </button>
 
           </form>
-
-          {/* Developer Contact Box in English */}
-          <div className="bg-sky-50/80 border-2 border-[#0284C7]/30 rounded-2xl p-4 text-center space-y-2 shadow-sm text-[#0F172A] mt-4">
-            <div className="flex items-center justify-center gap-2 text-xs font-black text-[#0284C7]">
-              <span>Contact Developer</span>
-            </div>
-            <p className="text-[11px] text-slate-600 font-medium dir-ltr">
-              For technical support & custom portal development:
-            </p>
-            <a
-              href="https://wa.me/96181713408"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebd59] text-white px-4 py-2 rounded-xl text-xs font-black transition-all shadow-md hover:scale-105 cursor-pointer font-mono"
-            >
-              💬 Developer WhatsApp / Call: +96181713408
-            </a>
-          </div>
 
         </div>
 

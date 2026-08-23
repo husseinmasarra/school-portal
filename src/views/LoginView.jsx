@@ -84,7 +84,7 @@ export const LoginView = () => {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="اسم المستخدم (e.g. admin)"
+                placeholder={lang === 'ar' ? 'اسم المستخدم' : 'Username'}
                 className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-[#0284C7] transition-all font-mono"
               />
             </div>
@@ -99,7 +99,7 @@ export const LoginView = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={lang === 'ar' ? 'كلمة السر' : 'Password'}
                 className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-[#0284C7] transition-all font-mono"
               />
             </div>

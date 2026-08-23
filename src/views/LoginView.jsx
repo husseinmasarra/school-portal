@@ -48,17 +48,6 @@ export const LoginView = () => {
           </span>
         </div>
 
-        {/* Contact Developer Badge at Top Header in English */}
-        <a
-          href="https://wa.me/96181713408"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 bg-white border-2 border-[#0284C7]/30 hover:border-[#0284C7] text-[#0284C7] hover:bg-[#0284C7] hover:text-white px-4 py-2 rounded-2xl text-xs font-black transition-all shadow-xs hover:shadow-md cursor-pointer font-mono group"
-          title="Direct WhatsApp Support with System Developer"
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse group-hover:bg-white transition-colors shrink-0" />
-          <span>Contact Developer: +96181713408 💬</span>
-        </a>
       </div>
 
       {/* Main Login Center Container */}
@@ -131,15 +120,17 @@ export const LoginView = () => {
       </div>
 
       {/* Footer */}
-      <div className="text-center text-[11px] text-slate-400 font-semibold space-y-1">
+      <div className="text-center text-[11px] text-slate-400 font-semibold space-y-2 pb-2">
         <div>{t('appName')} © 2026 - جميع الحقوق محفوظة</div>
         <a 
           href="https://wa.me/96181713408"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] text-[#0284C7] font-bold hover:underline font-mono"
+          className="inline-flex items-center gap-2 text-xs text-[#0284C7] hover:text-white font-extrabold font-mono bg-sky-50 hover:bg-[#0284C7] border border-sky-200 hover:border-[#0284C7] px-4 py-1.5 rounded-full transition-all cursor-pointer shadow-xs hover:shadow-md hover:scale-105"
+          title="Direct WhatsApp Support with System Developer"
         >
-          <span>System Developer Support: +96181713408</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          <span>System Developer Support: +96181713408 💬</span>
         </a>
       </div>
 

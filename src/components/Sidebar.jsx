@@ -257,7 +257,7 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
                 <button onClick={() => handleNavClick('exams', 'academic')} className={getItemClass('exams', true)}>
                   <div className="flex items-center gap-2">
                     <Award className="w-3.5 h-3.5 text-amber-300" />
-                    <span>{currentRole === 'student' || currentRole === 'parent' ? (isAr ? 'علاماتي الدراسية' : 'My Grades') : (isAr ? 'رصد العلامات والترتيب' : 'Exam Marks & Rankings')}</span>
+                    <span>{currentRole === 'student' || currentRole === 'parent' ? (isAr ? 'علاماتي الدراسية' : 'My Grades') : (isAr ? 'إدخال العلامات' : 'Enter Marks')}</span>
                   </div>
                 </button>
                 <button onClick={() => handleNavClick('reports', 'academic')} className={getItemClass('reports', true)}>
@@ -282,20 +282,6 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
             <span className="flex items-center gap-1.5 text-[9px] bg-emerald-500/20 text-emerald-200 px-2 py-0.5 rounded-full font-bold border border-emerald-400/30">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>{isAr ? 'مباشر' : 'Live'}</span>
-            </span>
-          </button>
-
-          {/* 3.3 رصد السلوك والتوجيه (للجميع) */}
-          <button
-            onClick={() => handleNavClick('behavior', 'academic')}
-            className={getItemClass('behavior')}
-          >
-            <div className="flex items-center gap-3">
-              <Award className="w-4 h-4 text-amber-300" />
-              <span>{isAr ? 'رصد السلوك والتوجيه' : 'Behavior & Guidance'}</span>
-            </div>
-            <span className="bg-amber-400/20 text-amber-200 text-[9px] px-2 py-0.5 rounded-full font-bold border border-amber-400/30">
-              {isAr ? 'سلوكي' : 'Notes'}
             </span>
           </button>
 

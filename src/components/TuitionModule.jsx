@@ -958,7 +958,12 @@ export const TuitionModule = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <button onClick={() => window.print()}
+                <button onClick={() => {
+                  const bd = document.querySelector('.receipt-print-backdrop');
+                  if (bd) bd.scrollTop = 0;
+                  window.scrollTo(0, 0);
+                  setTimeout(() => window.print(), 30);
+                }}
                   className="no-print bg-[#0284C7] hover:bg-[#0369A1] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow flex items-center gap-1.5 transition-all cursor-pointer">
                   <Printer className="w-3.5 h-3.5" /> طباعة 🖨️
                 </button>
@@ -997,7 +1002,12 @@ export const TuitionModule = () => {
 
             <div className="no-print flex justify-end gap-3 pt-2 border-t border-slate-100">
               <button onClick={() => setShowReceiptModal(null)} className="btn-mustard px-5 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer">{t('close')}</button>
-              <button onClick={() => window.print()} className="px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-md transition-all">
+              <button onClick={() => {
+                const bd = document.querySelector('.receipt-print-backdrop');
+                if (bd) bd.scrollTop = 0;
+                window.scrollTo(0, 0);
+                setTimeout(() => window.print(), 30);
+              }} className="px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-md transition-all">
                 <Printer className="w-4 h-4 text-white" /> طباعة الإيصال 🖨️
               </button>
             </div>

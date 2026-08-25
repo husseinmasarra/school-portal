@@ -383,7 +383,7 @@ export const TuitionModule = () => {
               const totalUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600) + (s.hasTransport ? (Number(s.transportFee) || 0) : 0), 0);
               const adminUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0);
               const discountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
-              const paidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
+              const paidUSD     = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
               const remUSD      = Math.max(0, Math.round((totalUSD + adminUSD - discountUSD - paidUSD) * 100) / 100);
 
               // Check if family has paid ANY installment/payment in the current month (e.g. "2026-08")
@@ -511,7 +511,7 @@ export const TuitionModule = () => {
 
                 const adminUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0);
                 const discountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
-                const paidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
+                const paidUSD     = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
                 const remUSD      = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
 
                 const familyName = primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`;

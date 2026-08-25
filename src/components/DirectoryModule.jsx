@@ -859,7 +859,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                         }, 0);
 
                         const combinedDiscountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
-                        const combinedPaidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
+                        const combinedPaidUSD     = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
                         const combinedRemUSD      = Math.max(0, combinedTotalUSD - combinedDiscountUSD - combinedPaidUSD);
 
                         return (

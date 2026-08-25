@@ -31,6 +31,12 @@ export const TuitionModule = () => {
     catch { return {}; }
   });
 
+  // Sent Reminders Tracker State (stored in localStorage)
+  const [sentReminders, setSentReminders] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('school_sent_reminders') || '{}'); }
+    catch { return {}; }
+  });
+
   // Modal States
   const [selectedStudentForPay, setSelectedStudentForPay] = useState(null); // student obj for direct payment
   const [payAmount, setPayAmount] = useState('');
@@ -153,10 +159,28 @@ export const TuitionModule = () => {
   };
 
   const handleSendWhatsAppReminder = (stu) => {
+    const phoneKey = (stu.parentPhone || stu.phone || stu.id).trim();
     const parentPhone = stu.parentPhone || stu.phone || '+961 70 000 000';
+
+    const familyMembers = safeStudents.filter(s => {
+      if (!s.parentPhone && !stu.parentPhone) return s.id === stu.id;
+      return s.parentPhone && s.parentPhone.trim() === phoneKey;
+    });
+
+    const isMulti = familyMembers.length > 1;
+    const familyName = stu.parentName || (isMulti ? `عائلة ${stu.name.split(' ').slice(-1)[0]}` : (isAr ? stu.name : stu.nameEn));
+
     const msg = isAr
-      ? `الى ولي امر التلميذ ( ${stu.name} ) نود تذكيركم بضرورة تسديد القسط الشهري المستحق يرجى التسديد في اقرب وقت شاكرين تعاونكم الكريم`
-      : `To the parent of student (${stu.nameEn || stu.name}), we kindly remind you to settle the due monthly tuition payment at your earliest convenience. Thank you for your cooperation!`;
+      ? `الى ولي امر التلميذ ( ${familyName} ) نود تذكيركم بضرورة تسديد القسط الشهري المستحق يرجى التسديد في اقرب وقت شاكرين تعاونكم الكريم`
+      : `To the parent of (${familyName}), we kindly remind you to settle the due monthly tuition payment at your earliest convenience. Thank you for your cooperation!`;
+
+    const nowTime = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    setSentReminders((prev) => {
+      const updated = { ...prev, [phoneKey]: nowTime };
+      localStorage.setItem('school_sent_reminders', JSON.stringify(updated));
+      return updated;
+    });
+
     openWhatsAppMessage(parentPhone, msg);
   };
 
@@ -349,41 +373,87 @@ export const TuitionModule = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {safeStudents.filter(s => {
-                  if (s.frozen) return false; // Frozen accounts are excluded from overdue reminders & dues list
-                  const total = Number(s.tuitionTotal) || 600;
-                  const discount = Number(s.tuitionDiscount) || 0;
-                  const paid = Number(s.tuitionPaid) || 0;
-                  return (total - discount - paid) > 0;
-                }).map(stu => {
-                  const totalUSD = Number(stu.tuitionTotal) || 600;
-                  const discountUSD = Number(stu.tuitionDiscount) || 0;
-                  const paidUSD = Number(stu.tuitionPaid) || 0;
-                  const remUSD = Math.max(0, totalUSD - discountUSD - paidUSD);
+                {(() => {
+                  const globalOverduePhones = new Set();
 
-                  return (
-                    <div key={stu.id} className="bg-white dark:bg-slate-900 border border-red-200 dark:border-red-950/50 p-3 rounded-2xl flex items-center justify-between shadow-xs">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-red-100 text-red-700 font-black text-xs flex items-center justify-center shrink-0 border border-red-300">
-                          {(stu.name || 'ط')[0]}
-                        </div>
-                        <div className="truncate">
-                          <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{isAr ? stu.name : stu.nameEn}</h4>
-                          <span className="text-[10px] text-red-500 font-extrabold block font-mono">
-                            ${remUSD} USD
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleSendWhatsAppReminder(stu)}
-                        className="py-1.5 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer"
-                        title="إرسال تذكير مالي بالواتساب"
+                  return safeStudents.map((primaryStu) => {
+                    const phoneKey = (primaryStu.parentPhone || primaryStu.phone || primaryStu.id).trim();
+                    if (globalOverduePhones.has(phoneKey)) return null;
+                    globalOverduePhones.add(phoneKey);
+
+                    // Find ALL family members registered under this parent phone
+                    const familyMembers = safeStudents.filter(s => {
+                      if (!s.parentPhone && !primaryStu.parentPhone) return s.id === primaryStu.id;
+                      return s.parentPhone && s.parentPhone.trim() === phoneKey;
+                    });
+
+                    // Active (non-frozen) family members
+                    const activeFamilyMembers = familyMembers.filter(s => !s.frozen);
+                    if (activeFamilyMembers.length === 0) return null;
+
+                    // Calculate combined remaining overdue dues
+                    const totalUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600) + (s.hasTransport ? (Number(s.transportFee) || 0) : 0), 0);
+                    const adminUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0);
+                    const discountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
+                    const paidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
+                    const remUSD      = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
+
+                    if (remUSD === 0) return null; // Fully paid family
+
+                    const isMulti = familyMembers.length > 1;
+                    const familyName = primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`;
+                    const isReminderSent = Boolean(sentReminders[phoneKey]);
+                    const sentTime = sentReminders[phoneKey];
+
+                    return (
+                      <div 
+                        key={primaryStu.id} 
+                        className={`p-3 rounded-2xl flex items-center justify-between shadow-xs transition-all border ${
+                          isReminderSent 
+                            ? 'bg-emerald-50 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-700 ring-1 ring-emerald-400/30' 
+                            : 'bg-white dark:bg-slate-900 border-red-200 dark:border-red-950/50'
+                        }`}
                       >
-                        <span>تذكير 📲</span>
-                      </button>
-                    </div>
-                  );
-                })}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className={`w-9 h-9 rounded-2xl font-black text-xs flex items-center justify-center shrink-0 border shadow-xs ${
+                            isReminderSent
+                              ? 'bg-emerald-500 text-white border-emerald-600'
+                              : isMulti ? 'bg-amber-500 text-white border-amber-600' : 'bg-red-100 text-red-700 border-red-300'
+                          }`}>
+                            {isReminderSent ? '✓' : isMulti ? '👨‍👩‍👧‍👦' : (primaryStu.name || 'ط')[0]}
+                          </div>
+                          <div className="truncate">
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate flex items-center gap-1">
+                              <span>{isMulti ? familyName : (isAr ? primaryStu.name : primaryStu.nameEn)}</span>
+                            </h4>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <span className="text-[10px] text-red-500 font-extrabold font-mono block">
+                                ${remUSD} USD {isMulti ? `(${familyMembers.length} إخوة)` : ''}
+                              </span>
+                              {isReminderSent && (
+                                <span className="text-[9px] text-emerald-700 font-black bg-emerald-100 px-1.5 py-0.2 rounded-full border border-emerald-300 animate-fade-in">
+                                  تم التذكير ({sentTime}) 🟢
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleSendWhatsAppReminder(primaryStu)}
+                          className={`py-1.5 px-2.5 rounded-xl text-[10px] font-extrabold flex items-center gap-1 shrink-0 cursor-pointer transition-all border ${
+                            isReminderSent 
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-xs' 
+                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300'
+                          }`}
+                          title={isReminderSent ? `تم إرسال تذكير في ${sentTime} (اضغط لإعادة الإرسال)` : 'إرسال تذكير مالي بالواتساب للعائلة'}
+                        >
+                          <span>{isReminderSent ? 'تم التذكير 🟢' : 'تذكير 📲'}</span>
+                        </button>
+                      </div>
+                    );
+                  }).filter(Boolean);
+                })()}
               </div>
             </div>
           )}
@@ -566,9 +636,13 @@ export const TuitionModule = () => {
                       </button>
 
                       <button onClick={() => handleSendWhatsAppReminder(primaryStu)}
-                        className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all"
-                        title="إرسال رسالة تذكير مالي بالواتساب لولي الأمر">
-                        <span>واتساب تذكير 📲</span>
+                        className={`py-1.5 px-2 rounded-xl text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all border ${
+                          sentReminders[phoneKey]
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                            : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                        }`}
+                        title={sentReminders[phoneKey] ? `تم التذكير في ${sentReminders[phoneKey]} (اضغط لإعادة الإرسال)` : 'إرسال رسالة تذكير مالي بالواتساب لولي الأمر'}>
+                        <span>{sentReminders[phoneKey] ? 'تم التذكير 🟢' : 'واتساب تذكير 📲'}</span>
                       </button>
 
                       <button onClick={() => {

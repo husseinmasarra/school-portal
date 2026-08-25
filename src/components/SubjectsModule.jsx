@@ -174,82 +174,105 @@ export const SubjectsModule = () => {
 
       {/* Full-Color Subjects Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {safeSubjects.map((sub) => {
-          const cardBg = sub.color || '#0284C7';
-          // Filter subject lessons for this subject
-          const subjectLessons = agenda.filter(a => {
-            const matchesSubject = a.subject === sub.name || (a.subject && a.subject.includes(sub.name));
-            if (currentRole === 'student' || currentRole === 'parent') {
-              const matchesGrade = isGradeMatch(a.grade, currentStudent?.grade);
-              const matchesSection = isSecMatch(a.classRoom, currentStudent?.classRoom || currentStudent?.classroom);
-              return matchesSubject && matchesGrade && matchesSection;
+        {(() => {
+          const visibleCards = safeSubjects.map((sub) => {
+            const cardBg = sub.color || '#0284C7';
+            // Filter subject lessons for this subject
+            const subjectLessons = agenda.filter(a => {
+              const matchesSubject = a.subject === sub.name || (a.subject && a.subject.includes(sub.name));
+              if (currentRole === 'student' || currentRole === 'parent') {
+                const matchesGrade = isGradeMatch(a.grade, currentStudent?.grade);
+                const matchesSection = isSecMatch(a.classRoom, currentStudent?.classRoom || currentStudent?.classroom);
+                return matchesSubject && matchesGrade && matchesSection;
+              }
+              return matchesSubject;
+            });
+
+            // RULE FOR STUDENTS/PARENTS: Only show subject card if there is at least 1 lesson added for this subject!
+            if ((currentRole === 'student' || currentRole === 'parent') && subjectLessons.length === 0) {
+              return null;
             }
-            return matchesSubject;
-          });
 
-          return (
-            <div
-              key={sub.id}
-              onClick={() => setSelectedSubjectForLessons(sub)}
-              className="interactive-card rounded-3xl p-6 shadow-xl relative overflow-hidden text-white transition-all transform hover:scale-[1.02] flex flex-col justify-between min-h-[180px] cursor-pointer group"
-              style={{
-                backgroundColor: cardBg,
-                backgroundImage: `linear-gradient(135deg, ${cardBg} 0%, rgba(0, 0, 0, 0.35) 100%)`
-              }}
-            >
-              {/* Header with Photo Image & Title */}
-              <div className="flex items-start justify-between gap-3 z-10">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/40 shadow-md bg-white/10 shrink-0">
-                    {sub.image ? (
-                      <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">
-                        {sub.icon || '📚'}
-                      </div>
-                    )}
+            return (
+              <div
+                key={sub.id}
+                onClick={() => setSelectedSubjectForLessons(sub)}
+                className="interactive-card rounded-3xl p-6 shadow-xl relative overflow-hidden text-white transition-all transform hover:scale-[1.02] flex flex-col justify-between min-h-[180px] cursor-pointer group"
+                style={{
+                  backgroundColor: cardBg,
+                  backgroundImage: `linear-gradient(135deg, ${cardBg} 0%, rgba(0, 0, 0, 0.35) 100%)`
+                }}
+              >
+                {/* Header with Photo Image & Title */}
+                <div className="flex items-start justify-between gap-3 z-10">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/40 shadow-md bg-white/10 shrink-0">
+                      {sub.image ? (
+                        <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">
+                          {sub.icon || '📚'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-black text-white leading-tight drop-shadow-sm group-hover:underline">
+                        {isAr ? sub.name : sub.nameEn}
+                      </h3>
+                      <span className="text-[11px] text-white/80 font-bold block mt-1">
+                        {isAr ? `الدروس المرفوعة: ${subjectLessons.length} درس` : `Lessons: ${subjectLessons.length}`}
+                      </span>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-black text-white leading-tight drop-shadow-sm group-hover:underline">
-                      {isAr ? sub.name : sub.nameEn}
-                    </h3>
-                    <span className="text-[11px] text-white/80 font-bold block mt-1">
-                      {isAr ? `الدروس المرفوعة: ${subjectLessons.length} درس` : `Lessons: ${subjectLessons.length}`}
-                    </span>
-                  </div>
+                  {currentRole === 'admin' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteSubject(sub.id);
+                      }}
+                      className="p-2 bg-white/20 hover:bg-red-600 text-white rounded-xl backdrop-blur-md transition-all cursor-pointer border border-white/20"
+                      title={t('delete')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
-                {currentRole === 'admin' && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteSubject(sub.id);
-                    }}
-                    className="p-2 bg-white/20 hover:bg-red-600 text-white rounded-xl backdrop-blur-md transition-all cursor-pointer border border-white/20"
-                    title={t('delete')}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                {/* Bottom Footer Badge Tag */}
+                <div className="mt-4 pt-3 border-t border-white/20 flex items-center justify-between z-10">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-xl text-xs font-bold shadow-sm">
+                    <span>{sub.icon || '📚'}</span>
+                    <span>{isAr ? 'اضغط لاستعراض الدروس 📖' : 'Click to view lessons'}</span>
+                  </span>
+
+                  <span className="text-[10px] text-white/90 font-bold bg-black/30 px-2.5 py-1 rounded-lg">
+                    {cardBg}
+                  </span>
+                </div>
+
+                <div className="absolute -bottom-8 -left-8 w-28 h-28 rounded-full bg-white/10 blur-xl pointer-events-none" />
               </div>
+            );
+          }).filter(Boolean);
 
-              {/* Bottom Footer Badge Tag */}
-              <div className="mt-4 pt-3 border-t border-white/20 flex items-center justify-between z-10">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-xl text-xs font-bold shadow-sm">
-                  <span>{sub.icon || '📚'}</span>
-                  <span>{isAr ? 'اضغط لاستعراض الدروس 📖' : 'Click to view lessons'}</span>
-                </span>
-
-                <span className="text-[10px] text-white/90 font-bold bg-black/30 px-2.5 py-1 rounded-lg">
-                  {cardBg}
-                </span>
+          if (visibleCards.length === 0) {
+            return (
+              <div className="col-span-full text-center py-16 bg-white border border-slate-200 rounded-3xl p-8 shadow-xs">
+                <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3 animate-pulse" />
+                <h4 className="text-base font-black text-slate-700">
+                  {isAr ? 'لا توجد دروس أو واجبات مرفوعة لموادك الدراسية بعد' : 'No lessons or homework uploaded for your subjects yet'}
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  {isAr ? 'ستظهر كروت المواد تلقائياً فور قيام المعلم بإضافة درس جديد لك.' : 'Subject cards will appear automatically as soon as your teacher posts a lesson.'}
+                </p>
               </div>
+            );
+          }
 
-              <div className="absolute -bottom-8 -left-8 w-28 h-28 rounded-full bg-white/10 blur-xl pointer-events-none" />
-            </div>
-          );
-        })}
+          return visibleCards;
+        })()}
       </div>
 
       {/* Interactive Subject Lessons Modal */}

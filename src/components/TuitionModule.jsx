@@ -841,11 +841,11 @@ export const TuitionModule = () => {
                 }
               }
 
-              /* On Print Styles (Forces absolute black/white receipt look in A5 size) */
+              /* On Print Styles (Forces absolute black/white receipt look at top of A5 page) */
               @media print {
                 @page {
                   size: A5 portrait;
-                  margin: 8mm;
+                  margin: 0 !important;
                 }
 
                 html, html.dark, body, html.dark body, 
@@ -863,6 +863,8 @@ export const TuitionModule = () => {
                   background-color: #ffffff !important;
                   background: #ffffff !important;
                   color: #000000 !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
                 }
 
                 .receipt-print-backdrop, html.dark .receipt-print-backdrop {
@@ -870,14 +872,15 @@ export const TuitionModule = () => {
                   left: 0 !important;
                   top: 0 !important;
                   width: 100% !important;
-                  height: 100% !important;
+                  height: auto !important;
+                  min-height: 0 !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   backdrop-filter: none !important;
-                  padding: 0 !important;
+                  padding: 10px 0 0 0 !important;
                   margin: 0 !important;
                   display: flex !important;
-                  align-items: center !important;
+                  align-items: flex-start !important;
                   justify-content: center !important;
                   z-index: 999999 !important;
                   box-shadow: none !important;
@@ -886,8 +889,8 @@ export const TuitionModule = () => {
                 .receipt-printable-card, html.dark .receipt-printable-card {
                   border: 1px solid #000000 !important;
                   box-shadow: none !important;
-                  margin: auto !important;
-                  padding: 24px !important;
+                  margin: 0 auto !important;
+                  padding: 16px 20px !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   color: #000000 !important;

@@ -841,7 +841,7 @@ export const TuitionModule = () => {
                 }
               }
 
-              /* On Print Styles (Forces absolute black/white receipt look at top 0 of page) */
+              /* On Print Styles (Clean static block flow starting at top 0 of page) */
               @media print {
                 @page {
                   size: A5 portrait;
@@ -849,6 +849,11 @@ export const TuitionModule = () => {
                 }
                 @page :left { margin: 0 !important; }
                 @page :right { margin: 0 !important; }
+
+                *, *::before, *::after {
+                  animation: none !important;
+                  transition: none !important;
+                }
 
                 html, html.dark, body, html.dark body {
                   color-scheme: light !important;
@@ -859,9 +864,9 @@ export const TuitionModule = () => {
                   color: #000000 !important;
                   margin: 0 !important;
                   padding: 0 !important;
-                  height: 100% !important;
+                  height: auto !important;
                   width: 100% !important;
-                  overflow: hidden !important;
+                  overflow: visible !important;
                 }
 
                 body > #root {
@@ -869,41 +874,37 @@ export const TuitionModule = () => {
                 }
 
                 .receipt-print-backdrop, html.dark .receipt-print-backdrop {
-                  position: fixed !important;
-                  left: 0 !important;
-                  top: 0 !important;
-                  right: 0 !important;
-                  bottom: 0 !important;
-                  width: 100vw !important;
-                  height: 100vh !important;
+                  position: static !important;
+                  display: block !important;
+                  width: 100% !important;
+                  height: auto !important;
+                  min-height: 0 !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   backdrop-filter: none !important;
                   padding: 0 !important;
                   margin: 0 !important;
-                  display: block !important;
-                  z-index: 999999 !important;
+                  z-index: auto !important;
                   box-shadow: none !important;
                   overflow: visible !important;
+                  transform: none !important;
                 }
 
                 .receipt-printable-card, html.dark .receipt-printable-card {
-                  position: absolute !important;
-                  top: 0 !important;
-                  left: 50% !important;
-                  transform: translateX(-50%) !important;
-                  margin: 0 !important;
-                  margin-top: 0 !important;
-                  padding: 8px 16px !important;
+                  position: static !important;
+                  display: block !important;
+                  margin: 0 auto !important;
+                  padding: 12px 18px !important;
                   border: 1px solid #000000 !important;
                   box-shadow: none !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   color: #000000 !important;
-                  width: 96% !important;
+                  width: 100% !important;
                   max-width: 480px !important;
                   border-radius: 0px !important;
                   box-sizing: border-box !important;
+                  transform: none !important;
                 }
 
                 .receipt-details-box {

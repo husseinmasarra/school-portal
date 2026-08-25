@@ -401,14 +401,14 @@ export const TuitionModule = () => {
               const paidUSD     = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
               const remUSD      = Math.max(0, Math.round((totalUSD + adminUSD - discountUSD - paidUSD) * 100) / 100);
 
-              // Check if family has paid ANY installment/payment in the current month (e.g. "2026-08")
+              // Check if active family members have paid ANY installment in the current month (e.g. "2026-08")
               const currentYearMonth = new Date().toISOString().slice(0, 7);
-              const familyHistory = familyMembers.reduce((acc, s) => {
+              const activeFamilyHistory = activeFamilyMembers.reduce((acc, s) => {
                 const sHist = paymentHistory[s.id] || [];
                 return [...acc, ...sHist];
               }, []);
 
-              const hasPaidThisMonth = familyHistory.some(entry => entry.date && entry.date.startsWith(currentYearMonth));
+              const hasPaidThisMonth = activeFamilyHistory.some(entry => entry.date && entry.date.startsWith(currentYearMonth));
 
               // Hide from overdue list if fully paid OR if a payment/installment was already submitted in the current month!
               if (remUSD <= 0.01 || hasPaidThisMonth) return null;
@@ -643,12 +643,14 @@ export const TuitionModule = () => {
                             <div key={sib.id} className="bg-white border border-slate-200 p-2 rounded-xl text-[10px] flex items-center justify-between">
                               <div>
                                 <span className="font-bold text-[#0F172A] block">{sib.name} ({sib.grade})</span>
-                                <span className="text-[9px] text-slate-400 font-mono">مدفوع: ${sPaid} • متبقي: ${sib.frozen ? 0 : sRem}</span>
+                                <span className="text-[9px] text-slate-400 font-mono">
+                                  مدفوع: ${sPaid} {sib.frozen ? '(مجمّد لحسابه)' : ''} • متبقي: ${sib.frozen ? 0 : sRem}
+                                </span>
                               </div>
                               <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
-                                sib.frozen ? 'bg-cyan-50 text-cyan-800 border border-cyan-200' : sRem === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                                sib.frozen ? 'bg-cyan-100 text-cyan-800 border border-cyan-300' : sRem === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
                               }`}>
-                                {sib.frozen ? '❄️ مجمد' : sRem === 0 ? '✅ مسدد' : `$${sRem}`}
+                                {sib.frozen ? '❄️ مجمد (لا يُخصم مدفوعه من الإخوة)' : sRem === 0 ? '✅ مسدد' : `$${sRem}`}
                               </span>
                             </div>
                           );

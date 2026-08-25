@@ -13,7 +13,8 @@ import {
   Calendar,
   Trash2,
   Check,
-  X
+  X,
+  Search
 } from 'lucide-react';
 
 export const TuitionModule = () => {
@@ -35,6 +36,20 @@ export const TuitionModule = () => {
   const [sentReminders, setSentReminders] = useState(() => {
     try { return JSON.parse(localStorage.getItem('school_sent_reminders') || '{}'); }
     catch { return {}; }
+  });
+
+  // Financial Search Query State
+  const [tuitionSearchQuery, setTuitionSearchQuery] = useState('');
+
+  const filteredStudents = safeStudents.filter((stu) => {
+    if (!tuitionSearchQuery.trim()) return true;
+    const q = tuitionSearchQuery.toLowerCase().trim();
+    const nameMatch = (stu.name || '').toLowerCase().includes(q) || (stu.nameEn || '').toLowerCase().includes(q);
+    const parentNameMatch = (stu.parentName || '').toLowerCase().includes(q);
+    const phoneMatch = (stu.parentPhone || '').includes(q) || (stu.phone || '').includes(q);
+    const gradeMatch = (stu.grade || '').toLowerCase().includes(q);
+    const idMatch = (stu.id || '').toLowerCase().includes(q);
+    return nameMatch || parentNameMatch || phoneMatch || gradeMatch || idMatch;
   });
 
   // Modal States
@@ -472,14 +487,37 @@ export const TuitionModule = () => {
           })()}
 
           <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
-            <h3 className="text-base font-bold text-[#0284C7] border-b border-slate-100 pb-3">
-              {isAr ? 'كشف كافة أقساط الطلاب والدفعات المباشرة' : 'Student Tuition Roster & Direct Payments'}
-            </h3>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-[#0284C7]">
+                {isAr ? 'كشف كافة أقساط الطلاب والدفعات المباشرة' : 'Student Tuition Roster & Direct Payments'}
+              </h3>
 
-          {safeStudents.length === 0 && (
+              {/* 🔍 Financial Search Bar */}
+              <div className="relative w-full sm:w-72">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={tuitionSearchQuery}
+                  onChange={(e) => setTuitionSearchQuery(e.target.value)}
+                  placeholder={isAr ? "بحث باسم الطالب، ولي الأمر، الصف، أو الهاتف..." : "Search student, parent, grade, or phone..."}
+                  className="w-full pr-9 pl-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] transition-all"
+                />
+                {tuitionSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setTuitionSearchQuery('')}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+          {filteredStudents.length === 0 && (
             <div className="text-center py-10 text-slate-400">
-              <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">لا يوجد طلاب مسجلون بعد</p>
+              <Search className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">{isAr ? `لا توجد نتائج بحث مطابقة لـ "${tuitionSearchQuery}"` : `No tuition records found for "${tuitionSearchQuery}"`}</p>
             </div>
           )}
 
@@ -487,7 +525,7 @@ export const TuitionModule = () => {
             {(() => {
               const globalRenderedPhones = new Set();
 
-              return safeStudents.map((primaryStu) => {
+              return filteredStudents.map((primaryStu) => {
                 const phoneKey = (primaryStu.parentPhone || primaryStu.phone || primaryStu.id).trim();
                 if (globalRenderedPhones.has(phoneKey)) return null;
                 globalRenderedPhones.add(phoneKey);

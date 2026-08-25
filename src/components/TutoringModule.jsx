@@ -34,7 +34,8 @@ export const TutoringModule = () => {
     updateTutoringCourse,
     recordTutoringPayment,
     students = [], 
-    selectedStudentId 
+    selectedStudentId,
+    siteSettings 
   } = useApp();
 
   const isAr = lang === 'ar';
@@ -67,6 +68,7 @@ export const TutoringModule = () => {
   // Tutoring Direct Payment Modal
   const [payingStudent, setPayingStudent] = useState(null); // { courseId, studentId, studentName, fee, paid }
   const [payAmountInput, setPayAmountInput] = useState('');
+  const [isPrintingTutoringLedger, setIsPrintingTutoringLedger] = useState(false);
 
   const currentStudent = safeStudents.find((s) => s.id === selectedStudentForEnroll) || safeStudents[0];
 
@@ -219,7 +221,10 @@ export const TutoringModule = () => {
   };
 
   const handlePrintTutoringLedger = () => {
-    window.print();
+    setIsPrintingTutoringLedger(true);
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   return (
@@ -809,6 +814,108 @@ export const TutoringModule = () => {
               <button type="submit" className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow cursor-pointer">حفظ الدفعة 💾</button>
             </div>
           </form>
+        </div>,
+        document.body
+      )}
+
+      {/* Printable Dedicated Tutoring Ledger View */}
+      {isPrintingTutoringLedger && createPortal(
+        <div id="print-tutoring-ledger-area" className="fixed inset-0 bg-white z-[999999] p-6 text-right rtl font-sans text-slate-900 overflow-y-auto space-y-6">
+          <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
+            <div className="flex items-center gap-3">
+              <img src="/school-logo.png" alt="Logo" className="w-14 h-14 object-contain" />
+              <div>
+                <h2 className="text-xl font-black text-[#0284C7]">
+                  🎓 معهد التقوية والدورات التعليمية الخاصة - {siteSettings?.schoolName || 'مركز الدعم التعليمي'}
+                </h2>
+                <h1 className="text-sm font-bold text-slate-600">
+                  كشف الحسابات والرسوم المالية الخاصة بدورات التقوية والدعم التعليمي
+                </h1>
+              </div>
+            </div>
+            <div className="text-left font-mono text-xs text-slate-500">
+              <div>تاريخ الإصدار: {new Date().toLocaleDateString('ar-LB')}</div>
+              <div>السنة الأكاديمية: {siteSettings?.academicYear || '2026/2027'}</div>
+              <button 
+                onClick={() => setIsPrintingTutoringLedger(false)} 
+                className="print:hidden px-3 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-bold mt-2 cursor-pointer"
+              >
+                إغلاق ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Financial Summary */}
+          <div className="grid grid-cols-3 gap-4 p-4 bg-[#F8FAFC] border border-[#0284C7]/30 rounded-2xl text-center font-mono text-xs">
+            <div>
+              <span className="text-slate-500 font-sans block font-bold">إجمالي مستحقات التقوية:</span>
+              <span className="text-base font-black text-[#0284C7]">${totalTutoringExpectedRevenue.toLocaleString()} USD</span>
+            </div>
+            <div>
+              <span className="text-slate-500 font-sans block font-bold">إجمالي المبالغ المقبوضة:</span>
+              <span className="text-base font-black text-emerald-600">${totalTutoringPaidRevenue.toLocaleString()} USD</span>
+            </div>
+            <div>
+              <span className="text-slate-500 font-sans block font-bold">المتبقي المستحق غير المسدد:</span>
+              <span className="text-base font-black text-red-600">${totalTutoringRemainingDues.toLocaleString()} USD</span>
+            </div>
+          </div>
+
+          {/* Ledger Table */}
+          <table className="w-full text-right text-xs border-collapse border border-slate-300">
+            <thead>
+              <tr className="bg-[#0284C7]/10 font-black text-[#0284C7] border-b border-slate-300">
+                <th className="p-2 border border-slate-300">#</th>
+                <th className="p-2 border border-slate-300">اسم التلميذ</th>
+                <th className="p-2 border border-slate-300">الصف والشعبة</th>
+                <th className="p-2 border border-slate-300">دورة التقوية</th>
+                <th className="p-2 border border-slate-300">القسط المخصص</th>
+                <th className="p-2 border border-slate-300">المدفوع</th>
+                <th className="p-2 border border-slate-300">المتبقي</th>
+                <th className="p-2 border border-slate-300 text-center">حالة السداد</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSpecialAccounts.map((acc, idx) => (
+                <tr key={idx} className="border-b border-slate-200">
+                  <td className="p-2 border border-slate-200 text-center font-mono">{idx + 1}</td>
+                  <td className="p-2 border border-slate-200 font-bold">{acc.studentName}</td>
+                  <td className="p-2 border border-slate-200">{acc.grade} ({acc.classRoom})</td>
+                  <td className="p-2 border border-slate-200 font-bold text-[#0284C7]">{acc.courseTitle}</td>
+                  <td className="p-2 border border-slate-200 font-mono font-bold">${acc.customFee} USD</td>
+                  <td className="p-2 border border-slate-200 font-mono font-bold text-emerald-600">${acc.paidAmount} USD</td>
+                  <td className="p-2 border border-slate-200 font-mono font-bold text-red-600">${acc.remAmount} USD</td>
+                  <td className="p-2 border border-slate-200 text-center font-bold">
+                    {acc.remAmount === 0 ? '✅ مسدد' : acc.paidAmount > 0 ? '⏳ مسدد جزئياً' : '🔴 مستحق'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="pt-10 grid grid-cols-2 gap-10 text-center text-xs font-bold border-t border-dashed border-slate-300">
+            <div className="space-y-10">
+              <p>توقيع وختم مسؤول معهد التقوية والدورات</p>
+              <div className="border-b border-slate-400 w-48 mx-auto"></div>
+            </div>
+            <div className="space-y-10">
+              <p>اعتماد مدير المنظومة والمدرسة العامة</p>
+              <div className="border-b border-slate-400 w-48 mx-auto"></div>
+            </div>
+          </div>
+
+          <style dangerouslySetInnerHTML={{__html: `
+            @media print {
+              body * { visibility: hidden !important; }
+              #print-tutoring-ledger-area, #print-tutoring-ledger-area * { visibility: visible !important; }
+              #print-tutoring-ledger-area {
+                position: absolute !important;
+                left: 0 !important; top: 0 !important;
+                width: 100% !important;
+                background: white !important; color: black !important;
+              }
+            }
+          `}} />
         </div>,
         document.body
       )}

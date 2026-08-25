@@ -40,7 +40,9 @@ export const FinanceModule = () => {
     deleteStaffEmployee, 
     payStaffSalary,
     updateTeacherSalary,
-    resetFinancialAccounts
+    resetFinancialAccounts,
+    siteSettings,
+    tutoringCourses = []
   } = useApp();
 
   const [editingTeacher, setEditingTeacher] = useState(null);
@@ -1141,23 +1143,65 @@ export const FinanceModule = () => {
         const getFilteredReportData = () => {
           // 1. Revenues
           const reportPayments = [];
+          const processedStudentIds = new Set();
+
           Object.entries(paymentHistory || {}).forEach(([stuId, historyList]) => {
             const stu = students.find(s => s.id === stuId);
             const name = stu ? (lang === 'ar' ? stu.name : stu.nameEn) : `طالب #${stuId}`;
             const grade = stu ? (lang === 'ar' ? stu.grade : stu.gradeEn) : '';
             (historyList || []).forEach(h => {
-              const dObj = new Date(h.date);
+              const dObj = new Date(h.date || todayStr);
               if (dObj.getFullYear() === Number(reportYear)) {
                 if (reportType === 'annual' || (dObj.getMonth() + 1) === Number(reportMonth)) {
-                  reportPayments.push({
-                    id: h.id || Math.random().toString(),
-                    name,
-                    grade,
-                    date: h.date,
-                    amount: Number(h.amountUSD || 0),
-                    method: h.method || 'fresh_cash'
-                  });
+                  const amt = Number(h.amount !== undefined ? h.amount : (h.amountUSD !== undefined ? h.amountUSD : 0));
+                  if (amt > 0) {
+                    processedStudentIds.add(stuId);
+                    reportPayments.push({
+                      id: h.id || Math.random().toString(),
+                      name,
+                      grade,
+                      date: h.date || todayStr,
+                      amount: amt,
+                      method: h.method || 'fresh_cash'
+                    });
+                  }
                 }
+              }
+            });
+          });
+
+          // Include students who have paid tuitions (tuitionPaid > 0) directly
+          (students || []).forEach(stu => {
+            const paidVal = Number(stu.tuitionPaid || 0);
+            if (paidVal > 0 && !processedStudentIds.has(stu.id)) {
+              reportPayments.push({
+                id: `stu-paid-${stu.id}`,
+                name: lang === 'ar' ? stu.name : stu.nameEn,
+                grade: lang === 'ar' ? stu.grade : stu.gradeEn,
+                date: todayStr,
+                amount: paidVal,
+                method: 'fresh_cash'
+              });
+            }
+          });
+
+          // Include Tutoring Special Course Payments
+          (tutoringCourses || []).forEach(course => {
+            const paidMap = course.studentPaidMap || {};
+            Object.entries(paidMap).forEach(([stuId, paidAmt]) => {
+              const numericPaid = Number(paidAmt || 0);
+              if (numericPaid > 0) {
+                const stuObj = students.find(s => s.id === stuId);
+                const name = stuObj ? (lang === 'ar' ? stuObj.name : stuObj.nameEn) : `تلميذ #${stuId}`;
+                const grade = stuObj ? (lang === 'ar' ? stuObj.grade : stuObj.gradeEn) : '';
+                reportPayments.push({
+                  id: `tut-${course.id}-${stuId}`,
+                  name: `${name} (${lang === 'ar' ? 'معهد تقوية:' : 'Tutoring:'} ${course.title})`,
+                  grade,
+                  date: todayStr,
+                  amount: numericPaid,
+                  method: 'fresh_cash'
+                });
               }
             });
           });
@@ -1342,7 +1386,7 @@ export const FinanceModule = () => {
                 {/* Document Header */}
                 <div className="text-center border-b-2 border-slate-900 dark:border-white pb-4 space-y-1">
                   <h2 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                    {lang === 'ar' ? 'مدرسة النور للتعليم والدعم الأكاديمي' : 'Al-Noor Educational Support School'}
+                    {siteSettings?.schoolName || (lang === 'ar' ? 'مدرسة الدعم التعليمي' : 'Educational Support Center')}
                   </h2>
                   <h1 className="text-xl font-black text-slate-900 dark:text-white underline decoration-double">
                     {reportType === 'monthly'

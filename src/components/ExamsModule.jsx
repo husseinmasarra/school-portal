@@ -703,7 +703,16 @@ export const ExamsModule = () => {
             {/* List of Report Card Printable Documents */}
             <div className="space-y-8 print:space-y-0">
               {printableReportsList.map((report) => (
-                <div key={report.student.id} className="border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:border-2 print:break-after-page print:mb-0">
+                <div 
+                  key={report.student.id} 
+                  className="border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:border-2 print:rounded-none print:shadow-none print:m-0 print:p-6 print:break-after-page print:break-inside-avoid"
+                  style={{
+                    pageBreakAfter: 'always',
+                    breakAfter: 'page',
+                    pageBreakInside: 'avoid',
+                    breakInside: 'avoid'
+                  }}
+                >
                   {/* Header */}
                   <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
                     <div className="text-right">

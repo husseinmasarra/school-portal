@@ -698,7 +698,7 @@ export const ExamsModule = () => {
                 margin: 0 auto !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: space-between !important;
+                justify-content: start !important;
                 border: 3px double #0284C7 !important;
                 background: #ffffff !important;
                 overflow: hidden !important;
@@ -776,7 +776,7 @@ export const ExamsModule = () => {
                   </div>
 
                   {/* Subject Breakdown Table */}
-                  <div className="flex-1 my-2">
+                  <div className="my-2">
                     <table className="w-full text-xs border-collapse border border-slate-200 text-center">
                       <thead>
                         <tr className="bg-[#0284C7] text-white font-bold">

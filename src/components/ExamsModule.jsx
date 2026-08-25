@@ -7,7 +7,9 @@ import {
   Plus, 
   CheckCircle2, 
   Trophy,
-  Search
+  Search,
+  Printer,
+  X
 } from 'lucide-react';
 
 export const ExamsModule = () => {
@@ -62,6 +64,42 @@ export const ExamsModule = () => {
   const [matrixMarks, setMatrixMarks] = useState({});
   const [savedToast, setSavedToast] = useState(false);
   const [savedToastMsg, setSavedToastMsg] = useState('');
+
+  // Printable Student Report Card State
+  const [printableStudentReport, setPrintableStudentReport] = useState(null);
+
+  const handlePrintStudentReport = (stu) => {
+    // 1. Save student marks first
+    handleSaveStudentAllSubjects(stu.id);
+
+    // 2. Build breakdown of student subject scores
+    let stuTotalSum = 0;
+    const scoresBreakdown = safeSubjects.map(sub => {
+      const val = matrixMarks[`${stu.id}_${sub.id}`];
+      const markNum = (val !== undefined && val !== '') ? Number(val) : 0;
+      stuTotalSum += markNum;
+      return {
+        subject: sub.name,
+        icon: sub.icon || '📚',
+        score: markNum,
+        level: calculateStudentLevel ? calculateStudentLevel(markNum) : (markNum >= 90 ? 'ممتاز' : markNum >= 80 ? 'جيد جداً' : markNum >= 70 ? 'جيد' : markNum >= 50 ? 'مقبول' : 'راسب')
+      };
+    });
+
+    const maxTotalScore = (safeSubjects.length || 6) * 100;
+    const grandLevel = calculateGrandTotalLevel 
+      ? calculateGrandTotalLevel(stuTotalSum)
+      : (stuTotalSum >= 550 ? 'ممتاز' : stuTotalSum >= 500 ? 'جيد جداً' : stuTotalSum >= 450 ? 'جيد' : stuTotalSum >= 300 ? 'مقبول' : 'راسب');
+
+    setPrintableStudentReport({
+      student: stu,
+      scores: scoresBreakdown,
+      totalSum: stuTotalSum,
+      maxTotalScore,
+      grandLevel,
+      date: new Date().toLocaleDateString('ar-EG')
+    });
+  };
 
   // Pre-fill matrixMarks from existing scores on initial load
   React.useEffect(() => {
@@ -364,8 +402,8 @@ export const ExamsModule = () => {
                   <th className="p-3 border border-sky-700 text-center bg-sky-950 min-w-[120px]">
                     التقدير والمستوى العام
                   </th>
-                  <th className="p-3 border border-sky-700 text-center min-w-[100px]">
-                    إجراء الحفظ
+                  <th className="p-3 border border-sky-700 text-center min-w-[110px]">
+                    طباعة الشهادة 🖨️
                   </th>
                 </tr>
               </thead>
@@ -441,13 +479,15 @@ export const ExamsModule = () => {
                           </span>
                         </td>
 
-                        {/* Row Save Action */}
+                        {/* Row Print & Save Action */}
                         <td className="p-3 border border-slate-200 text-center">
                           <button
-                            onClick={() => handleSaveStudentAllSubjects(stu.id)}
-                            className="btn-mustard px-3 py-1.5 rounded-xl text-xs font-black shadow cursor-pointer hover:scale-105 transition-all"
+                            onClick={() => handlePrintStudentReport(stu)}
+                            className="btn-mustard px-3 py-1.5 rounded-xl text-xs font-black shadow cursor-pointer hover:scale-105 transition-all flex items-center justify-center gap-1.5 mx-auto"
+                            title="حفظ العلامات وتجهيز شهادة الطالب للطباعة الرسمية"
                           >
-                            حفظ 💾
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>طباعة 🖨️</span>
                           </button>
                         </td>
                       </tr>
@@ -560,6 +600,132 @@ export const ExamsModule = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Printable Student Certificate Modal */}
+      {printableStudentReport && createPortal(
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in print:p-0 print:bg-white print:static print:inset-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 border border-slate-200 relative print:shadow-none print:border-none print:w-full print:max-w-none print:p-0 max-h-[90vh] overflow-y-auto">
+            {/* Modal Top Control Bar (Hidden on print) */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 print:hidden">
+              <div className="flex items-center gap-2">
+                <Printer className="w-5 h-5 text-[#0284C7]" />
+                <h3 className="text-base font-bold text-[#0F172A]">طباعة شهادة ودرجات الطالب</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn-mustard px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-all"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>طباعة الآن 🖨️</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrintableStudentReport(null)}
+                  className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Official Report Card Printable Document */}
+            <div className="border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:border-2">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
+                <div className="text-right">
+                  <h2 className="text-xl font-black text-[#0284C7]">مدرسة الدعم التعليمي</h2>
+                  <p className="text-xs font-bold text-slate-500">منصة الإدارة الرقمية والتقييم الأكاديمي</p>
+                </div>
+                <div className="w-14 h-14 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-2xl border border-[#0284C7]/30">
+                  🎓
+                </div>
+                <div className="text-left font-mono text-xs font-bold text-slate-500">
+                  <p>تاريخ الإصدار: {printableStudentReport.date}</p>
+                  <p>العام الدراسي: 2025 - 2026</p>
+                </div>
+              </div>
+
+              {/* Student Meta */}
+              <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] text-slate-400 font-bold block">اسم التلميذ(ة):</span>
+                  <h3 className="text-lg font-black text-[#0F172A]">{printableStudentReport.student.name}</h3>
+                </div>
+                <div>
+                  <span className="text-[11px] text-slate-400 font-bold block">الصف والشعبة:</span>
+                  <p className="text-sm font-bold text-[#0284C7]">{printableStudentReport.student.grade} ({printableStudentReport.student.classRoom || 'أ'})</p>
+                </div>
+                <div>
+                  <span className="text-[11px] text-slate-400 font-bold block">المستوى العام:</span>
+                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-black rounded-lg text-xs border border-emerald-300">
+                    {printableStudentReport.grandLevel}
+                  </span>
+                </div>
+              </div>
+
+              {/* Subject Breakdown Table */}
+              <table className="w-full text-xs border-collapse border border-slate-200 text-center">
+                <thead>
+                  <tr className="bg-[#0284C7] text-white font-bold">
+                    <th className="p-2.5 border border-sky-700 text-right">المادة الدراسية</th>
+                    <th className="p-2.5 border border-sky-700">العلامة الكلية</th>
+                    <th className="p-2.5 border border-sky-700">التقدير الأكاديمي</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 font-medium">
+                  {printableStudentReport.scores.map((sc, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50">
+                      <td className="p-2.5 border border-slate-200 text-right font-bold text-slate-800">
+                        {sc.icon} {sc.subject}
+                      </td>
+                      <td className="p-2.5 border border-slate-200 font-mono font-black text-sm text-[#0284C7]">
+                        {sc.score} / 100
+                      </td>
+                      <td className="p-2.5 border border-slate-200">
+                        <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-slate-100 text-slate-700">
+                          {sc.level}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-sky-50 font-black text-slate-900 border-t-2 border-sky-200">
+                    <td className="p-3 border border-slate-200 text-right">المجموع الكلي والتقدير العام:</td>
+                    <td className="p-3 border border-slate-200 font-mono text-base text-[#0284C7]">
+                      {printableStudentReport.totalSum} / {printableStudentReport.maxTotalScore}
+                    </td>
+                    <td className="p-3 border border-slate-200">
+                      {printableStudentReport.grandLevel}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              {/* Signatures */}
+              <div className="pt-6 border-t border-slate-200 flex justify-between text-xs font-bold text-slate-600">
+                <div className="text-center space-y-4">
+                  <p>توقيع مدير المدرسة</p>
+                  <p className="font-mono text-slate-300">_________________</p>
+                </div>
+                <div className="text-center space-y-4">
+                  <p>ختم المدرسة الرسمي</p>
+                  <div className="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full mx-auto flex items-center justify-center text-[9px] text-slate-300">
+                    الختم
+                  </div>
+                </div>
+                <div className="text-center space-y-4">
+                  <p>توقيع المرشد التربوي</p>
+                  <p className="font-mono text-slate-300">_________________</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
     </div>

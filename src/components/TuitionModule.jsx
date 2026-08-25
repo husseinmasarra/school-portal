@@ -809,7 +809,7 @@ export const TuitionModule = () => {
       {/* ── Receipt Modal (Guaranteed 1 Page Print) ─────────────────────────── */}
       {showReceiptModal && createPortal(
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-start justify-center p-4 sm:p-6 overflow-y-auto receipt-print-backdrop">
-          <div className="receipt-printable-card bg-white text-slate-900 border-2 border-[#0284C7] rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative">
+          <div className="receipt-printable-card bg-white text-slate-900 rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative border-0">
             
             <style>{`
               /* On Screen Styles: Force Solid White Card Preview */
@@ -818,12 +818,13 @@ export const TuitionModule = () => {
                   background-color: #ffffff !important;
                   background: #ffffff !important;
                   color: #0f172a !important;
+                  border: none !important;
                 }
 
                 .receipt-details-box, html.dark .receipt-details-box {
                   background-color: #f8fafc !important;
                   background: #f8fafc !important;
-                  border-color: #cbd5e1 !important;
+                  border: 1px solid #cbd5e1 !important;
                 }
 
                 .receipt-details-box span {
@@ -887,7 +888,7 @@ export const TuitionModule = () => {
                   padding: 14px 18px !important;
                   width: 94% !important;
                   max-width: 480px !important;
-                  border: 1px solid #000000 !important;
+                  border: none !important;
                   background: #ffffff !important;
                   color: #000000 !important;
                   box-sizing: border-box !important;
@@ -897,7 +898,7 @@ export const TuitionModule = () => {
                 .receipt-details-box {
                   background: transparent !important;
                   background-color: transparent !important;
-                  border: 1px solid #cbd5e1 !important;
+                  border: 1px solid #000000 !important;
                 }
 
                 /* Force absolute black text and transparent background on all inner elements */

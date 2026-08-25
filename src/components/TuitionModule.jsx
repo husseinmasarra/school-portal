@@ -893,8 +893,8 @@ export const TuitionModule = () => {
                 .receipt-printable-card, html.dark .receipt-printable-card {
                   position: relative !important;
                   display: block !important;
-                  top: -28mm !important;
-                  margin-top: -25mm !important;
+                  top: 0 !important;
+                  margin-top: 0 !important;
                   margin-left: auto !important;
                   margin-right: auto !important;
                   margin-bottom: 0 !important;

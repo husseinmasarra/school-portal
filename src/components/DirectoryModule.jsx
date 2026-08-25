@@ -1350,7 +1350,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             {/* Special Case Classification Checkbox */}
             <div className="flex items-center justify-end gap-2 bg-amber-50/80 p-3 rounded-2xl border border-amber-200 text-right">
               <label htmlFor="stuIsSpecialCase" className="text-xs font-black text-amber-900 cursor-pointer flex items-center gap-2">
-                <span>{isAr ? '⭐ تصنيف الطالب ضمن «حالات خاصة» (إعفاء كامل 100% ومعاملة خاصة)' : '⭐ Classify as Special Case (Full Waiver)'}</span>
+                <span>{isAr ? '⭐ تصنيف الطالب ضمن «حالات خاصة»' : '⭐ Classify as Special Case'}</span>
                 <input
                   type="checkbox"
                   id="stuIsSpecialCase"
@@ -2277,7 +2277,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             {/* Special Case Classification Checkbox */}
             <div className="flex items-center justify-end gap-2 bg-amber-50/80 dark:bg-amber-950/30 p-3 rounded-2xl border border-amber-200 dark:border-amber-800 text-right">
               <label htmlFor="editIsSpecialCase" className="text-xs font-black text-amber-900 dark:text-amber-300 cursor-pointer flex items-center gap-2">
-                <span>{isAr ? '⭐ تصنيف الطالب ضمن «حالات خاصة» (إعفاء كامل 100% ومعاملة خاصة)' : '⭐ Classify as Special Case (Full Waiver)'}</span>
+                <span>{isAr ? '⭐ تصنيف الطالب ضمن «حالات خاصة»' : '⭐ Classify as Special Case'}</span>
                 <input
                   type="checkbox"
                   id="editIsSpecialCase"

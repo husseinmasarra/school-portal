@@ -889,7 +889,7 @@ export const TuitionModule = () => {
 
                 .receipt-printable-card, html.dark .receipt-printable-card {
                   position: absolute !important;
-                  top: -14mm !important;
+                  top: -35mm !important;
                   left: 50% !important;
                   transform: translateX(-50%) !important;
                   margin: 0 !important;

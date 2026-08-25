@@ -361,102 +361,115 @@ export const TuitionModule = () => {
       {/* Admin View: All Students Tuition Roster Grid */}
       {currentRole === 'admin' && (
         <div className="space-y-6">
-          {/* Overdue Tuition Warning Block (Visible after the 5th of the month) */}
-          {isOverduePeriod && (
-            <div className="bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-800/40 p-5 rounded-3xl space-y-4">
-              <div className="flex items-center gap-2 text-red-800 dark:text-red-400">
-                <span className="text-xl">⚠️</span>
-                <div>
-                  <h3 className="text-sm font-black">{isAr ? 'قائمة الذمم والأقساط المتأخرة المستحقة (مستحقة بعد تاريخ 5)' : 'Overdue Tuition Dues List (Due after the 5th of the month)'}</h3>
-                  <p className="text-[10px] text-slate-500 font-bold">{isAr ? 'تظهر هذه القائمة تلقائياً لوجود مستحقات مالية غير مسددة بعد تاريخ 5 من الشهر الجاري.' : 'List of students with remaining tuition due after the 5th of this month.'}</p>
+          {/* Overdue Tuition Warning Block (Visible after the 5th of the month for unpaid accounts) */}
+          {isOverduePeriod && (() => {
+            const globalOverduePhones = new Set();
+            const overdueCards = safeStudents.map((primaryStu) => {
+              const phoneKey = (primaryStu.parentPhone || primaryStu.phone || primaryStu.id).trim();
+              if (globalOverduePhones.has(phoneKey)) return null;
+              globalOverduePhones.add(phoneKey);
+
+              // Find ALL family members registered under this parent phone
+              const familyMembers = safeStudents.filter(s => {
+                if (!s.parentPhone && !primaryStu.parentPhone) return s.id === primaryStu.id;
+                return s.parentPhone && s.parentPhone.trim() === phoneKey;
+              });
+
+              // Active (non-frozen) family members
+              const activeFamilyMembers = familyMembers.filter(s => !s.frozen);
+              if (activeFamilyMembers.length === 0) return null;
+
+              // Calculate combined remaining overdue dues
+              const totalUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600) + (s.hasTransport ? (Number(s.transportFee) || 0) : 0), 0);
+              const adminUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0);
+              const discountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
+              const paidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
+              const remUSD      = Math.max(0, Math.round((totalUSD + adminUSD - discountUSD - paidUSD) * 100) / 100);
+
+              // Check if family has paid ANY installment/payment in the current month (e.g. "2026-08")
+              const currentYearMonth = new Date().toISOString().slice(0, 7);
+              const familyHistory = familyMembers.reduce((acc, s) => {
+                const sHist = paymentHistory[s.id] || [];
+                return [...acc, ...sHist];
+              }, []);
+
+              const hasPaidThisMonth = familyHistory.some(entry => entry.date && entry.date.startsWith(currentYearMonth));
+
+              // Hide from overdue list if fully paid OR if a payment/installment was already submitted in the current month!
+              if (remUSD <= 0.01 || hasPaidThisMonth) return null;
+
+              const isMulti = familyMembers.length > 1;
+              const familyName = primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`;
+              const isReminderSent = Boolean(sentReminders[phoneKey]);
+              const sentTime = sentReminders[phoneKey];
+
+              return (
+                <div 
+                  key={primaryStu.id} 
+                  className={`p-3 rounded-2xl flex items-center justify-between shadow-xs transition-all border ${
+                    isReminderSent 
+                      ? 'bg-emerald-50 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-700 ring-1 ring-emerald-400/30' 
+                      : 'bg-white dark:bg-slate-900 border-red-200 dark:border-red-950/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-9 h-9 rounded-2xl font-black text-xs flex items-center justify-center shrink-0 border shadow-xs ${
+                      isReminderSent
+                        ? 'bg-emerald-500 text-white border-emerald-600'
+                        : isMulti ? 'bg-amber-500 text-white border-amber-600' : 'bg-red-100 text-red-700 border-red-300'
+                    }`}>
+                      {isReminderSent ? '✓' : isMulti ? '👨‍👩‍👧‍👦' : (primaryStu.name || 'ط')[0]}
+                    </div>
+                    <div className="truncate">
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate flex items-center gap-1">
+                        <span>{isMulti ? familyName : (isAr ? primaryStu.name : primaryStu.nameEn)}</span>
+                      </h4>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-[10px] text-red-500 font-extrabold font-mono block">
+                          ${remUSD} USD {isMulti ? `(${familyMembers.length} إخوة)` : ''}
+                        </span>
+                        {isReminderSent && (
+                          <span className="text-[9px] text-emerald-700 font-black bg-emerald-100 px-1.5 py-0.2 rounded-full border border-emerald-300 animate-fade-in">
+                            تم التذكير ({sentTime}) 🟢
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleSendWhatsAppReminder(primaryStu)}
+                    className={`py-1.5 px-2.5 rounded-xl text-[10px] font-extrabold flex items-center gap-1 shrink-0 cursor-pointer transition-all border ${
+                      isReminderSent 
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-xs' 
+                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300'
+                    }`}
+                    title={isReminderSent ? `تم إرسال تذكير في ${sentTime} (اضغط لإعادة الإرسال)` : 'إرسال تذكير مالي بالواتساب للعائلة'}
+                  >
+                    <span>{isReminderSent ? 'تم التذكير 🟢' : 'تذكير 📲'}</span>
+                  </button>
+                </div>
+              );
+            }).filter(Boolean);
+
+            if (overdueCards.length === 0) return null; // Entire overdue block hides when no overdue families exist!
+
+            return (
+              <div className="bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-800/40 p-5 rounded-3xl space-y-4">
+                <div className="flex items-center gap-2 text-red-800 dark:text-red-400">
+                  <span className="text-xl">⚠️</span>
+                  <div>
+                    <h3 className="text-sm font-black">{isAr ? `قائمة الذمم والأقساط المتأخرة المستحقة (${overdueCards.length})` : `Overdue Tuition Dues List (${overdueCards.length})`}</h3>
+                    <p className="text-[10px] text-slate-500 font-bold">{isAr ? 'تظهر هذه القائمة تلقائياً لوجود مستحقات مالية غير مسددة بعد تاريخ 5 من الشهر الجاري.' : 'List of students with remaining tuition due after the 5th of this month.'}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {overdueCards}
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {(() => {
-                  const globalOverduePhones = new Set();
-
-                  return safeStudents.map((primaryStu) => {
-                    const phoneKey = (primaryStu.parentPhone || primaryStu.phone || primaryStu.id).trim();
-                    if (globalOverduePhones.has(phoneKey)) return null;
-                    globalOverduePhones.add(phoneKey);
-
-                    // Find ALL family members registered under this parent phone
-                    const familyMembers = safeStudents.filter(s => {
-                      if (!s.parentPhone && !primaryStu.parentPhone) return s.id === primaryStu.id;
-                      return s.parentPhone && s.parentPhone.trim() === phoneKey;
-                    });
-
-                    // Active (non-frozen) family members
-                    const activeFamilyMembers = familyMembers.filter(s => !s.frozen);
-                    if (activeFamilyMembers.length === 0) return null;
-
-                    // Calculate combined remaining overdue dues
-                    const totalUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600) + (s.hasTransport ? (Number(s.transportFee) || 0) : 0), 0);
-                    const adminUSD    = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0);
-                    const discountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
-                    const paidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
-                    const remUSD      = Math.max(0, totalUSD + adminUSD - discountUSD - paidUSD);
-
-                    if (remUSD === 0) return null; // Fully paid family
-
-                    const isMulti = familyMembers.length > 1;
-                    const familyName = primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`;
-                    const isReminderSent = Boolean(sentReminders[phoneKey]);
-                    const sentTime = sentReminders[phoneKey];
-
-                    return (
-                      <div 
-                        key={primaryStu.id} 
-                        className={`p-3 rounded-2xl flex items-center justify-between shadow-xs transition-all border ${
-                          isReminderSent 
-                            ? 'bg-emerald-50 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-700 ring-1 ring-emerald-400/30' 
-                            : 'bg-white dark:bg-slate-900 border-red-200 dark:border-red-950/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className={`w-9 h-9 rounded-2xl font-black text-xs flex items-center justify-center shrink-0 border shadow-xs ${
-                            isReminderSent
-                              ? 'bg-emerald-500 text-white border-emerald-600'
-                              : isMulti ? 'bg-amber-500 text-white border-amber-600' : 'bg-red-100 text-red-700 border-red-300'
-                          }`}>
-                            {isReminderSent ? '✓' : isMulti ? '👨‍👩‍👧‍👦' : (primaryStu.name || 'ط')[0]}
-                          </div>
-                          <div className="truncate">
-                            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate flex items-center gap-1">
-                              <span>{isMulti ? familyName : (isAr ? primaryStu.name : primaryStu.nameEn)}</span>
-                            </h4>
-                            <div className="flex items-center gap-1 flex-wrap">
-                              <span className="text-[10px] text-red-500 font-extrabold font-mono block">
-                                ${remUSD} USD {isMulti ? `(${familyMembers.length} إخوة)` : ''}
-                              </span>
-                              {isReminderSent && (
-                                <span className="text-[9px] text-emerald-700 font-black bg-emerald-100 px-1.5 py-0.2 rounded-full border border-emerald-300 animate-fade-in">
-                                  تم التذكير ({sentTime}) 🟢
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => handleSendWhatsAppReminder(primaryStu)}
-                          className={`py-1.5 px-2.5 rounded-xl text-[10px] font-extrabold flex items-center gap-1 shrink-0 cursor-pointer transition-all border ${
-                            isReminderSent 
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-xs' 
-                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300'
-                          }`}
-                          title={isReminderSent ? `تم إرسال تذكير في ${sentTime} (اضغط لإعادة الإرسال)` : 'إرسال تذكير مالي بالواتساب للعائلة'}
-                        >
-                          <span>{isReminderSent ? 'تم التذكير 🟢' : 'تذكير 📲'}</span>
-                        </button>
-                      </div>
-                    );
-                  }).filter(Boolean);
-                })()}
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
             <h3 className="text-base font-bold text-[#0284C7] border-b border-slate-100 pb-3">

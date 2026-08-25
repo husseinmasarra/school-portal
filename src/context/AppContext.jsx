@@ -1235,15 +1235,37 @@ export const AppProvider = ({ children }) => {
   };
 
   const payTuition = (studentId, amountUSD, method) => {
+    const payVal = Number(amountUSD || 0);
+    if (payVal <= 0) return;
+
     setStudents((prev) => {
+      // 1. Find target student to identify family
+      const targetStu = prev.find(s => s.id === studentId || s.name === studentId || String(s.id) === String(studentId));
+      if (!targetStu) return prev;
+
+      const phoneKey = (targetStu.parentPhone || targetStu.phone || targetStu.id).trim();
+
+      // 2. Find ALL active (non-frozen) family members
+      const familyActiveMembers = prev.filter(s => {
+        if (s.frozen) return false;
+        if (!s.parentPhone && !targetStu.parentPhone) return s.id === targetStu.id;
+        return s.parentPhone && s.parentPhone.trim() === phoneKey;
+      });
+
+      // 3. Split payment equally among active family members
+      const activeMembers = familyActiveMembers.length > 0 ? familyActiveMembers : [targetStu];
+      const memberCount = activeMembers.length;
+      const sharePerMember = payVal / memberCount;
+      const activeIdsSet = new Set(activeMembers.map(m => m.id));
+
       const updated = prev.map((s) => {
-        if (s.id === studentId || s.name === studentId || String(s.id) === String(studentId)) {
+        if (activeIdsSet.has(s.id)) {
           const currentPaid = Number(s.tuitionPaid || 0);
-          const newPaid = currentPaid + Number(amountUSD || 0);
-          return { ...s, tuitionPaid: newPaid };
+          return { ...s, tuitionPaid: currentPaid + sharePerMember };
         }
         return s;
       });
+
       localStorage.setItem('school_students', JSON.stringify(updated));
       return updated;
     });

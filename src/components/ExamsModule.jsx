@@ -669,8 +669,42 @@ export const ExamsModule = () => {
 
       {/* Printable Certificates Modal (Single or Multi-Student Batch) */}
       {printableReportsList && printableReportsList.length > 0 && createPortal(
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in print:p-0 print:bg-white print:static print:inset-auto">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 border border-slate-200 relative print:shadow-none print:border-none print:w-full print:max-w-none print:p-0 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in print:p-0 print:bg-white print:static print:inset-auto print:block print:w-full print:h-auto print:overflow-visible">
+          <style>{`
+            @media print {
+              @page {
+                size: A4 portrait;
+                margin: 0;
+              }
+              html, body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              .print-cert-page {
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+                box-sizing: border-box !important;
+                padding: 12mm 15mm !important;
+                margin: 0 auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                border: 3px double #0284C7 !important;
+                background: #ffffff !important;
+              }
+            }
+          `}</style>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 border border-slate-200 relative print:shadow-none print:border-none print:w-full print:max-w-none print:p-0 print:m-0 print:max-h-none print:overflow-visible print:h-auto max-h-[90vh] overflow-y-auto">
             {/* Modal Top Control Bar (Hidden on print) */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 print:hidden">
               <div className="flex items-center gap-2">
@@ -688,7 +722,7 @@ export const ExamsModule = () => {
                   className="btn-mustard px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-all"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>طباعة الكل الآن 🖨️</span>
+                  <span>طباعة الكل الآن 🖨️ (ورقة A4 لكل طالب)</span>
                 </button>
                 <button
                   type="button"
@@ -701,17 +735,11 @@ export const ExamsModule = () => {
             </div>
 
             {/* List of Report Card Printable Documents */}
-            <div className="space-y-8 print:space-y-0">
+            <div className="space-y-8 print:space-y-0 print:block print:w-full print:h-auto print:overflow-visible">
               {printableReportsList.map((report) => (
                 <div 
                   key={report.student.id} 
-                  className="border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:border-2 print:rounded-none print:shadow-none print:m-0 print:p-6 print:break-after-page print:break-inside-avoid"
-                  style={{
-                    pageBreakAfter: 'always',
-                    breakAfter: 'page',
-                    pageBreakInside: 'avoid',
-                    breakInside: 'avoid'
-                  }}
+                  className="print-cert-page border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:rounded-none print:shadow-none print:m-0"
                 >
                   {/* Header */}
                   <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">

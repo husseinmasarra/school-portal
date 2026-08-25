@@ -23,6 +23,7 @@ export const SubjectsModule = () => {
     currentUser,
     subjects = [], 
     addSubject, 
+    updateSubject,
     deleteSubject,
     agenda = [],
     addAgendaItem,
@@ -227,16 +228,35 @@ export const SubjectsModule = () => {
                   </div>
 
                   {currentRole === 'admin' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteSubject(sub.id);
-                      }}
-                      className="p-2 bg-white/20 hover:bg-red-600 text-white rounded-xl backdrop-blur-md transition-all cursor-pointer border border-white/20"
-                      title={t('delete')}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1.5 z-20">
+                      <label 
+                        onClick={(e) => e.stopPropagation()} 
+                        className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-xl backdrop-blur-md transition-all cursor-pointer border border-white/20 flex items-center gap-1"
+                        title="تغيير لون الكرت 🎨"
+                      >
+                        <Palette className="w-4 h-4 text-white" />
+                        <input
+                          type="color"
+                          value={cardBg}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            if (updateSubject) updateSubject(sub.id, { color: e.target.value });
+                          }}
+                          className="sr-only"
+                        />
+                      </label>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSubject(sub.id);
+                        }}
+                        className="p-2 bg-white/20 hover:bg-red-600 text-white rounded-xl backdrop-blur-md transition-all cursor-pointer border border-white/20"
+                        title={t('delete')}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -247,9 +267,29 @@ export const SubjectsModule = () => {
                     <span>{isAr ? 'اضغط لاستعراض الدروس 📖' : 'Click to view lessons'}</span>
                   </span>
 
-                  <span className="text-[10px] text-white/90 font-bold bg-black/30 px-2.5 py-1 rounded-lg">
-                    {cardBg}
-                  </span>
+                  {currentRole === 'admin' ? (
+                    <label 
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] text-white/90 font-bold bg-black/30 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-black/50 transition-colors flex items-center gap-1 border border-white/20"
+                      title="اضغط لتغيير اللون"
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full inline-block border border-white" style={{ backgroundColor: cardBg }} />
+                      <span>{cardBg}</span>
+                      <input
+                        type="color"
+                        value={cardBg}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          if (updateSubject) updateSubject(sub.id, { color: e.target.value });
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                  ) : (
+                    <span className="text-[10px] text-white/90 font-bold bg-black/30 px-2.5 py-1 rounded-lg">
+                      {cardBg}
+                    </span>
+                  )}
                 </div>
 
                 <div className="absolute -bottom-8 -left-8 w-28 h-28 rounded-full bg-white/10 blur-xl pointer-events-none" />

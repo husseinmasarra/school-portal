@@ -927,6 +927,16 @@ export const AppProvider = ({ children }) => {
     setSubjects((prev) => {
       const updated = prev.filter((s) => s.id !== id);
       localStorage.setItem('school_subjects', JSON.stringify(updated));
+      dbSaveCollection('school_subjects', updated);
+      return updated;
+    });
+  };
+
+  const updateSubject = (id, updatedFields) => {
+    setSubjects((prev) => {
+      const updated = prev.map((s) => (s.id === id ? { ...s, ...updatedFields } : s));
+      localStorage.setItem('school_subjects', JSON.stringify(updated));
+      dbSaveCollection('school_subjects', updated);
       return updated;
     });
   };
@@ -1305,8 +1315,60 @@ export const AppProvider = ({ children }) => {
         if (c.id === courseId) {
           const nextEnrolled = (c.enrolledStudentIds || []).filter(id => id !== studentId);
           const feesMap = { ...(c.studentFeesMap || {}) };
+          const paidMap = { ...(c.studentPaidMap || {}) };
           delete feesMap[studentId];
-          return { ...c, enrolledStudentIds: nextEnrolled, studentFeesMap: feesMap };
+          delete paidMap[studentId];
+          return { ...c, enrolledStudentIds: nextEnrolled, studentFeesMap: feesMap, studentPaidMap: paidMap };
+        }
+        return c;
+      });
+      dbSaveCollection('school_tutoring', updated);
+      return updated;
+    });
+  };
+
+  const addTutoringCourse = (courseObj) => {
+    const newCourse = {
+      id: `TUT-${Math.floor(100 + Math.random() * 900)}`,
+      enrolledStudentIds: [],
+      studentFeesMap: {},
+      studentPaidMap: {},
+      color: '#0284C7',
+      fee: 50,
+      maxSeats: 25,
+      ...courseObj
+    };
+    setTutoringCourses((prev) => {
+      const updated = [newCourse, ...prev];
+      dbSaveCollection('school_tutoring', updated);
+      return updated;
+    });
+  };
+
+  const deleteTutoringCourse = (courseId) => {
+    setTutoringCourses((prev) => {
+      const updated = prev.filter((c) => c.id !== courseId);
+      dbSaveCollection('school_tutoring', updated);
+      return updated;
+    });
+  };
+
+  const updateTutoringCourse = (courseId, updatedFields) => {
+    setTutoringCourses((prev) => {
+      const updated = prev.map((c) => (c.id === courseId ? { ...c, ...updatedFields } : c));
+      dbSaveCollection('school_tutoring', updated);
+      return updated;
+    });
+  };
+
+  const recordTutoringPayment = (courseId, studentId, amountPaid) => {
+    setTutoringCourses((prev) => {
+      const updated = prev.map((c) => {
+        if (c.id === courseId) {
+          const paidMap = { ...(c.studentPaidMap || {}) };
+          const currentPaid = Number(paidMap[studentId] || 0);
+          paidMap[studentId] = currentPaid + Number(amountPaid);
+          return { ...c, studentPaidMap: paidMap };
         }
         return c;
       });
@@ -1687,6 +1749,7 @@ export const AppProvider = ({ children }) => {
     setSelectedStudentId,
     subjects,
     addSubject,
+    updateSubject,
     deleteSubject,
     grades,
     addGrade,
@@ -1725,9 +1788,12 @@ export const AppProvider = ({ children }) => {
     addAgendaItem,
     updateAgendaItem,
     deleteAgendaItem,
-    payTuition,
     registerTutoring,
     unregisterTutoring,
+    addTutoringCourse,
+    deleteTutoringCourse,
+    updateTutoringCourse,
+    recordTutoringPayment,
     updateBusStatus,
     addStudent,
     addTeacher,

@@ -65,10 +65,32 @@ export const ExamsModule = () => {
   const [savedToast, setSavedToast] = useState(false);
   const [savedToastMsg, setSavedToastMsg] = useState('');
 
-  // Printable Student Report Card State
-  const [printableStudentReport, setPrintableStudentReport] = useState(null);
+  // Selected Students Checkbox State for Batch Printing
+  const [selectedStudentIds, setSelectedStudentIds] = useState(new Set());
+  const [printableReportsList, setPrintableReportsList] = useState(null);
 
-  const handlePrintStudentReport = (stu) => {
+  const toggleStudentSelection = (stuId) => {
+    setSelectedStudentIds(prev => {
+      const next = new Set(prev);
+      if (next.has(stuId)) next.delete(stuId);
+      else next.add(stuId);
+      return next;
+    });
+  };
+
+  const isAllFilteredSelected = filteredStudents.length > 0 && filteredStudents.every(s => selectedStudentIds.has(s.id));
+
+  const toggleSelectAllFiltered = () => {
+    if (isAllFilteredSelected) {
+      setSelectedStudentIds(new Set());
+    } else {
+      const newIds = new Set(selectedStudentIds);
+      filteredStudents.forEach(s => newIds.add(s.id));
+      setSelectedStudentIds(newIds);
+    }
+  };
+
+  const buildStudentReportObj = (stu) => {
     // 1. Save student marks first
     handleSaveStudentAllSubjects(stu.id);
 
@@ -91,14 +113,27 @@ export const ExamsModule = () => {
       ? calculateGrandTotalLevel(stuTotalSum)
       : (stuTotalSum >= 550 ? 'ممتاز' : stuTotalSum >= 500 ? 'جيد جداً' : stuTotalSum >= 450 ? 'جيد' : stuTotalSum >= 300 ? 'مقبول' : 'راسب');
 
-    setPrintableStudentReport({
+    return {
       student: stu,
       scores: scoresBreakdown,
       totalSum: stuTotalSum,
       maxTotalScore,
       grandLevel,
       date: new Date().toLocaleDateString('ar-EG')
-    });
+    };
+  };
+
+  const handlePrintStudentReport = (stu) => {
+    const report = buildStudentReportObj(stu);
+    setPrintableReportsList([report]);
+  };
+
+  const handlePrintSelectedStudentsReports = () => {
+    const selectedStudents = safeStudents.filter(s => selectedStudentIds.has(s.id));
+    if (selectedStudents.length === 0) return;
+
+    const reports = selectedStudents.map(stu => buildStudentReportObj(stu));
+    setPrintableReportsList(reports);
   };
 
   // Pre-fill matrixMarks from existing scores on initial load
@@ -373,6 +408,17 @@ export const ExamsModule = () => {
                 ))}
               </select>
 
+              {selectedStudentIds.size > 0 && (
+                <button
+                  type="button"
+                  onClick={handlePrintSelectedStudentsReports}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-2xl text-xs font-black shadow hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer animate-fade-in shrink-0"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>طباعة شهادات المحددِين 🖨️ ({selectedStudentIds.size})</span>
+                </button>
+              )}
+
               <button
                 onClick={handleSaveAllMasterMatrix}
                 className="btn-mustard px-5 py-2 rounded-2xl text-xs font-black shadow hover:scale-105 transition-all flex items-center gap-2 cursor-pointer shrink-0"
@@ -386,7 +432,17 @@ export const ExamsModule = () => {
             <table className="w-full text-right rtl:text-right ltr:text-left text-xs border-collapse border border-slate-200">
               <thead>
                 <tr className="bg-[#0284C7] text-white font-black text-xs">
-                  <th className="p-3 border border-sky-700 text-right sticky right-0 bg-[#0284C7] min-w-[150px]">اسم الطالب</th>
+                  {/* ☒ Persistent Checkbox Column Header */}
+                  <th className="p-3 border border-sky-700 text-center min-w-[50px] bg-[#0284C7] sticky right-0 z-20">
+                    <input
+                      type="checkbox"
+                      checked={isAllFilteredSelected}
+                      onChange={toggleSelectAllFiltered}
+                      className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+                      title={isAllFilteredSelected ? "إلغاء تحديد الكل" : "تحديد كافة الطلاب الظاهرين"}
+                    />
+                  </th>
+                  <th className="p-3 border border-sky-700 text-right sticky right-[50px] bg-[#0284C7] z-20 min-w-[150px]">اسم الطالب</th>
                   <th className="p-3 border border-sky-700 text-center min-w-[90px]">الصف</th>
                   
                   {/* Dynamic Subject Columns */}
@@ -411,7 +467,7 @@ export const ExamsModule = () => {
               <tbody className="divide-y divide-slate-200">
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={safeSubjects.length + 5} className="p-8 text-center text-slate-400 font-bold">
+                    <td colSpan={safeSubjects.length + 6} className="p-8 text-center text-slate-400 font-bold">
                       {isAr ? 'لا يوجد نتائج تطابق كلمة البحث في جدول الرصد.' : 'No matching students found.'}
                     </td>
                   </tr>
@@ -433,7 +489,16 @@ export const ExamsModule = () => {
 
                     return (
                       <tr key={stu.id} className="hover:bg-sky-50/50 transition-colors">
-                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] flex items-center gap-2 sticky right-0 bg-white shadow-sm">
+                        {/* ☒ Row Checkbox */}
+                        <td className="p-3 border border-slate-200 text-center sticky right-0 bg-white shadow-sm z-10 min-w-[50px]">
+                          <input
+                            type="checkbox"
+                            checked={selectedStudentIds.has(stu.id)}
+                            onChange={() => toggleStudentSelection(stu.id)}
+                            className="w-4 h-4 accent-[#0284C7] rounded cursor-pointer"
+                          />
+                        </td>
+                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] flex items-center gap-2 sticky right-[50px] bg-white shadow-sm z-10">
                           <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
                           <span>{isAr ? stu.name : stu.nameEn}</span>
                         </td>
@@ -602,15 +667,19 @@ export const ExamsModule = () => {
         </div>
       )}
 
-      {/* Printable Student Certificate Modal */}
-      {printableStudentReport && createPortal(
+      {/* Printable Certificates Modal (Single or Multi-Student Batch) */}
+      {printableReportsList && printableReportsList.length > 0 && createPortal(
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in print:p-0 print:bg-white print:static print:inset-auto">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 border border-slate-200 relative print:shadow-none print:border-none print:w-full print:max-w-none print:p-0 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 border border-slate-200 relative print:shadow-none print:border-none print:w-full print:max-w-none print:p-0 max-h-[90vh] overflow-y-auto">
             {/* Modal Top Control Bar (Hidden on print) */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 print:hidden">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#0284C7]" />
-                <h3 className="text-base font-bold text-[#0F172A]">طباعة شهادة ودرجات الطالب</h3>
+                <h3 className="text-base font-bold text-[#0F172A]">
+                  {printableReportsList.length === 1
+                    ? `طباعة شهادة الطالب: (${printableReportsList[0].student.name})`
+                    : `طباعة شهادات الطلاب المحددِين 🖨️ (عدد الشهادات: ${printableReportsList.length})`}
+                </h3>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -619,11 +688,11 @@ export const ExamsModule = () => {
                   className="btn-mustard px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-all"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>طباعة الآن 🖨️</span>
+                  <span>طباعة الكل الآن 🖨️</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPrintableStudentReport(null)}
+                  onClick={() => setPrintableReportsList(null)}
                   className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
@@ -631,97 +700,101 @@ export const ExamsModule = () => {
               </div>
             </div>
 
-            {/* Official Report Card Printable Document */}
-            <div className="border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:border-2">
-              {/* Header */}
-              <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
-                <div className="text-right">
-                  <h2 className="text-xl font-black text-[#0284C7]">مدرسة الدعم التعليمي</h2>
-                  <p className="text-xs font-bold text-slate-500">منصة الإدارة الرقمية والتقييم الأكاديمي</p>
-                </div>
-                <div className="w-14 h-14 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-2xl border border-[#0284C7]/30">
-                  🎓
-                </div>
-                <div className="text-left font-mono text-xs font-bold text-slate-500">
-                  <p>تاريخ الإصدار: {printableStudentReport.date}</p>
-                  <p>العام الدراسي: 2025 - 2026</p>
-                </div>
-              </div>
+            {/* List of Report Card Printable Documents */}
+            <div className="space-y-8 print:space-y-0">
+              {printableReportsList.map((report) => (
+                <div key={report.student.id} className="border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:border-2 print:break-after-page print:mb-0">
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
+                    <div className="text-right">
+                      <h2 className="text-xl font-black text-[#0284C7]">مدرسة الدعم التعليمي</h2>
+                      <p className="text-xs font-bold text-slate-500">منصة الإدارة الرقمية والتقييم الأكاديمي</p>
+                    </div>
+                    <div className="w-14 h-14 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-2xl border border-[#0284C7]/30">
+                      🎓
+                    </div>
+                    <div className="text-left font-mono text-xs font-bold text-slate-500">
+                      <p>تاريخ الإصدار: {report.date}</p>
+                      <p>العام الدراسي: 2025 - 2026</p>
+                    </div>
+                  </div>
 
-              {/* Student Meta */}
-              <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-100 flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] text-slate-400 font-bold block">اسم التلميذ(ة):</span>
-                  <h3 className="text-lg font-black text-[#0F172A]">{printableStudentReport.student.name}</h3>
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 font-bold block">الصف والشعبة:</span>
-                  <p className="text-sm font-bold text-[#0284C7]">{printableStudentReport.student.grade} ({printableStudentReport.student.classRoom || 'أ'})</p>
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 font-bold block">المستوى العام:</span>
-                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-black rounded-lg text-xs border border-emerald-300">
-                    {printableStudentReport.grandLevel}
-                  </span>
-                </div>
-              </div>
+                  {/* Student Meta */}
+                  <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-bold block">اسم التلميذ(ة):</span>
+                      <h3 className="text-lg font-black text-[#0F172A]">{report.student.name}</h3>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-bold block">الصف والشعبة:</span>
+                      <p className="text-sm font-bold text-[#0284C7]">{report.student.grade} ({report.student.classRoom || 'أ'})</p>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-bold block">المستوى العام:</span>
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-black rounded-lg text-xs border border-emerald-300">
+                        {report.grandLevel}
+                      </span>
+                    </div>
+                  </div>
 
-              {/* Subject Breakdown Table */}
-              <table className="w-full text-xs border-collapse border border-slate-200 text-center">
-                <thead>
-                  <tr className="bg-[#0284C7] text-white font-bold">
-                    <th className="p-2.5 border border-sky-700 text-right">المادة الدراسية</th>
-                    <th className="p-2.5 border border-sky-700">العلامة الكلية</th>
-                    <th className="p-2.5 border border-sky-700">التقدير الأكاديمي</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 font-medium">
-                  {printableStudentReport.scores.map((sc, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
-                      <td className="p-2.5 border border-slate-200 text-right font-bold text-slate-800">
-                        {sc.icon} {sc.subject}
-                      </td>
-                      <td className="p-2.5 border border-slate-200 font-mono font-black text-sm text-[#0284C7]">
-                        {sc.score} / 100
-                      </td>
-                      <td className="p-2.5 border border-slate-200">
-                        <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-slate-100 text-slate-700">
-                          {sc.level}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-sky-50 font-black text-slate-900 border-t-2 border-sky-200">
-                    <td className="p-3 border border-slate-200 text-right">المجموع الكلي والتقدير العام:</td>
-                    <td className="p-3 border border-slate-200 font-mono text-base text-[#0284C7]">
-                      {printableStudentReport.totalSum} / {printableStudentReport.maxTotalScore}
-                    </td>
-                    <td className="p-3 border border-slate-200">
-                      {printableStudentReport.grandLevel}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                  {/* Subject Breakdown Table */}
+                  <table className="w-full text-xs border-collapse border border-slate-200 text-center">
+                    <thead>
+                      <tr className="bg-[#0284C7] text-white font-bold">
+                        <th className="p-2.5 border border-sky-700 text-right">المادة الدراسية</th>
+                        <th className="p-2.5 border border-sky-700">العلامة الكلية</th>
+                        <th className="p-2.5 border border-sky-700">التقدير الأكاديمي</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 font-medium">
+                      {report.scores.map((sc, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="p-2.5 border border-slate-200 text-right font-bold text-slate-800">
+                            {sc.icon} {sc.subject}
+                          </td>
+                          <td className="p-2.5 border border-slate-200 font-mono font-black text-sm text-[#0284C7]">
+                            {sc.score} / 100
+                          </td>
+                          <td className="p-2.5 border border-slate-200">
+                            <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-slate-100 text-slate-700">
+                              {sc.level}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-sky-50 font-black text-slate-900 border-t-2 border-sky-200">
+                        <td className="p-3 border border-slate-200 text-right">المجموع الكلي والتقدير العام:</td>
+                        <td className="p-3 border border-slate-200 font-mono text-base text-[#0284C7]">
+                          {report.totalSum} / {report.maxTotalScore}
+                        </td>
+                        <td className="p-3 border border-slate-200">
+                          {report.grandLevel}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
 
-              {/* Signatures */}
-              <div className="pt-6 border-t border-slate-200 flex justify-between text-xs font-bold text-slate-600">
-                <div className="text-center space-y-4">
-                  <p>توقيع مدير المدرسة</p>
-                  <p className="font-mono text-slate-300">_________________</p>
-                </div>
-                <div className="text-center space-y-4">
-                  <p>ختم المدرسة الرسمي</p>
-                  <div className="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full mx-auto flex items-center justify-center text-[9px] text-slate-300">
-                    الختم
+                  {/* Signatures */}
+                  <div className="pt-6 border-t border-slate-200 flex justify-between text-xs font-bold text-slate-600">
+                    <div className="text-center space-y-4">
+                      <p>توقيع مدير المدرسة</p>
+                      <p className="font-mono text-slate-300">_________________</p>
+                    </div>
+                    <div className="text-center space-y-4">
+                      <p>ختم المدرسة الرسمي</p>
+                      <div className="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full mx-auto flex items-center justify-center text-[9px] text-slate-300">
+                        الختم
+                      </div>
+                    </div>
+                    <div className="text-center space-y-4">
+                      <p>توقيع المرشد التربوي</p>
+                      <p className="font-mono text-slate-300">_________________</p>
+                    </div>
                   </div>
                 </div>
-                <div className="text-center space-y-4">
-                  <p>توقيع المرشد التربوي</p>
-                  <p className="font-mono text-slate-300">_________________</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>,

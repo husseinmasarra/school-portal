@@ -498,9 +498,11 @@ export const ExamsModule = () => {
                             className="w-4 h-4 accent-[#0284C7] rounded cursor-pointer"
                           />
                         </td>
-                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] flex items-center gap-2 sticky right-[50px] bg-white shadow-sm z-10">
-                          <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
-                          <span>{isAr ? stu.name : stu.nameEn}</span>
+                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] sticky right-[50px] bg-white shadow-sm z-10 min-w-[170px]">
+                          <div className="flex items-center gap-2">
+                            <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7] shrink-0" />
+                            <span className="truncate">{isAr ? stu.name : stu.nameEn}</span>
+                          </div>
                         </td>
                         <td className="p-3 border border-slate-200 text-center text-slate-600 font-bold">
                           {isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})
@@ -621,9 +623,11 @@ export const ExamsModule = () => {
 
                     return (
                       <tr key={stu.id} className="hover:bg-[#F8FAFC] transition-all">
-                        <td className="p-3 font-black text-sm flex items-center gap-2 text-[#0F172A]">
-                          <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7]" />
-                          <span>{isAr ? stu.name : stu.nameEn}</span>
+                        <td className="p-3 font-black text-sm text-[#0F172A]">
+                          <div className="flex items-center gap-2">
+                            <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7] shrink-0" />
+                            <span>{isAr ? stu.name : stu.nameEn}</span>
+                          </div>
                         </td>
                         <td className="p-3 text-slate-600 font-bold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})</td>
                         <td className="p-3 text-center">

@@ -887,10 +887,15 @@ export const TuitionModule = () => {
                 }
 
                 .receipt-printable-card, html.dark .receipt-printable-card {
+                  position: absolute !important;
+                  top: 0 !important;
+                  left: 0 !important;
+                  right: 0 !important;
+                  margin: 0 auto !important;
+                  margin-top: 0 !important;
+                  padding: 10px 16px !important;
                   border: 1px solid #000000 !important;
                   box-shadow: none !important;
-                  margin: 0 auto !important;
-                  padding: 16px 20px !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   color: #000000 !important;

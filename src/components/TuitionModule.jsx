@@ -809,9 +809,34 @@ export const TuitionModule = () => {
       {/* ── Receipt Modal (Guaranteed 1 Page Print) ─────────────────────────── */}
       {showReceiptModal && createPortal(
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-start justify-center p-4 sm:p-6 overflow-y-auto receipt-print-backdrop">
-          <div className="receipt-printable-card border-2 border-[#0284C7] rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative">
+          <div className="receipt-printable-card bg-white text-slate-900 border-2 border-[#0284C7] rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative">
             
             <style>{`
+              /* On Screen Styles: Force Solid White Card Preview */
+              @media screen {
+                .receipt-printable-card, html.dark .receipt-printable-card {
+                  background-color: #ffffff !important;
+                  background: #ffffff !important;
+                  color: #0f172a !important;
+                }
+
+                .receipt-details-box, html.dark .receipt-details-box {
+                  background-color: #f8fafc !important;
+                  background: #f8fafc !important;
+                  border-color: #cbd5e1 !important;
+                }
+
+                .receipt-details-box span {
+                  color: #334155 !important;
+                }
+
+                .receipt-stamp-badge, html.dark .receipt-stamp-badge {
+                  background-color: rgba(2, 132, 199, 0.08) !important;
+                  color: #0284c7 !important;
+                  border-color: rgba(2, 132, 199, 0.3) !important;
+                }
+              }
+
               /* Clean Reset & Print-Only Styles (Starts at absolute top of paper) */
               @media print {
                 @page {

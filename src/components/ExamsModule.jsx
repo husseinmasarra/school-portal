@@ -778,22 +778,16 @@ export const ExamsModule = () => {
                   {/* Header */}
                   <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-3 gap-3">
                     <div className="flex items-center gap-3 text-right">
-                      {siteSettings?.schoolLogo ? (
-                        <div className="w-14 h-14 bg-white rounded-2xl border-2 border-[#0284C7]/40 shadow-xs flex items-center justify-center p-1 shrink-0 overflow-hidden">
-                          <img 
-                            src={siteSettings.schoolLogo} 
-                            alt="شعار المدرسة" 
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-xl border border-[#0284C7]/30 shrink-0">
-                          {certificateType === 'mid_year' ? '📘' : '🎓'}
-                        </div>
-                      )}
+                      <div className="w-16 h-16 bg-white rounded-2xl border-2 border-[#0284C7]/40 shadow-xs flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                        <img 
+                          src={siteSettings?.schoolLogo || "/school-logo.png"} 
+                          alt="شعار مدرسة الدعم التعليمي" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
                       <div>
                         <h2 className="text-lg font-black text-[#0284C7]">
-                          {siteSettings?.schoolName || 'مدرسة الدعم التعليمي'}
+                          {siteSettings?.schoolName || 'مركز الدعم التعليمي'}
                         </h2>
                         <p className="text-[11px] font-extrabold text-slate-700">
                           {certificateType === 'mid_year'

@@ -132,7 +132,7 @@ export const AppProvider = ({ children }) => {
       recessEndTime: "09:30",
       recessLabel: "استراحة ووجبة فطور",
       ...parsed, 
-      schoolLogo: parsed?.schoolLogo && parsed.schoolLogo.startsWith('data:') ? parsed.schoolLogo : null,
+      schoolLogo: parsed?.schoolLogo || "/school-logo.png",
       schoolName: "مركز الدعم التعليمي", 
       schoolNameEn: "Educational Support Center", 
       academicYear: "2026/2027",

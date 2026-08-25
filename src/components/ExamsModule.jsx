@@ -14,7 +14,7 @@ import {
 
 export const ExamsModule = () => {
   const { 
-    lang, t, currentRole, currentUser, 
+    lang, t, currentRole, currentUser, siteSettings,
     exams = [], subjects = [], students = [], 
     addExam, gradeExamResult, calculateStudentLevel, calculateGrandTotalLevel, addDailyMark, getStudentSubjectScores 
   } = useApp();
@@ -776,21 +776,36 @@ export const ExamsModule = () => {
                   className="print-cert-page border-4 border-double border-[#0284C7] p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-4 text-[#0F172A] print:rounded-none print:shadow-none print:m-0"
                 >
                   {/* Header */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-3">
-                    <div className="text-right">
-                      <h2 className="text-lg font-black text-[#0284C7]">مدرسة الدعم التعليمي</h2>
-                      <p className="text-[11px] font-extrabold text-slate-700">
-                        {certificateType === 'mid_year'
-                          ? '📘 تقرير وشهادة نتائج تقييم منتصف العام الدراسي (الفصل الأول)'
-                          : '🎓 الشهادة العامة والتقييم النهائي لنهاية العام الدراسي (الفصل الثاني)'}
-                      </p>
+                  <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-3 gap-3">
+                    <div className="flex items-center gap-3 text-right">
+                      {siteSettings?.schoolLogo ? (
+                        <div className="w-14 h-14 bg-white rounded-2xl border-2 border-[#0284C7]/40 shadow-xs flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                          <img 
+                            src={siteSettings.schoolLogo} 
+                            alt="شعار المدرسة" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-xl border border-[#0284C7]/30 shrink-0">
+                          {certificateType === 'mid_year' ? '📘' : '🎓'}
+                        </div>
+                      )}
+                      <div>
+                        <h2 className="text-lg font-black text-[#0284C7]">
+                          {siteSettings?.schoolName || 'مدرسة الدعم التعليمي'}
+                        </h2>
+                        <p className="text-[11px] font-extrabold text-slate-700">
+                          {certificateType === 'mid_year'
+                            ? '📘 تقرير وشهادة نتائج تقييم منتصف العام الدراسي (الفصل الأول)'
+                            : '🎓 الشهادة العامة والتقييم النهائي لنهاية العام الدراسي (الفصل الثاني)'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="w-12 h-12 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-xl border border-[#0284C7]/30 shrink-0">
-                      {certificateType === 'mid_year' ? '📘' : '🎓'}
-                    </div>
-                    <div className="text-left font-mono text-[11px] font-bold text-slate-500">
+
+                    <div className="text-left font-mono text-[11px] font-bold text-slate-500 shrink-0">
                       <p>تاريخ الإصدار: {report.date}</p>
-                      <p>العام الدراسي: 2025 - 2026</p>
+                      <p>العام الدراسي: {siteSettings?.academicYear || '2025 - 2026'}</p>
                     </div>
                   </div>
 

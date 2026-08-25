@@ -433,7 +433,7 @@ export const ExamsModule = () => {
               <thead>
                 <tr className="bg-[#0284C7] text-white font-black text-xs">
                   {/* ☒ Persistent Checkbox Column Header */}
-                  <th className="p-3 border border-sky-700 text-center min-w-[50px] bg-[#0284C7] sticky right-0 z-20">
+                  <th className="p-3 border border-sky-700 text-center w-[50px] min-w-[50px] max-w-[50px] bg-[#0284C7] sticky right-0 z-20">
                     <input
                       type="checkbox"
                       checked={isAllFilteredSelected}
@@ -442,8 +442,8 @@ export const ExamsModule = () => {
                       title={isAllFilteredSelected ? "إلغاء تحديد الكل" : "تحديد كافة الطلاب الظاهرين"}
                     />
                   </th>
-                  <th className="p-3 border border-sky-700 text-right sticky right-[50px] bg-[#0284C7] z-20 min-w-[150px]">اسم الطالب</th>
-                  <th className="p-3 border border-sky-700 text-center min-w-[90px]">الصف</th>
+                  <th className="p-3 border border-sky-700 text-right sticky right-[50px] bg-[#0284C7] z-20 w-[160px] min-w-[160px] max-w-[160px]">اسم الطالب</th>
+                  <th className="p-3 border border-sky-700 text-center sticky right-[210px] bg-[#0284C7] z-20 w-[110px] min-w-[110px] max-w-[110px]">الصف والشعبة</th>
                   
                   {/* Dynamic Subject Columns */}
                   {safeSubjects.map(sub => (
@@ -490,7 +490,7 @@ export const ExamsModule = () => {
                     return (
                       <tr key={stu.id} className="hover:bg-sky-50/50 transition-colors">
                         {/* ☒ Row Checkbox */}
-                        <td className="p-3 border border-slate-200 text-center sticky right-0 bg-white shadow-sm z-10 min-w-[50px]">
+                        <td className="p-3 border border-slate-200 text-center sticky right-0 bg-white shadow-sm z-10 w-[50px] min-w-[50px] max-w-[50px]">
                           <input
                             type="checkbox"
                             checked={selectedStudentIds.has(stu.id)}
@@ -498,13 +498,13 @@ export const ExamsModule = () => {
                             className="w-4 h-4 accent-[#0284C7] rounded cursor-pointer"
                           />
                         </td>
-                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] sticky right-[50px] bg-white shadow-sm z-10 min-w-[170px]">
+                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] sticky right-[50px] bg-white shadow-sm z-10 w-[160px] min-w-[160px] max-w-[160px]">
                           <div className="flex items-center gap-2">
                             <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7] shrink-0" />
                             <span className="truncate">{isAr ? stu.name : stu.nameEn}</span>
                           </div>
                         </td>
-                        <td className="p-3 border border-slate-200 text-center text-slate-600 font-bold">
+                        <td className="p-3 border border-slate-200 text-center text-slate-600 font-bold sticky right-[210px] bg-white shadow-sm z-10 w-[110px] min-w-[110px] max-w-[110px]">
                           {isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})
                         </td>
 

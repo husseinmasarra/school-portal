@@ -674,7 +674,7 @@ export const ExamsModule = () => {
             @media print {
               @page {
                 size: A4 portrait;
-                margin: 0;
+                margin: 8mm 10mm;
               }
               html, body {
                 background: #ffffff !important;
@@ -689,18 +689,19 @@ export const ExamsModule = () => {
                 break-after: page !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                width: 210mm !important;
-                height: 297mm !important;
-                min-height: 297mm !important;
-                max-height: 297mm !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 275mm !important;
+                max-height: 275mm !important;
                 box-sizing: border-box !important;
-                padding: 12mm 15mm !important;
+                padding: 6mm 10mm !important;
                 margin: 0 auto !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
                 border: 3px double #0284C7 !important;
                 background: #ffffff !important;
+                overflow: hidden !important;
               }
             }
           `}</style>
@@ -739,95 +740,97 @@ export const ExamsModule = () => {
               {printableReportsList.map((report) => (
                 <div 
                   key={report.student.id} 
-                  className="print-cert-page border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-6 text-[#0F172A] print:rounded-none print:shadow-none print:m-0"
+                  className="print-cert-page border-4 border-double border-[#0284C7] p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-sky-50/20 via-white to-white space-y-4 text-[#0F172A] print:rounded-none print:shadow-none print:m-0"
                 >
                   {/* Header */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
+                  <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-3">
                     <div className="text-right">
-                      <h2 className="text-xl font-black text-[#0284C7]">مدرسة الدعم التعليمي</h2>
-                      <p className="text-xs font-bold text-slate-500">منصة الإدارة الرقمية والتقييم الأكاديمي</p>
+                      <h2 className="text-lg font-black text-[#0284C7]">مدرسة الدعم التعليمي</h2>
+                      <p className="text-[11px] font-bold text-slate-500">منصة الإدارة الرقمية والتقييم الأكاديمي الرسمية</p>
                     </div>
-                    <div className="w-14 h-14 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-2xl border border-[#0284C7]/30">
+                    <div className="w-12 h-12 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-xl border border-[#0284C7]/30 shrink-0">
                       🎓
                     </div>
-                    <div className="text-left font-mono text-xs font-bold text-slate-500">
+                    <div className="text-left font-mono text-[11px] font-bold text-slate-500">
                       <p>تاريخ الإصدار: {report.date}</p>
                       <p>العام الدراسي: 2025 - 2026</p>
                     </div>
                   </div>
 
                   {/* Student Meta */}
-                  <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-100 flex items-center justify-between">
+                  <div className="bg-sky-50/70 p-3 rounded-xl border border-sky-100 flex items-center justify-between">
                     <div>
-                      <span className="text-[11px] text-slate-400 font-bold block">اسم التلميذ(ة):</span>
-                      <h3 className="text-lg font-black text-[#0F172A]">{report.student.name}</h3>
+                      <span className="text-[10px] text-slate-400 font-bold block">اسم التلميذ(ة):</span>
+                      <h3 className="text-base font-black text-[#0F172A]">{report.student.name}</h3>
                     </div>
                     <div>
-                      <span className="text-[11px] text-slate-400 font-bold block">الصف والشعبة:</span>
-                      <p className="text-sm font-bold text-[#0284C7]">{report.student.grade} ({report.student.classRoom || 'أ'})</p>
+                      <span className="text-[10px] text-slate-400 font-bold block">الصف والشعبة:</span>
+                      <p className="text-xs font-bold text-[#0284C7]">{report.student.grade} ({report.student.classRoom || 'أ'})</p>
                     </div>
                     <div>
-                      <span className="text-[11px] text-slate-400 font-bold block">المستوى العام:</span>
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-black rounded-lg text-xs border border-emerald-300">
+                      <span className="text-[10px] text-slate-400 font-bold block">المستوى العام:</span>
+                      <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-black rounded-lg text-xs border border-emerald-300">
                         {report.grandLevel}
                       </span>
                     </div>
                   </div>
 
                   {/* Subject Breakdown Table */}
-                  <table className="w-full text-xs border-collapse border border-slate-200 text-center">
-                    <thead>
-                      <tr className="bg-[#0284C7] text-white font-bold">
-                        <th className="p-2.5 border border-sky-700 text-right">المادة الدراسية</th>
-                        <th className="p-2.5 border border-sky-700">العلامة الكلية</th>
-                        <th className="p-2.5 border border-sky-700">التقدير الأكاديمي</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 font-medium">
-                      {report.scores.map((sc, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50">
-                          <td className="p-2.5 border border-slate-200 text-right font-bold text-slate-800">
-                            {sc.icon} {sc.subject}
+                  <div className="flex-1 my-2">
+                    <table className="w-full text-xs border-collapse border border-slate-200 text-center">
+                      <thead>
+                        <tr className="bg-[#0284C7] text-white font-bold">
+                          <th className="p-2 border border-sky-700 text-right">المادة الدراسية</th>
+                          <th className="p-2 border border-sky-700">العلامة الكلية</th>
+                          <th className="p-2 border border-sky-700">التقدير الأكاديمي</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 font-medium">
+                        {report.scores.map((sc, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="p-1.5 border border-slate-200 text-right font-bold text-slate-800">
+                              {sc.icon} {sc.subject}
+                            </td>
+                            <td className="p-1.5 border border-slate-200 font-mono font-black text-xs text-[#0284C7]">
+                              {sc.score} / 100
+                            </td>
+                            <td className="p-1.5 border border-slate-200">
+                              <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-100 text-slate-700">
+                                {sc.level}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-sky-50 font-black text-slate-900 border-t-2 border-sky-200">
+                          <td className="p-2 border border-slate-200 text-right">المجموع الكلي والتقدير العام:</td>
+                          <td className="p-2 border border-slate-200 font-mono text-sm text-[#0284C7]">
+                            {report.totalSum} / {report.maxTotalScore}
                           </td>
-                          <td className="p-2.5 border border-slate-200 font-mono font-black text-sm text-[#0284C7]">
-                            {sc.score} / 100
-                          </td>
-                          <td className="p-2.5 border border-slate-200">
-                            <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-slate-100 text-slate-700">
-                              {sc.level}
-                            </span>
+                          <td className="p-2 border border-slate-200">
+                            {report.grandLevel}
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="bg-sky-50 font-black text-slate-900 border-t-2 border-sky-200">
-                        <td className="p-3 border border-slate-200 text-right">المجموع الكلي والتقدير العام:</td>
-                        <td className="p-3 border border-slate-200 font-mono text-base text-[#0284C7]">
-                          {report.totalSum} / {report.maxTotalScore}
-                        </td>
-                        <td className="p-3 border border-slate-200">
-                          {report.grandLevel}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                      </tfoot>
+                    </table>
+                  </div>
 
                   {/* Signatures */}
-                  <div className="pt-6 border-t border-slate-200 flex justify-between text-xs font-bold text-slate-600">
-                    <div className="text-center space-y-4">
+                  <div className="pt-3 border-t border-slate-200 flex justify-between items-end text-xs font-bold text-slate-600">
+                    <div className="text-center space-y-2">
                       <p>توقيع مدير المدرسة</p>
-                      <p className="font-mono text-slate-300">_________________</p>
+                      <p className="font-mono text-slate-300 text-xs">_________________</p>
                     </div>
-                    <div className="text-center space-y-4">
-                      <p>ختم المدرسة الرسمي</p>
-                      <div className="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full mx-auto flex items-center justify-center text-[9px] text-slate-300">
+                    <div className="text-center space-y-1">
+                      <p className="text-[11px]">ختم المدرسة الرسمي</p>
+                      <div className="w-12 h-12 border-2 border-dashed border-[#0284C7]/40 rounded-full mx-auto flex items-center justify-center text-[9px] text-[#0284C7] font-black bg-sky-50/50">
                         الختم
                       </div>
                     </div>
-                    <div className="text-center space-y-4">
+                    <div className="text-center space-y-2">
                       <p>توقيع المرشد التربوي</p>
-                      <p className="font-mono text-slate-300">_________________</p>
+                      <p className="font-mono text-slate-300 text-xs">_________________</p>
                     </div>
                   </div>
                 </div>

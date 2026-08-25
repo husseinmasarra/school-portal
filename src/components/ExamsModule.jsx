@@ -68,6 +68,7 @@ export const ExamsModule = () => {
   // Selected Students Checkbox State for Batch Printing
   const [selectedStudentIds, setSelectedStudentIds] = useState(new Set());
   const [printableReportsList, setPrintableReportsList] = useState(null);
+  const [certificateType, setCertificateType] = useState('mid_year'); // 'mid_year' | 'end_year'
 
   const toggleStudentSelection = (stuId) => {
     setSelectedStudentIds(prev => {
@@ -709,15 +710,45 @@ export const ExamsModule = () => {
           `}</style>
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 border border-slate-200 relative print:shadow-none print:border-none print:w-full print:max-w-none print:p-0 print:m-0 print:max-h-none print:overflow-visible print:h-auto max-h-[90vh] overflow-y-auto">
             {/* Modal Top Control Bar (Hidden on print) */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 print:hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-3 print:hidden">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#0284C7]" />
-                <h3 className="text-base font-bold text-[#0F172A]">
-                  {printableReportsList.length === 1
-                    ? `طباعة شهادة الطالب: (${printableReportsList[0].student.name})`
-                    : `طباعة شهادات الطلاب المحددِين 🖨️ (عدد الشهادات: ${printableReportsList.length})`}
-                </h3>
+                <div>
+                  <h3 className="text-base font-bold text-[#0F172A]">
+                    {printableReportsList.length === 1
+                      ? `طباعة شهادة الطالب: (${printableReportsList[0].student.name})`
+                      : `طباعة شهادات الطلاب المحددِين 🖨️ (عدد الشهادات: ${printableReportsList.length})`}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">حدد نوع الشهادة المطلوبة للطباعة بواسطة الإدارة:</p>
+                </div>
               </div>
+
+              {/* Certificate Term Type Selector (Mid-Year vs End-of-Year) */}
+              <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setCertificateType('mid_year')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    certificateType === 'mid_year'
+                      ? 'bg-[#0284C7] text-white shadow-sm scale-105'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  }`}
+                >
+                  <span>📘 شهادة منتصف العام</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCertificateType('end_year')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    certificateType === 'end_year'
+                      ? 'bg-emerald-600 text-white shadow-sm scale-105'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  }`}
+                >
+                  <span>🎓 شهادة نهاية العام</span>
+                </button>
+              </div>
+
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -725,7 +756,7 @@ export const ExamsModule = () => {
                   className="btn-mustard px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-all"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>طباعة الكل الآن 🖨️ (ورقة A4 لكل طالب)</span>
+                  <span>طباعة الشهادة الآن 🖨️ (A4)</span>
                 </button>
                 <button
                   type="button"
@@ -748,10 +779,14 @@ export const ExamsModule = () => {
                   <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-3">
                     <div className="text-right">
                       <h2 className="text-lg font-black text-[#0284C7]">مدرسة الدعم التعليمي</h2>
-                      <p className="text-[11px] font-bold text-slate-500">منصة الإدارة الرقمية والتقييم الأكاديمي الرسمية</p>
+                      <p className="text-[11px] font-extrabold text-slate-700">
+                        {certificateType === 'mid_year'
+                          ? '📘 تقرير وشهادة نتائج تقييم منتصف العام الدراسي (الفصل الأول)'
+                          : '🎓 الشهادة العامة والتقييم النهائي لنهاية العام الدراسي (الفصل الثاني)'}
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-[#0284C7]/10 rounded-2xl flex items-center justify-center text-xl border border-[#0284C7]/30 shrink-0">
-                      🎓
+                      {certificateType === 'mid_year' ? '📘' : '🎓'}
                     </div>
                     <div className="text-left font-mono text-[11px] font-bold text-slate-500">
                       <p>تاريخ الإصدار: {report.date}</p>
@@ -770,8 +805,20 @@ export const ExamsModule = () => {
                       <p className="text-xs font-bold text-[#0284C7]">{report.student.grade} ({report.student.classRoom || 'أ'})</p>
                     </div>
                     <div>
+                      <span className="text-[10px] text-slate-400 font-bold block">نوع الشهادة:</span>
+                      {certificateType === 'mid_year' ? (
+                        <span className="px-2.5 py-0.5 bg-sky-100 text-[#0284C7] font-black rounded-lg text-xs border border-sky-300">
+                          📘 منتصف العام الدراسي
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-black rounded-lg text-xs border border-emerald-300">
+                          🎓 نهاية العام الدراسي
+                        </span>
+                      )}
+                    </div>
+                    <div>
                       <span className="text-[10px] text-slate-400 font-bold block">المستوى العام:</span>
-                      <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-black rounded-lg text-xs border border-emerald-300">
+                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-900 font-black rounded-lg text-xs border border-amber-300">
                         {report.grandLevel}
                       </span>
                     </div>

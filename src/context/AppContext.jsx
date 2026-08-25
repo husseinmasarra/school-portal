@@ -1000,36 +1000,44 @@ export const AppProvider = ({ children }) => {
   };
 
   const payStaffSalary = (empId) => {
+    const targetId = typeof empId === 'object' ? empId?.id : empId;
     setStaffEmployees((prev) => {
       const updated = prev.map((emp) => {
-        if (emp.id === empId) {
+        if (emp.id === targetId || String(emp.id) === String(targetId)) {
           const today = new Date().toISOString().split('T')[0];
           return {
             ...emp,
             lastSalaryPaidDate: today,
-            salaryPaid: true
+            paidDate: today,
+            salaryPaid: true,
+            salaryStatus: 'paid'
           };
         }
         return emp;
       });
+      localStorage.setItem('school_staff', JSON.stringify(updated));
       dbSaveCollection('school_staff', updated);
       return updated;
     });
   };
 
   const payTeacherSalary = (teacherId) => {
+    const targetId = typeof teacherId === 'object' ? teacherId?.id : teacherId;
     setTeachers((prev) => {
       const updated = prev.map((tch) => {
-        if (tch.id === teacherId) {
+        if (tch.id === targetId || String(tch.id) === String(targetId)) {
           const today = new Date().toISOString().split('T')[0];
           return {
             ...tch,
             lastSalaryPaidDate: today,
-            salaryPaid: true
+            paidDate: today,
+            salaryPaid: true,
+            salaryStatus: 'paid'
           };
         }
         return tch;
       });
+      localStorage.setItem('school_teachers', JSON.stringify(updated));
       dbSaveCollection('school_teachers', updated);
       return updated;
     });

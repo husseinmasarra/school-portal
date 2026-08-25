@@ -237,6 +237,30 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     }, 150);
   };
 
+  const handleOpenAddSiblingToFamily = (primaryStu) => {
+    const parentPhone = (primaryStu.parentPhone || primaryStu.phone || '').trim();
+    const parentName = primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`;
+    
+    setStuName('');
+    setStuNameEn('');
+    const nextRand = Math.floor(100 + Math.random() * 900);
+    setStuUsername(`student.${Date.now().toString().slice(-4)}${nextRand}`);
+    setStuPassword(Math.floor(100000 + Math.random() * 900000).toString());
+    setStuParentName(parentName);
+    setStuParentPhone(parentPhone);
+    setStuMotherPhone(primaryStu.motherPhone || '');
+    setStuGrade(safeGrades[0]?.name || 'الصف الأول الابتدائي');
+    setStuGradeEn(safeGrades[0]?.nameEn || 'Grade 1');
+    setStuClassRoom('أ');
+    setStuTuitionTotal((safeGrades[0]?.tuitionFee || 1500).toString());
+    setStuTuitionDiscount('0');
+    setStuAdminFees('0');
+    setStuHasTransport(false);
+    setStuTransportFee('0');
+    setSiblingsList([]);
+    setShowAddStudentModal(true);
+  };
+
   const handleOpenEditStudentModal = (student) => {
     setShowEditStudentModal(student);
     setEditStuName(student.name);
@@ -839,7 +863,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                         return (
                           <div 
                             key={primaryStu.id} 
-                            className={`bg-white border-2 p-4.5 rounded-3xl shadow-xs transition-all relative flex flex-col justify-between h-[410px] hover:shadow-md ${
+                            className={`bg-white border-2 p-4.5 rounded-3xl shadow-xs transition-all relative flex flex-col justify-between h-[450px] hover:shadow-md ${
                               isMultiSiblingFamily 
                                 ? 'border-amber-400/80 bg-gradient-to-b from-amber-50/20 via-white to-white ring-1 ring-amber-400/20' 
                                 : 'border-[#E2E8F0] hover:border-[#0284C7]/40'
@@ -946,9 +970,13 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                               <Edit3 className="w-3.5 h-3.5" />
                                             </button>
                                             <button
-                                              onClick={() => deleteStudent(sib.id)}
+                                              onClick={() => {
+                                                if (window.confirm(isAr ? `هل أنت متأكد من إلغاء/حذف الطالب (${sib.name}) من كارت العائلة؟` : `Are you sure you want to remove ${sib.name} from family?`)) {
+                                                  deleteStudent(sib.id);
+                                                }
+                                              }}
                                               className="p-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer"
-                                              title="حذف الحساب"
+                                              title={isAr ? 'إلغاء/حذف هذا الابن من العائلة' : 'Remove child from family'}
                                             >
                                               <Trash2 className="w-3.5 h-3.5" />
                                             </button>
@@ -990,6 +1018,20 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                 );
                               })}
                             </div>
+
+                            {/* Card Footer Actions: Add Sibling directly to this Family */}
+                            {currentRole === 'admin' && (
+                              <div className="pt-2 border-t border-slate-100 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenAddSiblingToFamily(primaryStu)}
+                                  className="w-full py-2 px-3 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-2xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shadow-xs hover:shadow-md cursor-pointer"
+                                >
+                                  <UserPlus className="w-4 h-4 text-white" />
+                                  <span>{isAr ? '+ إضافة ابن/أخت جديد لهذه العائلة' : '+ Add Sibling to Family'}</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
                         );
                       })}

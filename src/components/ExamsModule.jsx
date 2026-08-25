@@ -816,20 +816,20 @@ export const ExamsModule = () => {
                     </table>
                   </div>
 
-                  {/* Signatures */}
-                  <div className="pt-3 border-t border-slate-200 flex justify-between items-end text-xs font-bold text-slate-600">
-                    <div className="text-center space-y-2">
-                      <p>توقيع مدير المدرسة</p>
+                  {/* Signatures & Official Stamp */}
+                  <div className="mt-3 pt-3 border-t-2 border-slate-200 flex justify-between items-end text-xs font-bold text-slate-600">
+                    <div className="text-center space-y-1">
+                      <p className="text-slate-800 font-extrabold">توقيع مدير المدرسة</p>
                       <p className="font-mono text-slate-300 text-xs">_________________</p>
                     </div>
                     <div className="text-center space-y-1">
-                      <p className="text-[11px]">ختم المدرسة الرسمي</p>
-                      <div className="w-12 h-12 border-2 border-dashed border-[#0284C7]/40 rounded-full mx-auto flex items-center justify-center text-[9px] text-[#0284C7] font-black bg-sky-50/50">
+                      <p className="text-[11px] text-slate-700 font-extrabold">ختم المدرسة الرسمي</p>
+                      <div className="w-12 h-12 border-2 border-dashed border-[#0284C7]/50 rounded-full mx-auto flex items-center justify-center text-[9px] text-[#0284C7] font-black bg-sky-50/60 shadow-xs">
                         الختم
                       </div>
                     </div>
-                    <div className="text-center space-y-2">
-                      <p>توقيع المرشد التربوي</p>
+                    <div className="text-center space-y-1">
+                      <p className="text-slate-800 font-extrabold">توقيع مربي الصف</p>
                       <p className="font-mono text-slate-300 text-xs">_________________</p>
                     </div>
                   </div>

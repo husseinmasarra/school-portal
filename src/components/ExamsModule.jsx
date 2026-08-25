@@ -691,17 +691,15 @@ export const ExamsModule = () => {
                 break-inside: avoid !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                height: 275mm !important;
-                max-height: 275mm !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
                 box-sizing: border-box !important;
-                padding: 6mm 10mm !important;
-                margin: 0 auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: start !important;
+                padding: 8mm 12mm !important;
+                margin: 0 0 15mm 0 !important;
+                display: block !important;
                 border: 3px double #0284C7 !important;
                 background: #ffffff !important;
-                overflow: hidden !important;
               }
             }
           `}</style>

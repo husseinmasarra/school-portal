@@ -135,11 +135,13 @@ export const TuitionModule = () => {
       : (isAr ? selectedStudentForPay.name : selectedStudentForPay.nameEn);
 
     const isMultiSib = familySiblings.length > 1;
+    const parentNameVal = selectedStudentForPay.parentName || `عائلة ${selectedStudentForPay.name.split(' ').slice(-1)[0]}`;
 
     // 5. Open official receipt modal
     const receipt = {
       receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
       date: new Date().toISOString().split('T')[0],
+      parentName: parentNameVal,
       studentName: allStudentNames,
       grade: isMultiSib ? `عائلة (${familySiblings.length} إخوة)` : (isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn),
       amountUSD: amountUSD,
@@ -719,6 +721,7 @@ export const TuitionModule = () => {
                         const receipt = {
                           receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
                           date: new Date().toISOString().split('T')[0],
+                          parentName: familyName,
                           studentName: allStudentNames,
                           grade: isMultiSiblingFamily ? `عائلة (${familyMembers.length} إخوة)` : (isAr ? primaryStu.grade : primaryStu.gradeEn),
                           amountUSD: paidUSD,
@@ -838,8 +841,13 @@ export const TuitionModule = () => {
                 }
               }
 
-              /* On Print Styles (Forces absolute black/white receipt look) */
+              /* On Print Styles (Forces absolute black/white receipt look in A5 size) */
               @media print {
+                @page {
+                  size: A5 portrait;
+                  margin: 8mm;
+                }
+
                 html, html.dark, body, html.dark body, 
                 .receipt-print-backdrop, .receipt-printable-card, .receipt-printable-card * {
                   color-scheme: light !important;
@@ -949,7 +957,8 @@ export const TuitionModule = () => {
               {[
                 [isAr ? 'رقم الإيصال:' : 'Receipt No:', showReceiptModal.receiptNo, 'text-[#0284C7]'],
                 [isAr ? 'تاريخ الاستلام:' : 'Payment Date:', showReceiptModal.date, 'text-slate-700'],
-                [isAr ? 'اسم الطالب / الإخوة:' : 'Student / Siblings:', showReceiptModal.studentName, 'text-[#0F172A] text-sm font-black'],
+                [isAr ? 'اسم ولي الأمر:' : 'Parent Name:', showReceiptModal.parentName || '—', 'text-[#0F172A] text-xs font-bold'],
+                [isAr ? 'اسم الطالب / الإخوة:' : 'Student / Siblings:', showReceiptModal.studentName, 'text-[#0284C7] text-sm font-black'],
                 [isAr ? 'الصف / الشعبة:' : 'Grade:', showReceiptModal.grade, 'text-slate-700'],
                 [isAr ? 'طريقة الدفع:' : 'Payment Method:', showReceiptModal.method === 'fresh_cash' ? 'Fresh Cash USD' : 'OMT / Whish Transfer', 'text-slate-800'],
                 [isAr ? 'المبلغ المدفوع بالدولار:' : 'Paid (USD):', `$${showReceiptModal.amountUSD} USD`, 'text-emerald-600 text-sm'],

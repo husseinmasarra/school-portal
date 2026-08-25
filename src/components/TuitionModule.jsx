@@ -809,7 +809,7 @@ export const TuitionModule = () => {
       {/* ── Receipt Modal (Guaranteed 1 Page Print) ─────────────────────────── */}
       {showReceiptModal && createPortal(
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-start justify-center p-4 sm:p-6 overflow-y-auto receipt-print-backdrop">
-          <div className="receipt-printable-card border-2 border-[#0284C7] rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative mt-4">
+          <div className="receipt-printable-card border-2 border-[#0284C7] rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative">
             
             <style>{`
               /* On Screen Styles (Normal Light/Dark Mode) */
@@ -841,7 +841,7 @@ export const TuitionModule = () => {
                 }
               }
 
-              /* On Print Styles (Forces absolute black/white receipt look at top of A5 page) */
+              /* On Print Styles (Forces absolute black/white receipt look at top 0 of page) */
               @media print {
                 @page {
                   size: A5 portrait;
@@ -850,32 +850,32 @@ export const TuitionModule = () => {
                 @page :left { margin: 0 !important; }
                 @page :right { margin: 0 !important; }
 
-                html, html.dark, body, html.dark body, 
-                .receipt-print-backdrop, .receipt-printable-card, .receipt-printable-card * {
+                html, html.dark, body, html.dark body {
                   color-scheme: light !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
+                  background-color: #ffffff !important;
+                  background: #ffffff !important;
+                  color: #000000 !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  height: 100% !important;
+                  width: 100% !important;
+                  overflow: hidden !important;
                 }
 
                 body > #root {
                   display: none !important;
                 }
 
-                body {
-                  background-color: #ffffff !important;
-                  background: #ffffff !important;
-                  color: #000000 !important;
-                  margin: 0 !important;
-                  padding: 0 !important;
-                }
-
                 .receipt-print-backdrop, html.dark .receipt-print-backdrop {
-                  position: absolute !important;
+                  position: fixed !important;
                   left: 0 !important;
                   top: 0 !important;
-                  width: 100% !important;
-                  height: auto !important;
-                  min-height: 0 !important;
+                  right: 0 !important;
+                  bottom: 0 !important;
+                  width: 100vw !important;
+                  height: 100vh !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   backdrop-filter: none !important;
@@ -884,24 +884,26 @@ export const TuitionModule = () => {
                   display: block !important;
                   z-index: 999999 !important;
                   box-shadow: none !important;
+                  overflow: visible !important;
                 }
 
                 .receipt-printable-card, html.dark .receipt-printable-card {
                   position: absolute !important;
                   top: 0 !important;
-                  left: 0 !important;
-                  right: 0 !important;
-                  margin: 0 auto !important;
+                  left: 50% !important;
+                  transform: translateX(-50%) !important;
+                  margin: 0 !important;
                   margin-top: 0 !important;
-                  padding: 10px 16px !important;
+                  padding: 8px 16px !important;
                   border: 1px solid #000000 !important;
                   box-shadow: none !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   color: #000000 !important;
-                  width: 100% !important;
+                  width: 96% !important;
                   max-width: 480px !important;
                   border-radius: 0px !important;
+                  box-sizing: border-box !important;
                 }
 
                 .receipt-details-box {

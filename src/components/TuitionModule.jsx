@@ -123,12 +123,25 @@ export const TuitionModule = () => {
     const newPaid = oldPaid + amountUSD;
     const remainingUSD = Math.max(0, totalTuition + adminFees + transportFee - discount - newPaid);
 
-    // 4. Open official receipt modal
+    // 4. Get active siblings for this family so all student names appear on the receipt
+    const phoneKey = (selectedStudentForPay.parentPhone || selectedStudentForPay.phone || selectedStudentForPay.id).trim();
+    const familySiblings = safeStudents.filter(s => {
+      if (!s.parentPhone && !selectedStudentForPay.parentPhone) return s.id === selectedStudentForPay.id;
+      return s.parentPhone && s.parentPhone.trim() === phoneKey;
+    });
+
+    const allStudentNames = familySiblings.length > 0
+      ? familySiblings.map(s => isAr ? s.name : (s.nameEn || s.name)).join(' • ')
+      : (isAr ? selectedStudentForPay.name : selectedStudentForPay.nameEn);
+
+    const isMultiSib = familySiblings.length > 1;
+
+    // 5. Open official receipt modal
     const receipt = {
       receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
       date: new Date().toISOString().split('T')[0],
-      studentName: isAr ? selectedStudentForPay.name : selectedStudentForPay.nameEn,
-      grade: isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn,
+      studentName: allStudentNames,
+      grade: isMultiSib ? `عائلة (${familySiblings.length} إخوة)` : (isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn),
       amountUSD: amountUSD,
       amountLBP: 0,
       method: payMethod,
@@ -682,7 +695,10 @@ export const TuitionModule = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center justify-between pt-2 border-t border-slate-200 gap-1.5 flex-wrap shrink-0">
-                      <button onClick={() => handleSendWhatsAppReceipt(familyName, parentPhone, paidUSD, remUSD)}
+                      <button onClick={() => {
+                        const allStudentNames = familyMembers.map(s => isAr ? s.name : (s.nameEn || s.name)).join(' • ');
+                        handleSendWhatsAppReceipt(allStudentNames, parentPhone, paidUSD, remUSD);
+                      }}
                         className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all"
                         title="إرسال إشعار استلام مالي بالواتساب لولي الأمر">
                         <span>واتساب إيصال 📲</span>
@@ -699,10 +715,11 @@ export const TuitionModule = () => {
                       </button>
 
                       <button onClick={() => {
+                        const allStudentNames = familyMembers.map(s => isAr ? s.name : (s.nameEn || s.name)).join(' • ');
                         const receipt = {
                           receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
                           date: new Date().toISOString().split('T')[0],
-                          studentName: familyName,
+                          studentName: allStudentNames,
                           grade: isMultiSiblingFamily ? `عائلة (${familyMembers.length} إخوة)` : (isAr ? primaryStu.grade : primaryStu.gradeEn),
                           amountUSD: paidUSD,
                           amountLBP: 0,
@@ -932,7 +949,7 @@ export const TuitionModule = () => {
               {[
                 [isAr ? 'رقم الإيصال:' : 'Receipt No:', showReceiptModal.receiptNo, 'text-[#0284C7]'],
                 [isAr ? 'تاريخ الاستلام:' : 'Payment Date:', showReceiptModal.date, 'text-slate-700'],
-                [isAr ? 'اسم الطالب:' : 'Student Name:', showReceiptModal.studentName, 'text-[#0F172A] text-sm'],
+                [isAr ? 'اسم الطالب / الإخوة:' : 'Student / Siblings:', showReceiptModal.studentName, 'text-[#0F172A] text-sm font-black'],
                 [isAr ? 'الصف / الشعبة:' : 'Grade:', showReceiptModal.grade, 'text-slate-700'],
                 [isAr ? 'طريقة الدفع:' : 'Payment Method:', showReceiptModal.method === 'fresh_cash' ? 'Fresh Cash USD' : 'OMT / Whish Transfer', 'text-slate-800'],
                 [isAr ? 'المبلغ المدفوع بالدولار:' : 'Paid (USD):', `$${showReceiptModal.amountUSD} USD`, 'text-emerald-600 text-sm'],

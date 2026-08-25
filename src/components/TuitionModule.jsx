@@ -894,7 +894,7 @@ export const TuitionModule = () => {
                   position: relative !important;
                   display: block !important;
                   top: 0 !important;
-                  margin-top: 0 !important;
+                  margin-top: -12mm !important;
                   margin-left: auto !important;
                   margin-right: auto !important;
                   margin-bottom: 0 !important;

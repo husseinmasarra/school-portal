@@ -808,8 +808,8 @@ export const TuitionModule = () => {
 
       {/* ── Receipt Modal (Guaranteed 1 Page Print) ─────────────────────────── */}
       {showReceiptModal && createPortal(
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto receipt-print-backdrop">
-          <div className="receipt-printable-card border-2 border-[#0284C7] rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative my-auto">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-start justify-center p-4 sm:p-6 overflow-y-auto receipt-print-backdrop">
+          <div className="receipt-printable-card border-2 border-[#0284C7] rounded-3xl p-5 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl animate-scale-up relative mt-4">
             
             <style>{`
               /* On Screen Styles (Normal Light/Dark Mode) */
@@ -845,8 +845,10 @@ export const TuitionModule = () => {
               @media print {
                 @page {
                   size: A5 portrait;
-                  margin: 0 !important;
+                  margin: 0mm !important;
                 }
+                @page :left { margin: 0 !important; }
+                @page :right { margin: 0 !important; }
 
                 html, html.dark, body, html.dark body, 
                 .receipt-print-backdrop, .receipt-printable-card, .receipt-printable-card * {
@@ -879,9 +881,7 @@ export const TuitionModule = () => {
                   backdrop-filter: none !important;
                   padding: 0 !important;
                   margin: 0 !important;
-                  display: flex !important;
-                  align-items: flex-start !important;
-                  justify-content: center !important;
+                  display: block !important;
                   z-index: 999999 !important;
                   box-shadow: none !important;
                 }

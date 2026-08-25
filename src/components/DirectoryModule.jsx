@@ -848,15 +848,17 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                         return s.parentPhone && s.parentPhone.trim() === phoneKey;
                       });
 
-                        const isMultiSiblingFamily = familyMembers.length > 1;
+                      // Filter active (non-frozen) family members for active financial calculations
+                      const isMultiSiblingFamily = familyMembers.length > 1;
+                      const activeFamilyMembers = familyMembers.filter(s => !s.frozen);
 
-                        // Calculate Combined Financial Totals for the Family
-                        const combinedTotalUSD = familyMembers.reduce((sum, s) => {
+                        // Calculate Combined Financial Totals ONLY for active (non-frozen) family members
+                        const combinedTotalUSD = activeFamilyMembers.reduce((sum, s) => {
                           const trans = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
                           return sum + (Number(s.tuitionTotal) || 600) + trans;
                         }, 0);
 
-                        const combinedDiscountUSD = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
+                        const combinedDiscountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
                         const combinedPaidUSD     = familyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
                         const combinedRemUSD      = Math.max(0, combinedTotalUSD - combinedDiscountUSD - combinedPaidUSD);
 

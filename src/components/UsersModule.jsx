@@ -19,6 +19,8 @@ export const UsersModule = () => {
     lang, 
     t, 
     systemUsers = [], 
+    teachers = [],
+    staffEmployees = [],
     addSystemUser, 
     updateSystemUser, 
     deleteSystemUser, 
@@ -298,6 +300,16 @@ export const UsersModule = () => {
                 ))
               )}
             </tbody>
+            <tfoot className="border-t-2 border-[#0284C7] bg-[#F8FAFC]">
+              <tr className="font-extrabold text-xs text-[#0F172A]">
+                <td colSpan={3} className="p-3 text-right text-slate-700">
+                  <span>مجموع الرواتب الشهري الإجمالي لجميع المستخدمين والكوادر:</span>
+                </td>
+                <td colSpan={3} className="p-3 font-mono font-black text-[#0284C7] text-sm">
+                  ${((teachers || []).reduce((sum, t) => sum + (Number(t.monthlySalary) || 1200), 0) + (staffEmployees || []).reduce((sum, s) => sum + (Number(s.monthlySalary) || 0), 0)).toLocaleString()} USD
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>

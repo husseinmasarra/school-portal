@@ -623,8 +623,12 @@ export const AppProvider = ({ children }) => {
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
         permissions: ['manage_all', 'manage_finance', 'manage_users', 'send_lessons', 'manage_bus', 'print_cards']
       };
-      setSystemUsers(prev => [freshAdmin, ...prev.filter(u => u.role !== 'admin')]);
-      localStorage.setItem('school_system_users', JSON.stringify([freshAdmin]));
+      setSystemUsers(prev => {
+        const updatedUsers = [freshAdmin, ...prev.filter(u => u.role !== 'admin')];
+        localStorage.setItem('school_system_users', JSON.stringify(updatedUsers));
+        dbSaveCollection('school_system_users', updatedUsers);
+        return updatedUsers;
+      });
     }
   }, []);
 
@@ -1477,6 +1481,7 @@ export const AppProvider = ({ children }) => {
     setSystemUsers((prev) => {
       const updated = [newUser, ...prev];
       localStorage.setItem('school_system_users', JSON.stringify(updated));
+      dbSaveCollection('school_system_users', updated);
       return updated;
     });
   };

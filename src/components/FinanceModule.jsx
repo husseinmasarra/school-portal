@@ -587,6 +587,17 @@ export const FinanceModule = () => {
                     })
                   )}
                 </tbody>
+                <tfoot className="border-t-2 border-[#0A5C36] bg-emerald-50/60 font-extrabold text-xs">
+                  <tr>
+                    <td colSpan={4} className="p-3 text-right text-slate-700">
+                      <span>مجموع الرواتب الشهري لكادر الموظفين الإداريين:</span>
+                    </td>
+                    <td className="p-3 font-mono font-black text-[#0A5C36] text-sm">
+                      ${(staffEmployees || []).reduce((sum, e) => sum + (Number(e.monthlySalary) || 0), 0).toLocaleString()} USD
+                    </td>
+                    <td colSpan={2}></td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>

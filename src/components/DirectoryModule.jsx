@@ -99,6 +99,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [stuParentPhone, setStuParentPhone] = useState('');
   const [stuMotherPhone, setStuMotherPhone] = useState('');
   const [stuMinistryClearance, setStuMinistryClearance] = useState('');
+  const [stuIsSpecialCase, setStuIsSpecialCase] = useState(false);
   const [studentToPrint, setStudentToPrint] = useState(null);
   const [addAnotherSibling, setAddAnotherSibling] = useState(false);
   const [siblingsList, setSiblingsList] = useState([]);
@@ -158,6 +159,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [editStuParentPhone, setEditStuParentPhone] = useState('');
   const [editStuMotherPhone, setEditStuMotherPhone] = useState('');
   const [editStuMinistryClearance, setEditStuMinistryClearance] = useState('');
+  const [editIsSpecialCase, setEditIsSpecialCase] = useState(false);
 
   // Print Lists States
   const [isPrintingStudentsTable, setIsPrintingStudentsTable] = useState(false);
@@ -257,6 +259,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     setStuAdminFees('0');
     setStuHasTransport(false);
     setStuTransportFee('0');
+    setStuIsSpecialCase(false);
     setSiblingsList([]);
     setShowAddStudentModal(true);
   };
@@ -280,6 +283,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     setEditStuParentPhone(student.phone || student.parentPhone || '');
     setEditStuMotherPhone(student.motherPhone || '');
     setEditStuMinistryClearance(student.ministryClearance || '');
+    setEditIsSpecialCase(!!student.isSpecialCase);
   };
 
   const handleEditStudentSubmit = (e) => {
@@ -316,7 +320,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       motherPhone: editStuMotherPhone,
       parentName: editStuParentName,
       parentNameEn: editStuParentName,
-      ministryClearance: editStuMinistryClearance.trim()
+      ministryClearance: editStuMinistryClearance.trim(),
+      isSpecialCase: editIsSpecialCase
     });
 
     setShowEditStudentModal(null);
@@ -403,6 +408,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       parentName: stuParentName || `والد الطالب ${stuName}`,
       parentNameEn: stuParentName || `Parent of ${stuNameEn || stuName}`,
       ministryClearance: stuMinistryClearance.trim(),
+      isSpecialCase: stuIsSpecialCase,
       frozen: false
     });
 
@@ -581,7 +587,11 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                           (s.phone || '').includes(term) ||
                           (s.motherPhone || '').includes(term) ||
                           (s.ministryClearance || '').toLowerCase().includes(term);
-    const matchesGrade = selectedGradeFilter === 'all' || (s.grade || '').includes(selectedGradeFilter);
+    const matchesGrade = selectedGradeFilter === 'all'
+      ? true
+      : selectedGradeFilter === 'special_cases'
+        ? !!s.isSpecialCase
+        : (s.grade || '').includes(selectedGradeFilter);
     const matchesTeacherAssignment = currentRole !== 'teacher' || isStudentAssignedToTeacher(s, currentUser?.assignedClassrooms || currentUser?.assignedClasses || []);
 
     return matchesSearch && matchesGrade && matchesTeacherAssignment;
@@ -766,6 +776,21 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             >
               {isAr ? `الكل (${safeStudents.length})` : `All (${safeStudents.length})`}
             </button>
+
+            {/* ⭐ Special Cases Filter Button */}
+            <button
+              onClick={() => setSelectedGradeFilter(selectedGradeFilter === 'special_cases' ? 'all' : 'special_cases')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                selectedGradeFilter === 'special_cases'
+                  ? 'bg-amber-500 text-white shadow-md'
+                  : 'bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100'
+              }`}
+            >
+              <span>⭐ حالات خاصة</span>
+              <span className="px-1.5 py-0.2 bg-amber-200/70 text-amber-950 rounded-md text-[10px] font-black">
+                {safeStudents.filter(s => s.isSpecialCase).length}
+              </span>
+            </button>
             {safeGrades.map((g) => {
               const count = safeStudents.filter(s => (s.grade || '').includes(g.name)).length;
               return (
@@ -938,6 +963,11 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                             <span className="bg-sky-50 text-[#0284C7] text-[8px] px-1 py-0.2 rounded font-bold border border-sky-100 shrink-0">
                                               {sib.grade} ({sib.classRoom || 'أ'})
                                             </span>
+                                            {sib.isSpecialCase && (
+                                              <span className="bg-amber-100 text-amber-900 text-[8px] px-1.5 py-0.2 rounded-md font-black border border-amber-300 shrink-0 flex items-center gap-0.5">
+                                                ⭐ حالة خاصة
+                                              </span>
+                                            )}
                                           </h5>
                                         </div>
                                       </div>
@@ -1315,6 +1345,28 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'المصاريف الإدارية ($ USD)' : 'Admin Fees ($ USD)'}</label>
                 <input type="number" value={stuAdminFees} onChange={(e) => setStuAdminFees(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-amber-600 font-mono rounded-xl px-3 py-2 text-xs focus:outline-none" />
               </div>
+            </div>
+
+            {/* Special Case Classification Checkbox */}
+            <div className="flex items-center justify-end gap-2 bg-amber-50/80 p-3 rounded-2xl border border-amber-200 text-right">
+              <label htmlFor="stuIsSpecialCase" className="text-xs font-black text-amber-900 cursor-pointer flex items-center gap-2">
+                <span>{isAr ? '⭐ تصنيف الطالب ضمن «حالات خاصة» (إعفاء كامل 100% ومعاملة خاصة)' : '⭐ Classify as Special Case (Full Waiver)'}</span>
+                <input
+                  type="checkbox"
+                  id="stuIsSpecialCase"
+                  checked={stuIsSpecialCase}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setStuIsSpecialCase(checked);
+                    if (checked) {
+                      setStuTuitionTotal('0');
+                    } else {
+                      setStuTuitionTotal((safeGrades[0]?.tuitionFee || 1500).toString());
+                    }
+                  }}
+                  className="w-4 h-4 accent-amber-600 rounded cursor-pointer"
+                />
+              </label>
             </div>
 
             {/* Dynamic Sibling Addition Section */}
@@ -2220,6 +2272,26 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{isAr ? 'المبلغ المدفوع ($)' : 'Paid Amount ($)'}</label>
                 <input type="number" value={editStuTuitionPaid} onChange={(e) => setEditStuTuitionPaid(e.target.value)} className="w-full bg-[#F8FAFC] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white font-mono rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 text-right" />
               </div>
+            </div>
+
+            {/* Special Case Classification Checkbox */}
+            <div className="flex items-center justify-end gap-2 bg-amber-50/80 dark:bg-amber-950/30 p-3 rounded-2xl border border-amber-200 dark:border-amber-800 text-right">
+              <label htmlFor="editIsSpecialCase" className="text-xs font-black text-amber-900 dark:text-amber-300 cursor-pointer flex items-center gap-2">
+                <span>{isAr ? '⭐ تصنيف الطالب ضمن «حالات خاصة» (إعفاء كامل 100% ومعاملة خاصة)' : '⭐ Classify as Special Case (Full Waiver)'}</span>
+                <input
+                  type="checkbox"
+                  id="editIsSpecialCase"
+                  checked={editIsSpecialCase}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setEditIsSpecialCase(checked);
+                    if (checked) {
+                      setEditStuTuitionTotal('0');
+                    }
+                  }}
+                  className="w-4 h-4 accent-amber-600 rounded cursor-pointer"
+                />
+              </label>
             </div>
 
             {/* Edit Transportation Details (Bus) */}

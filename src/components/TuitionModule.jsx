@@ -877,7 +877,7 @@ export const TuitionModule = () => {
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   backdrop-filter: none !important;
-                  padding: 10px 0 0 0 !important;
+                  padding: 0 !important;
                   margin: 0 !important;
                   display: flex !important;
                   align-items: flex-start !important;

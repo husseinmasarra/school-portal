@@ -891,10 +891,14 @@ export const TuitionModule = () => {
                 }
 
                 .receipt-printable-card, html.dark .receipt-printable-card {
-                  position: static !important;
+                  position: relative !important;
                   display: block !important;
-                  margin: 0 auto !important;
-                  padding: 12px 18px !important;
+                  top: -28mm !important;
+                  margin-top: -25mm !important;
+                  margin-left: auto !important;
+                  margin-right: auto !important;
+                  margin-bottom: 0 !important;
+                  padding: 10px 18px !important;
                   border: 1px solid #000000 !important;
                   box-shadow: none !important;
                   background: #ffffff !important;
@@ -904,7 +908,6 @@ export const TuitionModule = () => {
                   max-width: 480px !important;
                   border-radius: 0px !important;
                   box-sizing: border-box !important;
-                  transform: none !important;
                 }
 
                 .receipt-details-box {

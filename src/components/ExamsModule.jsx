@@ -42,6 +42,33 @@ export const ExamsModule = () => {
       .toLowerCase();
   };
 
+  const getStudentTripleName = (student) => {
+    if (!student) return '';
+    const rawName = (student.name || '').trim();
+    const fatherName = (student.fatherName || student.parentName || '').trim();
+    const familyName = (student.lastName || student.family || student.surname || '').trim();
+
+    const parts = rawName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 3) {
+      return rawName;
+    }
+
+    if (parts.length === 2) {
+      if (fatherName && !rawName.includes(fatherName)) {
+        return `${parts[0]} ${fatherName} ${parts[1]}`;
+      }
+      if (familyName && !rawName.includes(familyName)) {
+        return `${rawName} ${familyName}`;
+      }
+      return rawName;
+    }
+
+    let fullName = parts[0] || '';
+    if (fatherName) fullName += ` ${fatherName}`;
+    if (familyName) fullName += ` ${familyName}`;
+    return fullName;
+  };
+
   // Dynamically collect unique grades from registered students
   const availableGrades = Array.from(new Set(safeStudents.map(s => s.grade).filter(Boolean)));
 
@@ -893,7 +920,7 @@ export const ExamsModule = () => {
                     <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                       <div>
                         <span className="text-[10px] text-slate-400 font-bold block">اسم التلميذ(ة) الكامل:</span>
-                        <h3 className="text-sm font-black text-[#0F172A]">{report.student.name}</h3>
+                        <h3 className="text-sm font-black text-[#0F172A]">{getStudentTripleName(report.student)}</h3>
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-400 font-bold block">الصف والشعبة:</span>

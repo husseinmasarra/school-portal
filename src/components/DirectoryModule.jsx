@@ -1206,7 +1206,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-[#0284C7]" />
-                <span>{isAr ? 'إضافة طالب جديد وحساب مستقر تلقائياً' : 'Add New Student'}</span>
+                <span>{isAr ? 'إضافة طالب جديد' : 'Add New Student'}</span>
               </h3>
               <button 
                 type="button" 

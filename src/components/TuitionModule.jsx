@@ -61,6 +61,18 @@ export const TuitionModule = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(null);
   const [successToast, setSuccessToast] = useState(false);
 
+  // Toggle body class when receipt modal is active to hide main page content on print
+  React.useEffect(() => {
+    if (showReceiptModal) {
+      document.body.classList.add('has-print-portal');
+    } else {
+      document.body.classList.remove('has-print-portal');
+    }
+    return () => {
+      document.body.classList.remove('has-print-portal');
+    };
+  }, [showReceiptModal]);
+
   // Active student for Parent / Student View
   const currentStudent = safeStudents.find((s) => s.id === selectedStudentId) || safeStudents[0];
   const isOverduePeriod = new Date().getDate() > 5;

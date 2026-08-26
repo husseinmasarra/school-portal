@@ -137,6 +137,18 @@ export const ExamsModule = () => {
     setPrintableReportsList(reports);
   };
 
+  // Toggle body class when certificate print modal is active to hide main page content on print
+  React.useEffect(() => {
+    if (printableReportsList && printableReportsList.length > 0) {
+      document.body.classList.add('has-print-portal');
+    } else {
+      document.body.classList.remove('has-print-portal');
+    }
+    return () => {
+      document.body.classList.remove('has-print-portal');
+    };
+  }, [printableReportsList]);
+
   // Pre-fill matrixMarks from existing scores on initial load
   React.useEffect(() => {
     if (safeStudents.length > 0 && safeSubjects.length > 0 && getStudentSubjectScores) {
@@ -705,8 +717,21 @@ export const ExamsModule = () => {
                   height: auto !important;
                 }
 
-                body > #root {
+                #root,
+                body > #root,
+                main,
+                header,
+                aside,
+                footer,
+                nav,
+                .no-print {
                   display: none !important;
+                  visibility: hidden !important;
+                  height: 0 !important;
+                  max-height: 0 !important;
+                  overflow: hidden !important;
+                  opacity: 0 !important;
+                  pointer-events: none !important;
                 }
 
                 .cert-print-backdrop {
@@ -719,6 +744,7 @@ export const ExamsModule = () => {
                   padding: 0 !important;
                   margin: 0 !important;
                   overflow: visible !important;
+                  visibility: visible !important;
                 }
 
                 .print-cert-page {

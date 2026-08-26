@@ -168,8 +168,8 @@
     display: none !important;
   }
 
-  /* Allow main content to display when printing pages like Student Card */
-  main {
+  /* Allow main content to display when printing pages like Student Card, unless a portal is printing */
+  body:not(.has-print-portal) main {
     display: block !important;
     position: static !important;
     background: #ffffff !important;
@@ -178,6 +178,11 @@
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
+  }
+
+  body.has-print-portal #root,
+  body.has-print-portal main {
+    display: none !important;
   }
 
   /* Position modal containers at top of page 1 */

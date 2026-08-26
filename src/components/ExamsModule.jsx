@@ -44,29 +44,35 @@ export const ExamsModule = () => {
 
   const getStudentTripleName = (student) => {
     if (!student) return '';
-    const rawName = (student.name || '').trim();
-    const fatherName = (student.fatherName || student.parentName || '').trim();
-    const familyName = (student.lastName || student.family || student.surname || '').trim();
 
+    const fn = (student.firstName || '').trim();
+    const mn = (student.fatherName || student.parentName || '').trim();
+    const ln = (student.lastName || student.family || student.surname || '').trim();
+
+    if (fn && mn && ln) {
+      return `${fn} ${mn} ${ln}`;
+    }
+
+    const rawName = (student.name || '').trim();
     const parts = rawName.split(/\s+/).filter(Boolean);
     if (parts.length >= 3) {
       return rawName;
     }
 
     if (parts.length === 2) {
-      if (fatherName && !rawName.includes(fatherName)) {
-        return `${parts[0]} ${fatherName} ${parts[1]}`;
+      if (mn && !rawName.includes(mn)) {
+        return `${parts[0]} ${mn} ${parts[1]}`;
       }
-      if (familyName && !rawName.includes(familyName)) {
-        return `${rawName} ${familyName}`;
+      if (ln && !rawName.includes(ln)) {
+        return `${rawName} ${ln}`;
       }
       return rawName;
     }
 
-    let fullName = parts[0] || '';
-    if (fatherName) fullName += ` ${fatherName}`;
-    if (familyName) fullName += ` ${familyName}`;
-    return fullName;
+    let fullName = parts[0] || fn || '';
+    if (mn && !fullName.includes(mn)) fullName += ` ${mn}`;
+    if (ln && !fullName.includes(ln)) fullName += ` ${ln}`;
+    return fullName.trim() || rawName;
   };
 
   // Dynamically collect unique grades from registered students

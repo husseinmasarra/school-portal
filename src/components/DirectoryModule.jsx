@@ -82,6 +82,9 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
 
   // Add Student Modal State
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [stuFirstName, setStuFirstName] = useState('');
+  const [stuFatherName, setStuFatherName] = useState('');
+  const [stuLastName, setStuLastName] = useState('');
   const [stuName, setStuName] = useState('');
   const [stuNameEn, setStuNameEn] = useState('');
   const [stuUsername, setStuUsername] = useState('');
@@ -387,9 +390,13 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     }
 
     // 4. Save primary student
+    const fullPrimaryName = `${stuFirstName} ${stuFatherName} ${stuLastName}`.trim() || stuName;
     addStudent({
-      name: stuName,
-      nameEn: stuNameEn || stuName,
+      firstName: stuFirstName,
+      fatherName: stuFatherName,
+      lastName: stuLastName,
+      name: fullPrimaryName,
+      nameEn: stuNameEn || fullPrimaryName,
       username: stuUsername,
       password: stuPassword,
       grade: stuGrade || (safeGrades[0]?.name || 'الصف الأول الابتدائي'),
@@ -1212,10 +1219,60 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
 
 
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 3 Dedicated Name Fields: First Name, Father Name, Family/Surname */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الطالب الكامل' : 'Student Name'} <span className="text-red-500">*</span></label>
-                <input type="text" required value={stuName} onChange={(e) => setStuName(e.target.value)} placeholder="مثال: أحمد محمد علي..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم التلميذ(ة)' : 'First Name'} <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  required 
+                  value={stuFirstName} 
+                  onChange={(e) => {
+                    const fn = e.target.value;
+                    setStuFirstName(fn);
+                    setStuName(`${fn} ${stuFatherName} ${stuLastName}`.trim());
+                  }} 
+                  placeholder={isAr ? "مثال: أحمد..." : "e.g. Ahmed"} 
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الأب' : "Father's Name"} <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  required 
+                  value={stuFatherName} 
+                  onChange={(e) => {
+                    const mn = e.target.value;
+                    setStuFatherName(mn);
+                    setStuName(`${stuFirstName} ${mn} ${stuLastName}`.trim());
+                    if (!stuParentName) {
+                      setStuParentName(`${mn} ${stuLastName}`.trim());
+                    }
+                  }} 
+                  placeholder={isAr ? "مثال: محمد..." : "e.g. Mohamed"} 
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'الكنية / العائلة' : 'Surname / Family'} <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  required 
+                  value={stuLastName} 
+                  onChange={(e) => {
+                    const ln = e.target.value;
+                    setStuLastName(ln);
+                    setStuName(`${stuFirstName} ${stuFatherName} ${ln}`.trim());
+                    if (!stuParentName || stuParentName === stuFatherName) {
+                      setStuParentName(`${stuFatherName} ${ln}`.trim());
+                    }
+                  }} 
+                  placeholder={isAr ? "مثال: مسرة..." : "e.g. Masarra"} 
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
+                />
               </div>
 
               <div className="space-y-1">

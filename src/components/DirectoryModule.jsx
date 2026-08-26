@@ -1220,7 +1220,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
 
 
             {/* 3 Dedicated Name Fields: First Name, Father Name, Family/Surname */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم التلميذ(ة)' : 'First Name'} <span className="text-red-500">*</span></label>
                 <input 
@@ -1273,11 +1273,6 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                   placeholder={isAr ? "مثال: مسرة..." : "e.g. Masarra"} 
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الطالب (English)' : 'English Name'}</label>
-                <input type="text" value={stuNameEn} onChange={(e) => setStuNameEn(e.target.value)} placeholder="Ahmed Mohamed..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
               </div>
             </div>
 

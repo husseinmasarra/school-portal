@@ -163,9 +163,15 @@ export const TuitionModule = () => {
         return sPhone && sPhone === phoneKey;
       });
 
+      const getFirstName = (fullName) => {
+        if (!fullName) return '';
+        const clean = String(fullName).trim();
+        return clean.split(' ')[0] || clean;
+      };
+
       const allStudentNames = familySiblings.length > 0
-        ? familySiblings.map(s => isAr ? (s.name || s.nameEn) : (s.nameEn || s.name)).join(' • ')
-        : (isAr ? selectedStudentForPay.name : (selectedStudentForPay.nameEn || selectedStudentForPay.name));
+        ? familySiblings.map(s => getFirstName(isAr ? (s.name || s.nameEn) : (s.nameEn || s.name))).join(' • ')
+        : getFirstName(isAr ? selectedStudentForPay.name : (selectedStudentForPay.nameEn || selectedStudentForPay.name));
 
       const isMultiSib = familySiblings.length > 1;
       const stuNameStr = String(selectedStudentForPay.name || selectedStudentForPay.nameEn || 'تلميذ');
@@ -298,6 +304,15 @@ export const TuitionModule = () => {
       : `Dear parent of ${stuName}, we received tuition payment of $${amountPaid} USD. Remaining balance: $${remainingUSD} USD. Thank you!`;
     
     openWhatsAppMessage(parentPhone || '+961 70 000 000', msg);
+  };
+
+  const formatReceiptStudentNames = (namesStr) => {
+    if (!namesStr) return '';
+    return String(namesStr)
+      .split('•')
+      .map(part => part.trim().split(' ')[0])
+      .filter(Boolean)
+      .join(' • ');
   };
 
   return (
@@ -1003,7 +1018,7 @@ export const TuitionModule = () => {
                 [isAr ? 'رقم الإيصال:' : 'Receipt No:', showReceiptModal.receiptNo, 'text-[#0284C7]'],
                 [isAr ? 'تاريخ الاستلام:' : 'Payment Date:', showReceiptModal.date, 'text-slate-700'],
                 [isAr ? 'اسم ولي الأمر:' : 'Parent Name:', showReceiptModal.parentName || '—', 'text-[#0F172A] text-xs font-bold'],
-                [isAr ? 'اسم الطالب / الإخوة:' : 'Student / Siblings:', showReceiptModal.studentName, 'text-[#0284C7] text-sm font-black'],
+                [isAr ? 'اسم الطالب / الإخوة:' : 'Student / Siblings:', formatReceiptStudentNames(showReceiptModal.studentName), 'text-[#0284C7] text-sm font-black'],
                 [isAr ? 'الصف / الشعبة:' : 'Grade:', showReceiptModal.grade, 'text-slate-700'],
                 [isAr ? 'طريقة الدفع:' : 'Payment Method:', showReceiptModal.method === 'fresh_cash' ? 'Fresh Cash USD' : 'OMT / Whish Transfer', 'text-slate-800'],
                 [isAr ? 'المبلغ المدفوع بالدولار:' : 'Paid (USD):', `$${showReceiptModal.amountUSD} USD`, 'text-emerald-600 text-sm'],

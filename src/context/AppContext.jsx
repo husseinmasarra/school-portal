@@ -1843,6 +1843,7 @@ export const AppProvider = ({ children }) => {
     getHonorRollStudents,
     academicYearsArchive,
     updateTeacherSalary,
+    payTuition,
     resetFinancialAccounts,
     clearDemoData,
     startNewAcademicYear

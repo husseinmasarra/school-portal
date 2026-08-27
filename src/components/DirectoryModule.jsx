@@ -419,16 +419,26 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       frozen: false
     });
 
-    // 5. Save all added siblings
+    // 5. Save all added siblings as completely separate students in their own grade & classroom
     siblingsList.forEach(sib => {
+      const rawSibName = (sib.name || '').trim();
+      const parts = rawSibName.split(/\s+/).filter(Boolean);
+      const sibFirstName = parts[0] || rawSibName;
+      const fullSibName = parts.length >= 3 
+        ? rawSibName 
+        : `${sibFirstName} ${stuFatherName} ${stuLastName}`.trim();
+
       addStudent({
-        name: sib.name,
-        nameEn: sib.nameEn || sib.name,
+        firstName: sibFirstName,
+        fatherName: stuFatherName,
+        lastName: stuLastName,
+        name: fullSibName,
+        nameEn: fullSibName,
         username: sib.username,
         password: sib.password,
-        grade: sib.grade,
-        gradeEn: sib.gradeEn,
-        classRoom: sib.classRoom,
+        grade: sib.grade || (safeGrades[0]?.name || 'الصف الأول الابتدائي'),
+        gradeEn: sib.gradeEn || (safeGrades[0]?.nameEn || 'Grade 1'),
+        classRoom: sib.classRoom || 'أ',
         avatar: stuAvatar,
         tuitionTotal: Number(sib.tuitionTotal),
         tuitionPaid: 0,
@@ -439,8 +449,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
         phone: stuParentPhone || '+961 03 123 456',
         parentPhone: stuParentPhone || '+961 03 123 456',
         motherPhone: stuMotherPhone,
-        parentName: stuParentName || `والد الطالب ${stuName}`,
-        parentNameEn: stuParentName || `Parent of ${stuNameEn || stuName}`,
+        parentName: stuParentName || `عائلة ${stuLastName || fullSibName}`,
+        parentNameEn: stuParentName || `Family of ${stuLastName || fullSibName}`,
         ministryClearance: sib.ministryClearance.trim(),
         frozen: false
       });
@@ -1451,34 +1461,21 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                         <span className="text-[10px] font-black text-slate-500">{isAr ? `الأخ المضاف #${index + 1}` : `Sibling #${index + 1}`}</span>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-right">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-right">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'اسم الأخ/الأخت الكامل *' : 'Sibling Name *'}</label>
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'اسم الأخ/الأخت (الاسم الأول) *' : 'Sibling First Name *'}</label>
                           <input 
                             type="text" 
                             required 
                             value={sib.name} 
                             onChange={(e) => updateSiblingField(index, 'name', e.target.value)} 
-                            placeholder={isAr ? "مثال: يوسف محمد علي..." : "Sibling name..."} 
+                            placeholder={isAr ? "مثال: يوسف..." : "e.g. Youssef"} 
                             className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#0284C7] text-right" 
                           />
                         </div>
-                        
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'اسم الأخ/الأخت (English)' : 'Sibling English Name'}</label>
-                          <input 
-                            type="text" 
-                            value={sib.nameEn} 
-                            onChange={(e) => updateSiblingField(index, 'nameEn', e.target.value)} 
-                            placeholder="Youssef Mohamed..." 
-                            className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-white rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#0284C7] text-right" 
-                          />
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-right">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{t('grade')}</label>
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'الصف الدراسي الخاص بهذا الأخ 🎓' : 'Sibling Grade'}</label>
                           <select
                             value={sib.grade}
                             onChange={(e) => updateSiblingField(index, 'grade', e.target.value)}
@@ -1493,7 +1490,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                         </div>
                         
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'الشعبة' : 'Classroom'}</label>
+                          <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{isAr ? 'الشعبة الخاصة بهذا الأخ 🏫' : 'Sibling Classroom'}</label>
                           <select
                             value={sib.classRoom}
                             onChange={(e) => updateSiblingField(index, 'classRoom', e.target.value)}

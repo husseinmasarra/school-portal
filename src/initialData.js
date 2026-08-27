@@ -99,7 +99,7 @@ export const initialClassrooms = [
     sectionName: "الشعبة (أ)",
     sectionNameEn: "Section A",
     capacity: 30,
-    supervisor: "أ. مريم صالح",
+    supervisor: "",
     roomNumber: "101"
   },
   {
@@ -109,7 +109,7 @@ export const initialClassrooms = [
     sectionName: "الشعبة (ب)",
     sectionNameEn: "Section B",
     capacity: 28,
-    supervisor: "أ. مريم صالح",
+    supervisor: "",
     roomNumber: "102"
   },
   {
@@ -119,7 +119,7 @@ export const initialClassrooms = [
     sectionName: "الشعبة (أ)",
     sectionNameEn: "Section A",
     capacity: 32,
-    supervisor: "أ. سامر العلي",
+    supervisor: "",
     roomNumber: "201"
   }
 ];

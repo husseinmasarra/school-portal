@@ -98,10 +98,15 @@ export const ExamsModule = () => {
   const [savedToast, setSavedToast] = useState(false);
   const [savedToastMsg, setSavedToastMsg] = useState('');
 
+  // Active Term State: 'first_term' (الفصل الأول) | 'final_term' (الفصل الأخير)
+  const [activeTerm, setActiveTerm] = useState(() => {
+    return localStorage.getItem('school_active_term') || 'first_term';
+  });
+
   // Selected Students Checkbox State for Batch Printing
   const [selectedStudentIds, setSelectedStudentIds] = useState(new Set());
   const [printableReportsList, setPrintableReportsList] = useState(null);
-  const [certificateType, setCertificateType] = useState('mid_year'); // 'mid_year' | 'end_year'
+  const [certificateType, setCertificateType] = useState(() => activeTerm === 'final_term' ? 'end_year' : 'mid_year'); // 'mid_year' | 'end_year'
 
   const toggleStudentSelection = (stuId) => {
     setSelectedStudentIds(prev => {
@@ -392,6 +397,38 @@ export const ExamsModule = () => {
           >
             📚 {isAr ? 'رصد مادة واحدة' : 'Single Subject'}
           </button>
+        </div>
+      </div>
+
+      {/* Active Term Status Banner */}
+      <div className={`p-4 rounded-3xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs ${
+        activeTerm === 'first_term' 
+          ? 'bg-sky-50/80 border-sky-300 text-sky-950' 
+          : 'bg-emerald-50/80 border-emerald-300 text-emerald-950'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 ${
+            activeTerm === 'first_term' ? 'bg-[#0284C7] text-white' : 'bg-emerald-600 text-white'
+          }`}>
+            {activeTerm === 'first_term' ? '📘' : '🔒'}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-black">
+                {activeTerm === 'first_term' ? 'مرحلة رصد علامات: الفصل الأول' : 'مرحلة رصد علامات: الفصل الأخير'}
+              </h4>
+              {activeTerm === 'final_term' && (
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-black border border-emerald-400">
+                  🔒 مقفل على الفصل الأخير (غير قابل للرجوع)
+                </span>
+              )}
+            </div>
+            <p className="text-xs opacity-85 mt-0.5 font-medium">
+              {activeTerm === 'first_term'
+                ? 'تتم عملية الإدخال حالياً لعلامات الفصل الأول. بمجرد طباعة إيصال/شهادة الفصل الأول سيتم التحول والاعتماد تلقائياً للفصل الأخير.'
+                : 'تمت طباعة واعتمد الفصل الأول بنجاح! تم قفل النظام وتوجيه الإدخال تلقائياً للفصل الأخير منعاً لأي خطأ حمايةً للبيانات.'}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -826,14 +863,20 @@ export const ExamsModule = () => {
               <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setCertificateType('mid_year')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                  disabled={activeTerm === 'final_term'}
+                  onClick={() => {
+                    if (activeTerm !== 'final_term') setCertificateType('mid_year');
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
                     certificateType === 'mid_year'
-                      ? 'bg-[#0284C7] text-white shadow-sm scale-105'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                      ? 'bg-[#0284C7] text-white shadow-sm scale-105 cursor-pointer'
+                      : activeTerm === 'final_term'
+                      ? 'opacity-40 cursor-not-allowed text-slate-400 bg-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 cursor-pointer'
                   }`}
+                  title={activeTerm === 'final_term' ? "تم اعتماد وطباعة الفصل الأول، لا يمكن الرجوع إليه حمايةً للبيانات" : "طباعة كشف الفصل الأول"}
                 >
-                  <span>📘 الفصل الأول (مرة واحدة)</span>
+                  <span>📘 الفصل الأول {activeTerm === 'final_term' ? '(مُقفل 🔒)' : '(مرة واحدة)'}</span>
                 </button>
                 <button
                   type="button"
@@ -857,8 +900,15 @@ export const ExamsModule = () => {
                     window.scrollTo(0, 0);
                     setTimeout(() => {
                       window.print();
-                      if (certificateType === 'mid_year') {
+                      if (certificateType === 'mid_year' || activeTerm === 'first_term') {
+                        localStorage.setItem('school_active_term', 'final_term');
+                        setActiveTerm('final_term');
                         setCertificateType('end_year');
+                        setSavedToastMsg(isAr 
+                          ? '🔒 تم اعتماد وطباعة الفصل الأول بنجاح! تم التحول وقفل رصد العلامات تلقائياً على الفصل الأخير منعاً لأي خطأ.' 
+                          : 'First Term printed! Switched permanently to Final Term.');
+                        setSavedToast(true);
+                        setTimeout(() => setSavedToast(false), 5000);
                       }
                     }, 30);
                   }}

@@ -8,7 +8,9 @@ import {
   Trash2, 
   Users, 
   UserPlus,
-  Search
+  Search,
+  Printer,
+  FileText
 } from 'lucide-react';
 
 export const BusModule = () => {
@@ -21,7 +23,8 @@ export const BusModule = () => {
     deleteBus, 
     students = [], 
     selectedStudentId, 
-    assignStudentToBus 
+    assignStudentToBus,
+    siteSettings
   } = useApp();
 
   const isAr = lang === 'ar';
@@ -30,6 +33,9 @@ export const BusModule = () => {
 
   const currentStudent = safeStudents.find((s) => s.id === selectedStudentId) || safeStudents[0];
   const studentBus = safeBuses.find((b) => b.id === currentStudent?.busId) || safeBuses[0];
+
+  // Printable Bus Report State
+  const [printReportBus, setPrintReportBus] = useState(null);
 
   // Add Bus Modal State
   const [showAddBusModal, setShowAddBusModal] = useState(false);
@@ -247,15 +253,28 @@ export const BusModule = () => {
                     </div>
                   </div>
 
-                  {currentRole === 'admin' && (
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => deleteBus(bus.id)}
-                      className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer"
-                      title={t('delete')}
+                      type="button"
+                      onClick={() => setPrintReportBus(bus)}
+                      className="px-2.5 py-1.5 bg-[#0284C7]/10 hover:bg-[#0284C7]/20 text-[#0284C7] rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                      title={isAr ? "طباعة تقرير كشف الحافلة" : "Print Bus Roster Report"}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>{isAr ? "تقرير الكشف" : "Roster Report"}</span>
                     </button>
-                  )}
+
+                    {currentRole === 'admin' && (
+                      <button
+                        type="button"
+                        onClick={() => deleteBus(bus.id)}
+                        className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer"
+                        title={t('delete')}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs bg-white p-3 rounded-2xl border border-slate-100">
@@ -497,6 +516,160 @@ export const BusModule = () => {
               </button>
             </div>
           </form>
+        </div>,
+        document.body
+      )}
+
+      {/* Printable Bus Roster & Fee Report Modal */}
+      {printReportBus && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 sm:p-8 max-w-3xl w-full space-y-6 shadow-2xl animate-scale-up text-[#0F172A] relative max-h-[90vh] overflow-y-auto">
+            {/* Header controls (Screen only) */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 print:hidden">
+              <div className="flex items-center gap-2">
+                <Printer className="w-5 h-5 text-[#0284C7]" />
+                <h3 className="text-base font-bold text-[#0284C7]">
+                  {isAr ? `تقرير كشف ركاب وأقساط الحافلة (${printReportBus.busNumber})` : `Bus Passenger & Fees Report (${printReportBus.busNumberEn})`}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn-mustard px-4 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>{isAr ? 'طباعة الكشف' : 'Print Report'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPrintReportBus(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Report Document Body */}
+            <div className="space-y-6 p-2 text-right rtl:text-right" id="printable-bus-report">
+              {/* Document Banner */}
+              <div className="flex items-center justify-between border-b-2 border-slate-900 pb-4">
+                <div>
+                  <h2 className="text-xl font-black text-[#0F172A]">{siteSettings?.schoolName || 'مدرسة الدعم التعليمي'}</h2>
+                  <p className="text-xs text-slate-600 font-semibold">{isAr ? 'تقرير كشف طلاب الحافلة وأقساط النقل المدرسية' : 'Bus Fleet Students & Transport Fees Roster'}</p>
+                </div>
+                <div className="text-left rtl:text-left text-xs font-mono text-slate-500 space-y-1">
+                  <div>{isAr ? `تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}` : `Date: ${new Date().toLocaleDateString()}`}</div>
+                  <div>{isAr ? `العام الدراسي: ${siteSettings?.academicYear || '2026/2027'}` : 'Academic Year: 2026/2027'}</div>
+                </div>
+              </div>
+
+              {/* Bus Details Summary Box */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-2xl text-xs">
+                <div>
+                  <span className="text-slate-500 block">{isAr ? 'رقم/اسم الحافلة:' : 'Bus #:'}</span>
+                  <span className="font-extrabold text-[#0284C7]">{isAr ? printReportBus.busNumber : printReportBus.busNumberEn}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">{isAr ? 'اسم السائق:' : 'Driver:'}</span>
+                  <span className="font-extrabold text-[#0F172A]">{isAr ? printReportBus.driverName : printReportBus.driverNameEn}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">{isAr ? 'هاتف السائق:' : 'Driver Phone:'}</span>
+                  <span className="font-mono font-extrabold text-slate-800">{printReportBus.driverPhone}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">{isAr ? 'مسار الخط:' : 'Route:'}</span>
+                  <span className="font-extrabold text-slate-800">{isAr ? printReportBus.routeName : printReportBus.routeNameEn}</span>
+                </div>
+              </div>
+
+              {/* Students Roster & Fee Table */}
+              {(() => {
+                const reportStudents = safeStudents.filter(s => s.busId === printReportBus.id);
+                const totalTransportSum = reportStudents.reduce((sum, s) => sum + (Number(s.transportFee) || 50), 0);
+
+                return (
+                  <div className="overflow-x-auto border border-slate-300 rounded-2xl">
+                    <table className="w-full text-xs text-right rtl:text-right border-collapse">
+                      <thead>
+                        <tr className="bg-slate-900 text-white font-bold">
+                          <th className="p-3 border-b border-slate-800 text-center w-12">#</th>
+                          <th className="p-3 border-b border-slate-800">{isAr ? 'اسم التلميذ' : 'Student Name'}</th>
+                          <th className="p-3 border-b border-slate-800">{isAr ? 'الصف والشعبة' : 'Grade & Section'}</th>
+                          <th className="p-3 border-b border-slate-800">{isAr ? 'هاتف التلميذ / ولي الأمر' : 'Parent Phone'}</th>
+                          <th className="p-3 border-b border-slate-800 text-left rtl:text-right">{isAr ? 'قسط النقل ($ USD)' : 'Transport Fee'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {reportStudents.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="text-center py-6 text-slate-400 font-bold">
+                              {isAr ? 'لا يوجد طلاب مخصصون لهذه الحافلة حالياً.' : 'No students assigned to this bus.'}
+                            </td>
+                          </tr>
+                        ) : (
+                          reportStudents.map((stu, idx) => {
+                            const feeVal = Number(stu.transportFee) || 50;
+
+                            return (
+                              <tr key={stu.id} className="hover:bg-slate-50 transition-colors">
+                                <td className="p-3 text-center font-bold font-mono text-slate-500">{idx + 1}</td>
+                                <td className="p-3 font-extrabold text-[#0F172A]">
+                                  <div className="flex items-center gap-2">
+                                    <img src={stu.avatar} alt={stu.name} className="w-6 h-6 rounded-full object-cover border border-slate-200 print:hidden" />
+                                    <span>{isAr ? stu.name : stu.nameEn}</span>
+                                  </div>
+                                </td>
+                                <td className="p-3 font-semibold text-slate-700">
+                                  {stu.grade || 'الصف الدراسي'} {stu.classRoom ? `(${stu.classRoom})` : ''}
+                                </td>
+                                <td className="p-3 font-mono text-slate-600 font-semibold">
+                                  {stu.phone || stu.fatherPhone || stu.motherPhone || '-'}
+                                </td>
+                                <td className="p-3 font-mono font-black text-emerald-600 text-left rtl:text-right">
+                                  ${feeVal} USD
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+
+                      {/* Footer Summary Row (مجموع القسط مع عدد الطلاب) */}
+                      <tfoot>
+                        <tr className="bg-slate-100 border-t-2 border-slate-900 font-black text-[#0F172A]">
+                          <td className="p-3 text-center">Σ</td>
+                          <td className="p-3 text-slate-900 font-extrabold">
+                            {isAr ? `إجمالي الطلاب: (${reportStudents.length} طالب)` : `Total Students: (${reportStudents.length})`}
+                          </td>
+                          <td className="p-3" colSpan={2}></td>
+                          <td className="p-3 font-mono text-base font-black text-[#0284C7] text-left rtl:text-right">
+                            ${totalTransportSum.toLocaleString()} USD
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                );
+              })()}
+
+              {/* Signatures Footer */}
+              <div className="pt-8 flex justify-between text-xs font-bold text-slate-600 border-t border-slate-200 mt-6">
+                <div>
+                  <div>{isAr ? 'توقيع مسؤول النقل والحافلات:' : 'Transport Officer Signature:'}</div>
+                  <div className="mt-8 border-b border-slate-400 w-40"></div>
+                </div>
+                <div>
+                  <div>{isAr ? 'خاتم وتوقيع إدارة المدرسة:' : 'School Administration Seal:'}</div>
+                  <div className="mt-8 border-b border-slate-400 w-40"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>,
         document.body
       )}

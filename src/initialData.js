@@ -99,7 +99,7 @@ export const initialClassrooms = [
     sectionName: "الشعبة (أ)",
     sectionNameEn: "Section A",
     capacity: 30,
-    supervisor: "أ. طارق خوري",
+    supervisor: "أ. مريم صالح",
     roomNumber: "101"
   },
   {
@@ -268,7 +268,7 @@ export const initialAttendanceRecords = [
 export const initialBehaviorRecords = [
   { id: "BEH-101", date: "2026-07-21", studentId: "STU-588", studentName: "محمد خالد مسرة", grade: "الصف السادس الابتدائي", type: "إيجابي", title: "مساعدة زميل وتفوق في الحصة", notes: "قام بمساعدة الطلاب في تطبيق التمرين المكتبي بالبرمجة بكل إيجابية.", teacherName: "أ. سامر العلي" },
   { id: "BEH-102", date: "2026-07-20", studentId: "STU-102", studentName: "سارة أحمد النجار", grade: "الصف السادس الابتدائي", type: "إيجابي", title: "تميز في إعداد المشروع العلمي", notes: "تقديم نموذج مختبري رائع في مادة العلوم.", teacherName: "أ. مريم صالح" },
-  { id: "BEH-103", date: "2026-07-19", studentId: "STU-103", studentName: "كريم يوسف حداد", grade: "الصف السادس الابتدائي", type: "ملاحظة", title: "تأخر في تسليم كتاب التمارين", notes: "تم التنبيه على ضرورة احضار دفتر الواجبات بانتظام.", teacherName: "أ. طارق خوري" }
+  { id: "BEH-103", date: "2026-07-19", studentId: "STU-103", studentName: "كريم يوسف حداد", grade: "الصف السادس الابتدائي", type: "ملاحظة", title: "تأخر في تسليم كتاب التمارين", notes: "تم التنبيه على ضرورة احضار دفتر الواجبات بانتظام.", teacherName: "أ. سامر العلي" }
 ];
 
 export const initialNotificationsList = [
@@ -280,6 +280,6 @@ export const initialNotificationsList = [
 
 export const initialStudyResources = [
   { id: "RES-101", title: "ملخص مادة العلوم والفيزياء - الفصل الأول PDF", subject: "العلوم والفيزياء", grade: "الصف السادس الابتدائي", type: "PDF", link: "#", date: "2026-07-20", teacherName: "أ. مريم صالح", icon: "📄" },
-  { id: "RES-102", title: "دفتر أسئلة وتدريبات الرياضيات الشامل", subject: "الرياضيات", grade: "الصف السادس الابتدائي", type: "Document", link: "#", date: "2026-07-18", teacherName: "أ. طارق خوري", icon: "📐" },
+  { id: "RES-102", title: "دفتر أسئلة وتدريبات الرياضيات الشامل", subject: "الرياضيات", grade: "الصف السادس الابتدائي", type: "Document", link: "#", date: "2026-07-18", teacherName: "أ. مريم صالح", icon: "📐" },
   { id: "RES-103", title: "دليل قواعد البرمجة وتطبيقات الويب", subject: "البرمجة والابتكار الرقمي", grade: "الصف السادس الابتدائي", type: "Zip / Code", link: "#", date: "2026-07-15", teacherName: "أ. سامر العلي", icon: "💻" }
 ];

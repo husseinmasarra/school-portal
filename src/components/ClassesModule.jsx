@@ -1355,15 +1355,12 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   onChange={(e) => setSupervisor(e.target.value)}
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
                 >
-                  {safeTeachers.length === 0 ? (
-                    <option value="أ. طارق خوري">أ. طارق خوري</option>
-                  ) : (
-                    safeTeachers.map((tch) => (
-                      <option key={tch.id} value={tch.name}>
-                        {isAr ? tch.name : (tch.nameEn || tch.name)} {tch.subject ? `(${tch.subject})` : ''}
-                      </option>
-                    ))
-                  )}
+                  <option value="">{isAr ? 'اختر المعلم المشرف...' : 'Select supervisor...'}</option>
+                  {safeTeachers.map((tch) => (
+                    <option key={tch.id} value={tch.name}>
+                      {isAr ? tch.name : (tch.nameEn || tch.name)} {tch.subject ? `(${tch.subject})` : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -1512,15 +1509,12 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   onChange={(e) => setEditSupervisor(e.target.value)}
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
                 >
-                  {safeTeachers.length === 0 ? (
-                    <option value="أ. طارق خوري">أ. طارق خوري</option>
-                  ) : (
-                    safeTeachers.map((tch) => (
-                      <option key={tch.id} value={tch.name}>
-                        {isAr ? tch.name : (tch.nameEn || tch.name)} {tch.subject ? `(${tch.subject})` : ''}
-                      </option>
-                    ))
-                  )}
+                  <option value="">{isAr ? 'اختر المعلم المشرف...' : 'Select supervisor...'}</option>
+                  {safeTeachers.map((tch) => (
+                    <option key={tch.id} value={tch.name}>
+                      {isAr ? tch.name : (tch.nameEn || tch.name)} {tch.subject ? `(${tch.subject})` : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

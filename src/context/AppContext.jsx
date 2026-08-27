@@ -162,7 +162,15 @@ export const AppProvider = ({ children }) => {
 
   const [subjects,       setSubjects]       = useState(() => dbLoadCollection('school_subjects',    initialSubjects));
   const [grades,         setGrades]         = useState(() => dbLoadCollection('school_grades',       initialGrades));
-  const [classrooms,     setClassrooms]     = useState(() => dbLoadCollection('school_classrooms',   initialClassrooms));
+  const [classrooms,     setClassrooms]     = useState(() => {
+    const raw = dbLoadCollection('school_classrooms', initialClassrooms);
+    const cleaned = (raw || []).map(c => ({
+      ...c,
+      supervisor: (c.supervisor || '').includes('طارق') || (c.supervisor || '').includes('Tarek') ? '' : c.supervisor
+    }));
+    dbSaveCollection('school_classrooms', cleaned);
+    return cleaned;
+  });
   const [students,       setStudents]       = useState(() => dbLoadCollection('school_students',     initialStudents));
   const [teachers,       setTeachers]       = useState(() => dbLoadCollection('school_teachers',     initialTeachers));
   const [staffEmployees, setStaffEmployees] = useState(() => dbLoadCollection('school_staff',        initialStaffEmployees));

@@ -102,7 +102,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
       const key = `${gName}_${sName}`;
       if (!seen.has(key)) {
         seen.add(key);
-        result.push(c);
+        const cleanSup = (c.supervisor || '').includes('طارق') || (c.supervisor || '').includes('Tarek') ? '' : c.supervisor;
+        result.push({
+          ...c,
+          supervisor: cleanSup
+        });
       }
     }
     return result.sort((a, b) => {
@@ -864,7 +868,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                 <div className="grid grid-cols-2 gap-3 text-xs bg-[#F8FAFC] p-3 rounded-2xl border border-slate-100">
                   <div>
                     <span className="text-slate-500 block">{isAr ? 'المعلم المشرف:' : 'Supervisor:'}</span>
-                    <span className="font-bold text-[#0F172A]">{cls.supervisor}</span>
+                    <span className="font-bold text-[#0F172A]">{cls.supervisor || (isAr ? 'غير محدد' : 'Not assigned')}</span>
                   </div>
                   <div>
                     <span className="text-slate-500 block">{isAr ? 'عدد الطلاب:' : 'Students:'}</span>

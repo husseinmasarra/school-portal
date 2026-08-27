@@ -738,43 +738,56 @@ export const ExamsModule = () => {
             <style>{`
               @media print {
                 @page {
-                  size: A4 portrait;
-                  margin: 8mm !important;
+                  size: portrait;
+                  margin: 0mm !important;
                 }
-                @page :left { margin: 8mm !important; }
-                @page :right { margin: 8mm !important; }
+                @page :left { margin: 0mm !important; }
+                @page :right { margin: 0mm !important; }
+                @page :first { margin: 0mm !important; }
 
                 *, *::before, *::after {
                   animation: none !important;
                   transition: none !important;
                   box-shadow: none !important;
+                  text-shadow: none !important;
                 }
 
                 html, body {
+                  margin: 0 !important;
+                  padding: 0 !important;
                   background: #ffffff !important;
                   background-color: #ffffff !important;
                   color: #000000 !important;
                   color-scheme: light !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
+                  width: 100% !important;
+                }
+
+                body > #root {
+                  display: none !important;
+                }
+
+                .cert-print-backdrop {
+                  all: unset !important;
+                  display: block !important;
+                  width: 100% !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  background: #ffffff !important;
                 }
 
                 .print-cert-page {
-                  position: relative !important;
-                  display: flex !important;
-                  flex-direction: column !important;
-                  justify-content: space-between !important;
-                  width: 210mm !important;
-                  min-height: 282mm !important;
-                  max-height: 282mm !important;
-                  box-sizing: border-box !important;
-                  margin: 0 auto !important;
-                  padding: 10mm 12mm !important;
+                  all: unset !important;
+                  display: block !important;
+                  width: 92% !important;
+                  max-width: 680px !important;
+                  margin: 0 auto 12px auto !important;
+                  padding: 16px 20px !important;
                   background: #ffffff !important;
                   color: #000000 !important;
                   border: 3px double #0284C7 !important;
-                  border-radius: 0px !important;
-                  box-shadow: none !important;
+                  box-sizing: border-box !important;
                   page-break-after: always !important;
                   break-after: page !important;
                   page-break-inside: avoid !important;

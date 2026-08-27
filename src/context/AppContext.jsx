@@ -422,7 +422,7 @@ export const AppProvider = ({ children }) => {
 
   // Aggregates real-time subject scores dynamically from dailyMarks and exam results
   const getStudentSubjectScores = (studentId) => {
-    const studentMarks = (dailyMarks || []).filter((m) => m.studentId === studentId);
+    const studentMarks = (dailyMarks || []).filter((m) => m && String(m.studentId) === String(studentId));
     
     // Ensure baseSubjects has system subjects or initial default subjects if empty
     const baseSubjects = (subjects && subjects.length > 0) ? subjects : initialSubjects;
@@ -437,6 +437,8 @@ export const AppProvider = ({ children }) => {
         quiz: 0,
         midterm: 0,
         final: 0,
+        directTotal: null,
+        isGraded: false,
         total: 0,
         grade: 'غير مرصود'
       };
@@ -444,8 +446,9 @@ export const AppProvider = ({ children }) => {
 
     // Collect exam results for this student from exams collection
     (exams || []).forEach((ex) => {
-      const res = (ex.results || []).find(r => String(r.studentId) === String(studentId));
-      if (res && res.score !== undefined && res.score !== null) {
+      if (!ex) return;
+      const res = (ex.results || []).find(r => r && String(r.studentId) === String(studentId));
+      if (res && res.score !== undefined && res.score !== null && res.score !== '') {
         const subName = ex.subject || ex.title || 'الرياضيات';
         let coreSubName = subName;
         if (subName.includes('(') && subName.includes(')')) {
@@ -463,17 +466,14 @@ export const AppProvider = ({ children }) => {
             id: `SUB-${Date.now().toString().slice(-4)}`,
             name: targetKey,
             nameEn: targetKey,
-            hw: 0, quiz: 0, midterm: 0, final: 0, total: 0, grade: 'غير مرصود'
+            hw: 0, quiz: 0, midterm: 0, final: 0, directTotal: null, isGraded: false, total: 0, grade: 'غير مرصود'
           };
         }
 
-        const scoreNum = Number(res.score || 0);
-        if (scoreNum <= 20) {
-          subjectMap[targetKey].quiz = Math.max(subjectMap[targetKey].quiz || 0, scoreNum);
-        } else if (scoreNum <= 40) {
-          subjectMap[targetKey].final = Math.max(subjectMap[targetKey].final || 0, scoreNum);
-        } else {
-          subjectMap[targetKey].directTotal = Math.max(subjectMap[targetKey].directTotal || 0, scoreNum);
+        const scoreNum = Number(res.score);
+        if (!isNaN(scoreNum)) {
+          subjectMap[targetKey].directTotal = scoreNum;
+          subjectMap[targetKey].isGraded = true;
         }
       }
     });
@@ -499,22 +499,24 @@ export const AppProvider = ({ children }) => {
           id: `SUB-${Date.now().toString().slice(-4)}`,
           name: targetSubjectKey,
           nameEn: targetSubjectKey,
-          hw: 0, quiz: 0, midterm: 0, final: 0, total: 0, grade: 'غير مرصود'
+          hw: 0, quiz: 0, midterm: 0, final: 0, directTotal: null, isGraded: false, total: 0, grade: 'غير مرصود'
         };
       }
 
-      const scoreNum = Number(m.score || 0);
+      const scoreNum = Number(m.score !== undefined ? m.score : (m.markValue !== undefined ? m.markValue : m.mark));
+      if (!isNaN(scoreNum)) {
+        subjectMap[targetSubjectKey].directTotal = scoreNum;
+        subjectMap[targetSubjectKey].isGraded = true;
 
-      if (m.type === 'أعمال السنة' || m.type === 'daily_work' || m.type === 'homework') {
-        subjectMap[targetSubjectKey].hw = Math.min(20, (subjectMap[targetSubjectKey].hw || 0) + scoreNum);
-      } else if (m.type === 'اختبار قصير' || m.type === 'quiz') {
-        subjectMap[targetSubjectKey].quiz = Math.min(20, (subjectMap[targetSubjectKey].quiz || 0) + scoreNum);
-      } else if (m.type === 'منتصف الفصل' || m.type === 'midterm') {
-        subjectMap[targetSubjectKey].midterm = Math.min(20, (subjectMap[targetSubjectKey].midterm || 0) + scoreNum);
-      } else if (m.type === 'النهائي' || m.type === 'final') {
-        subjectMap[targetSubjectKey].final = Math.min(40, (subjectMap[targetSubjectKey].final || 0) + scoreNum);
-      } else {
-        subjectMap[targetSubjectKey].hw = Math.min(20, (subjectMap[targetSubjectKey].hw || 0) + scoreNum);
+        if (m.type === 'أعمال السنة' || m.type === 'daily_work' || m.type === 'homework') {
+          subjectMap[targetSubjectKey].hw = scoreNum;
+        } else if (m.type === 'اختبار قصير' || m.type === 'quiz') {
+          subjectMap[targetSubjectKey].quiz = scoreNum;
+        } else if (m.type === 'منتصف الفصل' || m.type === 'midterm') {
+          subjectMap[targetSubjectKey].midterm = scoreNum;
+        } else if (m.type === 'النهائي' || m.type === 'final') {
+          subjectMap[targetSubjectKey].final = scoreNum;
+        }
       }
     });
 
@@ -524,18 +526,22 @@ export const AppProvider = ({ children }) => {
       const midtermVal = sub.midterm || 0;
       const finalVal = sub.final || 0;
       
-      let total = Math.min(100, Math.max(0, hwVal + quizVal + midtermVal + finalVal));
-      if (sub.directTotal && sub.directTotal > total) {
+      let total = 0;
+      if (sub.directTotal !== null && sub.directTotal !== undefined) {
+        // Keep the exact score entered by the user without modifying or capping
         total = sub.directTotal;
+      } else if (hwVal > 0 || quizVal > 0 || midtermVal > 0 || finalVal > 0) {
+        total = hwVal + quizVal + midtermVal + finalVal;
       }
 
       let grade = 'غير مرصود';
-      if (total >= 90) grade = 'ممتاز';
-      else if (total >= 80) grade = 'جيد جداً';
-      else if (total >= 70) grade = 'جيد';
-      else if (total >= 50) grade = 'مقبول';
-      else if (total > 0 || (sub.hw > 0 || sub.quiz > 0 || sub.midterm > 0 || sub.final > 0)) grade = 'راسب';
-      else grade = 'غير مرصود';
+      if (sub.isGraded || total > 0) {
+        if (total >= 90) grade = 'ممتاز';
+        else if (total >= 80) grade = 'جيد جداً';
+        else if (total >= 70) grade = 'جيد';
+        else if (total >= 50) grade = 'مقبول';
+        else grade = 'راسب';
+      }
 
       return {
         ...sub,
@@ -554,11 +560,11 @@ export const AppProvider = ({ children }) => {
     const scores = getStudentSubjectScores(studentId);
     if (!scores || scores.length === 0) return 0;
     
-    // Only calculate average based on subjects that have actually received at least one grade
-    const gradedScores = scores.filter(s => s.hw > 0 || s.quiz > 0 || s.midterm > 0 || s.final > 0);
+    // Only calculate average based on subjects that have actually received a score
+    const gradedScores = scores.filter(s => s.isGraded || s.total > 0);
     if (gradedScores.length === 0) return 0;
     
-    const sum = gradedScores.reduce((acc, curr) => acc + (curr.total || 0), 0);
+    const sum = gradedScores.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
     return (sum / gradedScores.length).toFixed(1);
   };
 

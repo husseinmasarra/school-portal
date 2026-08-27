@@ -322,7 +322,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     safeClassrooms.forEach((c) => {
       const gName = c.gradeName || c.grade || 'الصف الأول الابتدائي';
       const secLet = (c.sectionName || c.section || 'أ').replace('الشعبة', '').replace(/[\(\)]/g, '').trim();
-      const key = `${normStr(gName)}_${secLet}`;
+      const key = `${cleanGrade(gName)}_${secLet}`;
       if (!map.has(key)) map.set(key, { gradeName: gName, sectionLetter: secLet });
     });
 
@@ -330,7 +330,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     safeTimetable.forEach((s) => {
       const gName = s.grade;
       const secLet = (s.section || 'أ').replace('الشعبة', '').replace(/[\(\)]/g, '').trim();
-      const key = `${normStr(gName)}_${secLet}`;
+      const key = `${cleanGrade(gName)}_${secLet}`;
       if (!map.has(key)) map.set(key, { gradeName: gName, sectionLetter: secLet });
     });
 
@@ -338,7 +338,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     if (map.size === 0) {
       safeGrades.forEach((g) => {
         ['أ', 'ب', 'ج'].forEach((sec) => {
-          map.set(`${normStr(g.name)}_${sec}`, { gradeName: g.name, sectionLetter: sec });
+          map.set(`${cleanGrade(g.name)}_${sec}`, { gradeName: g.name, sectionLetter: sec });
         });
       });
     }
@@ -484,14 +484,8 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
   const getModalStudents = () => {
     if (!showStudentsModal) return [];
     return safeStudents.filter((s) => {
-      const studentGrade = normStr(s.grade);
-      const targetGrade = normStr(showStudentsModal.gradeName);
-
-      const studentSec = normStr(s.classRoom || s.classroom);
-      const targetSec = normStr(showStudentsModal.sectionName);
-
-      const matchGrade = !targetGrade || studentGrade.includes(targetGrade) || targetGrade.includes(studentGrade);
-      const matchSection = !targetSec || studentSec.includes(targetSec) || targetSec.includes(studentSec);
+      const matchGrade = isGradeMatch(s.grade, showStudentsModal.gradeName);
+      const matchSection = isSecMatch(s.classRoom || s.classroom, showStudentsModal.sectionName);
       
       const matchSearch = !modalSearchTerm || 
         (s.name && s.name.toLowerCase().includes(modalSearchTerm.toLowerCase())) || 

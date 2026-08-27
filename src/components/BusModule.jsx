@@ -7,7 +7,8 @@ import {
   Plus, 
   Trash2, 
   Users, 
-  UserPlus 
+  UserPlus,
+  Search
 } from 'lucide-react';
 
 export const BusModule = () => {
@@ -40,11 +41,46 @@ export const BusModule = () => {
   const [routeName, setRouteName] = useState('');
   const [routeNameEn, setRouteNameEn] = useState('');
 
+  // Fleet Search State
+  const [fleetSearchQuery, setFleetSearchQuery] = useState('');
+
   // Assign Student to Bus Modal State
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [selectedStudentForBus, setSelectedStudentForBus] = useState(safeStudents[0]?.id || '');
   const [targetBusIdForAssign, setTargetBusIdForAssign] = useState(safeBuses[0]?.id || '');
   const [assignToast, setAssignToast] = useState(false);
+
+  const filteredStudentsForAssign = safeStudents.filter((s) => {
+    if (!studentSearchQuery.trim()) return true;
+    const q = studentSearchQuery.toLowerCase().trim();
+    return (
+      (s.name && s.name.toLowerCase().includes(q)) ||
+      (s.nameEn && s.nameEn.toLowerCase().includes(q)) ||
+      (s.grade && s.grade.toLowerCase().includes(q)) ||
+      (s.id && s.id.toLowerCase().includes(q))
+    );
+  });
+
+  const filteredBuses = safeBuses.filter((bus) => {
+    if (!fleetSearchQuery.trim()) return true;
+    const q = fleetSearchQuery.toLowerCase().trim();
+    const busMatch = (
+      (bus.busNumber && bus.busNumber.toLowerCase().includes(q)) ||
+      (bus.driverName && bus.driverName.toLowerCase().includes(q)) ||
+      (bus.driverPhone && bus.driverPhone.toLowerCase().includes(q)) ||
+      (bus.routeName && bus.routeName.toLowerCase().includes(q))
+    );
+
+    const busStudents = safeStudents.filter((s) => s.busId === bus.id);
+    const studentMatch = busStudents.some((s) => 
+      (s.name && s.name.toLowerCase().includes(q)) ||
+      (s.nameEn && s.nameEn.toLowerCase().includes(q)) ||
+      (s.grade && s.grade.toLowerCase().includes(q))
+    );
+
+    return busMatch || studentMatch;
+  });
 
   const handleAddBusSubmit = (e) => {
     e.preventDefault();
@@ -72,7 +108,7 @@ export const BusModule = () => {
 
   const handleAssignStudentSubmit = (e) => {
     e.preventDefault();
-    const finalStudentId = selectedStudentForBus || (safeStudents[0]?.id || '');
+    const finalStudentId = selectedStudentForBus || (filteredStudentsForAssign[0]?.id || safeStudents[0]?.id || '');
     const finalBusId = targetBusIdForAssign || (safeBuses[0]?.id || '');
 
     if (!finalStudentId || !finalBusId) return;
@@ -82,7 +118,7 @@ export const BusModule = () => {
     setTimeout(() => setAssignToast(false), 3000);
     setShowAssignModal(false);
     setSelectedStudentForBus('');
-    setTargetBusIdForAssign('');
+    setStudentSearchQuery('');
   };
 
   return (
@@ -167,12 +203,33 @@ export const BusModule = () => {
 
       {/* All Buses Fleet Roster Cards */}
       <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-4 shadow-sm text-[#0F172A]">
-        <h3 className="text-base font-bold text-[#0284C7] border-b border-slate-100 pb-3 flex items-center justify-between">
-          <span>{isAr ? `أسطول الحافلات المدرسية (${safeBuses.length})` : `School Bus Fleet (${safeBuses.length})`}</span>
-        </h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <h3 className="text-base font-bold text-[#0284C7]">
+            {isAr ? `أسطول الحافلات المدرسية (${filteredBuses.length})` : `School Bus Fleet (${filteredBuses.length})`}
+          </h3>
+          
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 rtl:right-3 ltr:left-3" />
+            <input
+              type="text"
+              value={fleetSearchQuery}
+              onChange={(e) => setFleetSearchQuery(e.target.value)}
+              placeholder={isAr ? "ابحث باسم التلميذ، السائق، أو رقم الحافلة..." : "Search student, driver, bus #..."}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-9 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
+            />
+            {fleetSearchQuery && (
+              <button onClick={() => setFleetSearchQuery('')} className="absolute left-3 top-2 text-xs font-bold text-slate-400 hover:text-slate-600">✕</button>
+            )}
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {safeBuses.map((bus) => {
+        {filteredBuses.length === 0 ? (
+          <div className="p-8 text-center bg-[#F8FAFC] rounded-2xl border border-dashed border-slate-200">
+            <p className="text-sm font-bold text-slate-500">{isAr ? 'لا توجد حافلات تطابق نتائج البحث.' : 'No buses match the search query.'}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredBuses.map((bus) => {
             const busStudents = safeStudents.filter((s) => s.busId === bus.id);
 
             return (
@@ -249,6 +306,7 @@ export const BusModule = () => {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Add Bus Modal - Teleported to document.body */}
@@ -319,34 +377,101 @@ export const BusModule = () => {
               </h3>
               <button 
                 type="button" 
-                onClick={() => setShowAssignModal(false)} 
+                onClick={() => {
+                  setShowAssignModal(false);
+                  setStudentSearchQuery('');
+                }} 
                 className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
+            {/* Student Search Bar */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">{isAr ? 'اختر الطالب:' : 'Select Student:'}</label>
-              <select
-                value={selectedStudentForBus || safeStudents[0]?.id || ''}
-                onChange={(e) => setSelectedStudentForBus(e.target.value)}
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer"
-              >
-                {safeStudents.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {isAr ? s.name : s.nameEn} ({isAr ? s.grade : s.gradeEn})
-                  </option>
-                ))}
-              </select>
+              <label className="text-xs font-bold text-slate-700">{isAr ? 'البحث عن طالب معين:' : 'Search Student:'}</label>
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 rtl:right-3 ltr:left-3" />
+                <input
+                  type="text"
+                  value={studentSearchQuery}
+                  onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  placeholder={isAr ? "ابحث باسم التلميذ، الصف، أو رقم القيد..." : "Search by student name, grade..."}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-9 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
+                />
+                {studentSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setStudentSearchQuery('')}
+                    className="absolute left-3 top-2 text-xs font-bold text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
 
+            {/* Filtered Student Search List */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">{isAr ? 'اختر الحافلة:' : 'Select Bus:'}</label>
+              <label className="text-xs font-semibold text-slate-700">
+                {isAr ? `اختر الطالب من النتائج (${filteredStudentsForAssign.length}):` : `Select Student (${filteredStudentsForAssign.length}):`}
+              </label>
+
+              {filteredStudentsForAssign.length === 0 ? (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-700 text-center">
+                  {isAr ? 'لا يوجد طلاب يطابقون كلمة البحث.' : 'No matching students found.'}
+                </div>
+              ) : (
+                <div className="max-h-44 overflow-y-auto border border-[#E2E8F0] rounded-2xl divide-y divide-slate-100 bg-[#F8FAFC] p-1 space-y-1">
+                  {filteredStudentsForAssign.map((s) => {
+                    const activeStudentId = selectedStudentForBus || filteredStudentsForAssign[0]?.id;
+                    const isSelected = activeStudentId === s.id;
+                    const assignedBus = safeBuses.find(b => b.id === s.busId);
+
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => setSelectedStudentForBus(s.id)}
+                        className={`p-2 rounded-xl cursor-pointer transition-all flex items-center justify-between text-xs ${
+                          isSelected
+                            ? 'bg-[#0284C7] text-white font-bold shadow-sm'
+                            : 'hover:bg-white text-[#0F172A]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <img src={s.avatar} alt={s.name} className="w-6 h-6 rounded-full object-cover border border-white/50 shrink-0" />
+                          <div>
+                            <div>{isAr ? s.name : s.nameEn}</div>
+                            <div className={`text-[10px] ${isSelected ? 'text-sky-100' : 'text-slate-500'}`}>
+                              {s.grade || 'الصف الدراسي'} {s.classRoom ? `(${s.classRoom})` : ''}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-left rtl:text-right">
+                          {assignedBus ? (
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
+                              🚌 {assignedBus.busNumber}
+                            </span>
+                          ) : (
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] ${isSelected ? 'text-sky-200' : 'text-slate-400'}`}>
+                              {isAr ? 'غير مخصص' : 'Unassigned'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1 pt-1">
+              <label className="text-xs font-semibold text-slate-700">{isAr ? 'اختر الحافلة المستهدفة:' : 'Select Bus:'}</label>
               <select
                 value={targetBusIdForAssign || safeBuses[0]?.id || ''}
                 onChange={(e) => setTargetBusIdForAssign(e.target.value)}
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer"
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
               >
                 {safeBuses.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -357,8 +482,19 @@ export const BusModule = () => {
             </div>
 
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-              <button type="button" onClick={() => setShowAssignModal(false)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
-              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">{t('save')}</button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowAssignModal(false);
+                  setStudentSearchQuery('');
+                }} 
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
+              >
+                {t('cancel')}
+              </button>
+              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">
+                {isAr ? 'حفظ وتعيين الحافلة ✅' : 'Assign to Bus'}
+              </button>
             </div>
           </form>
         </div>,

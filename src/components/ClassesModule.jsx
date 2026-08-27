@@ -386,6 +386,37 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
   const [editSupervisor, setEditSupervisor] = useState('');
   const [editRoomNumber, setEditRoomNumber] = useState('101');
 
+  // Derive available (unadded) sections for Add Section Modal
+  const currentGradeObj = safeGrades.find(g => g.id === selectedGradeId);
+  const existingGradeClassrooms = safeClassrooms.filter(c => 
+    c.gradeId === selectedGradeId || 
+    (currentGradeObj && isGradeMatch(c.gradeName, currentGradeObj.name))
+  );
+  const existingSectionNamesAdd = existingGradeClassrooms.map(c => c.sectionName);
+  const availableSectionsForAdd = standardSections.filter(sec => !existingSectionNamesAdd.includes(sec.name));
+
+  // Derive available sections for Edit Section Modal
+  const currentEditGradeObj = safeGrades.find(g => g.id === editSectionGradeId);
+  const existingEditGradeClassrooms = safeClassrooms.filter(c => 
+    c.id !== editingClassroom?.id && (
+      c.gradeId === editSectionGradeId || 
+      (currentEditGradeObj && isGradeMatch(c.gradeName, currentEditGradeObj.name))
+    )
+  );
+  const existingSectionNamesEdit = existingEditGradeClassrooms.map(c => c.sectionName);
+  const availableSectionsForEdit = standardSections.filter(sec => !existingSectionNamesEdit.includes(sec.name));
+
+  React.useEffect(() => {
+    if (showAddClassroomModal && selectedGradeId) {
+      if (availableSectionsForAdd.length > 0) {
+        if (!availableSectionsForAdd.some(s => s.name === sectionName)) {
+          setSectionName(availableSectionsForAdd[0].name);
+          setSectionNameEn(availableSectionsForAdd[0].nameEn);
+        }
+      }
+    }
+  }, [selectedGradeId, showAddClassroomModal, safeClassrooms]);
+
   // View Class Roster Modal State
   const [showStudentsModal, setShowStudentsModal] = useState(null); // { title, gradeName, sectionName }
   const [modalSearchTerm, setModalSearchTerm] = useState('');
@@ -443,6 +474,17 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
 
     const parentGrade = safeGrades.find((g) => g.id === selectedGradeId);
 
+    // Duplicate check for section in same grade
+    const isDuplicate = safeClassrooms.some((c) => 
+      (c.gradeId === selectedGradeId || (parentGrade && isGradeMatch(c.gradeName, parentGrade.name))) &&
+      c.sectionName === sectionName
+    );
+
+    if (isDuplicate) {
+      alert(isAr ? '⚠️ هذه الشعبة مضافة بالفعل لهذا الصف الدراسي!' : 'This section already exists for this grade!');
+      return;
+    }
+
     addClassroom({
       gradeId: selectedGradeId,
       gradeName: parentGrade ? parentGrade.name : 'الصف الدراسي',
@@ -464,6 +506,18 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     if (!editingClassroom) return;
 
     const parentGrade = safeGrades.find((g) => g.id === editSectionGradeId) || safeGrades[0];
+
+    // Duplicate check for section in same grade
+    const isDuplicate = safeClassrooms.some((c) => 
+      c.id !== editingClassroom.id &&
+      (c.gradeId === parentGrade?.id || (parentGrade && isGradeMatch(c.gradeName, parentGrade.name))) &&
+      c.sectionName === editSectionName
+    );
+
+    if (isDuplicate) {
+      alert(isAr ? '⚠️ هذه الشعبة مضافة بالفعل لهذا الصف الدراسي!' : 'This section already exists for this grade!');
+      return;
+    }
 
     updateClassroom(editingClassroom.id, {
       gradeId: parentGrade ? parentGrade.id : editSectionGradeId,
@@ -1385,23 +1439,29 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الشعبة' : 'Section Name'}</label>
-                <select
-                  required
-                  value={sectionName}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSectionName(val);
-                    const match = standardSections.find(s => s.name === val);
-                    if (match) setSectionNameEn(match.nameEn);
-                  }}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
-                >
-                  {standardSections.map((sec) => (
-                    <option key={sec.name} value={sec.name}>
-                      {isAr ? sec.name : sec.nameEn}
-                    </option>
-                  ))}
-                </select>
+                {availableSectionsForAdd.length === 0 ? (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] font-bold text-amber-700">
+                    {isAr ? '⚠️ تم إضافة جميع الشعب الـ 5 مسبقاً!' : 'All 5 sections added!'}
+                  </div>
+                ) : (
+                  <select
+                    required
+                    value={sectionName}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSectionName(val);
+                      const match = standardSections.find(s => s.name === val);
+                      if (match) setSectionNameEn(match.nameEn);
+                    }}
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
+                  >
+                    {availableSectionsForAdd.map((sec) => (
+                      <option key={sec.name} value={sec.name}>
+                        {isAr ? sec.name : sec.nameEn}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -1559,7 +1619,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   }}
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
                 >
-                  {standardSections.map((sec) => (
+                  {availableSectionsForEdit.map((sec) => (
                     <option key={sec.name} value={sec.name}>
                       {isAr ? sec.name : sec.nameEn}
                     </option>

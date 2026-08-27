@@ -464,7 +464,7 @@ export const ExamsModule = () => {
         </div>
       </div>
 
-      {/* Active Term Status Banner */}
+      {/* Active Term Selector Banner */}
       <div className={`p-4 rounded-3xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs ${
         activeTerm === 'first_term' 
           ? 'bg-sky-50/80 border-sky-300 text-sky-950' 
@@ -474,18 +474,48 @@ export const ExamsModule = () => {
           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 ${
             activeTerm === 'first_term' ? 'bg-[#0284C7] text-white' : 'bg-emerald-600 text-white'
           }`}>
-            {activeTerm === 'first_term' ? '📘' : '🔒'}
+            {activeTerm === 'first_term' ? '📘' : '🎓'}
           </div>
           <div>
             <h3 className="font-black text-sm flex items-center gap-2">
-              <span>{activeTerm === 'first_term' ? 'رصد درجات: الفصل الأول 📘' : 'رصد درجات: الفصل الأخير 🎓 (مُعتمد ومقفل 🔒)'}</span>
+              <span>{activeTerm === 'first_term' ? 'رصد وتصفح درجات: الفصل الأول 📘' : 'رصد وتصفح درجات: الفصل الأخير 🎓'}</span>
             </h3>
             <p className="text-xs opacity-80 mt-0.5">
               {activeTerm === 'first_term' 
-                ? 'يتم رصد درجات الفصل الأول هنا. عند طباعة إشعار/شهادة الفصل الأول، سيتحول النظام تلقائياً وبشكل دائم إلى الفصل الأخير مع تصفير الخانات.' 
-                : 'تم اعتماد وطباعة الفصل الأول بنجاح! العلامات الظاهرة الآن هي للفصل الأخير حمايةً لسجلات الفصل الأول من التعديل.'}
+                ? 'يمكنك رصد وطباعة كشوف وعلامات الفصل الأول بحرية وسهولة.' 
+                : 'علامات وكشوف الفصل الأخير، يمكنك التبديل بين الفصلين في أي وقت.'}
             </p>
           </div>
+        </div>
+
+        {/* Term Switcher Buttons */}
+        <div className="flex items-center gap-2 bg-white/90 p-1.5 rounded-2xl border border-slate-200 shadow-xs shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTerm('first_term');
+              localStorage.setItem('school_active_term', 'first_term');
+              setCertificateType('mid_year');
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              activeTerm === 'first_term' ? 'bg-[#0284C7] text-white shadow-sm scale-105' : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            📘 الفصل الأول
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTerm('final_term');
+              localStorage.setItem('school_active_term', 'final_term');
+              setCertificateType('end_year');
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              activeTerm === 'final_term' ? 'bg-emerald-600 text-white shadow-sm scale-105' : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            🎓 الفصل الأخير
+          </button>
         </div>
       </div>
 
@@ -963,20 +993,15 @@ export const ExamsModule = () => {
               <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                 <button
                   type="button"
-                  disabled={activeTerm === 'final_term'}
-                  onClick={() => {
-                    if (activeTerm !== 'final_term') setCertificateType('mid_year');
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                  onClick={() => setCertificateType('mid_year')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
                     certificateType === 'mid_year'
-                      ? 'bg-[#0284C7] text-white shadow-sm scale-105 cursor-pointer'
-                      : activeTerm === 'final_term'
-                      ? 'opacity-40 cursor-not-allowed text-slate-400 bg-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 cursor-pointer'
+                      ? 'bg-[#0284C7] text-white shadow-sm scale-105'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
-                  title={activeTerm === 'final_term' ? "تم اعتماد وطباعة الفصل الأول، لا يمكن الرجوع إليه حمايةً للبيانات" : "طباعة كشف الفصل الأول"}
+                  title="طباعة كشف الفصل الأول"
                 >
-                  <span>📘 الفصل الأول {activeTerm === 'final_term' ? '(مُقفل 🔒)' : '(مرة واحدة)'}</span>
+                  <span>📘 الفصل الأول</span>
                 </button>
                 <button
                   type="button"
@@ -986,6 +1011,7 @@ export const ExamsModule = () => {
                       ? 'bg-emerald-600 text-white shadow-sm scale-105'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
+                  title="طباعة كشف الفصل الأخير"
                 >
                   <span>🎓 الفصل الأخير</span>
                 </button>
@@ -1000,16 +1026,6 @@ export const ExamsModule = () => {
                     window.scrollTo(0, 0);
                     setTimeout(() => {
                       window.print();
-                      if (certificateType === 'mid_year' || activeTerm === 'first_term') {
-                        localStorage.setItem('school_active_term', 'final_term');
-                        setActiveTerm('final_term');
-                        setCertificateType('end_year');
-                        setSavedToastMsg(isAr 
-                          ? '🔒 تم اعتماد وطباعة الفصل الأول بنجاح! تم التحول وقفل رصد العلامات تلقائياً على الفصل الأخير منعاً لأي خطأ.' 
-                          : 'First Term printed! Switched permanently to Final Term.');
-                        setSavedToast(true);
-                        setTimeout(() => setSavedToast(false), 5000);
-                      }
                     }, 30);
                   }}
                   className="bg-[#0284C7] hover:bg-[#0369A1] text-white px-5 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2 cursor-pointer transition-all"

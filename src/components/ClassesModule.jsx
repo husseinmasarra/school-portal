@@ -228,28 +228,82 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     }, 100);
   };
 
-  const normStr = (str) => (str || '')
+  const cleanGrade = (str) => (str || '')
     .toLowerCase()
+    .trim()
     .replace(/[أإآ]/g, 'ا')
-    .replace('الابتدائي', '')
-    .replace('المتوسط', '')
-    .replace('الثانوي', '')
-    .replace('الصف', '')
-    .replace('الشعبة', '')
-    .replace(/[\(\)\-\_\s]/g, '');
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, ' ');
 
-  const isGradeMatch = (g1, g2) => {
-    if (!g1 || !g2) return true;
-    const n1 = normStr(g1);
-    const n2 = normStr(g2);
-    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  const isGradeMatch = (studentGrade, targetGrade) => {
+    if (!targetGrade) return true;
+    if (!studentGrade) return false;
+    
+    if (studentGrade.trim() === targetGrade.trim()) return true;
+
+    const sG = cleanGrade(studentGrade);
+    const tG = cleanGrade(targetGrade);
+
+    if (sG === tG) return true;
+
+    const sIsKg = sG.includes('روضه') || sG.includes('kg') || sG.includes('تمهيدي');
+    const tIsKg = tG.includes('روضه') || tG.includes('kg') || tG.includes('تمهيدي');
+    if (sIsKg !== tIsKg) return false;
+
+    const getGradeLevel = (str) => {
+      if (str.includes('اولى') || str.includes('الاولى') || str.includes('اول') || str.includes('الاول') || str.includes('1st') || str.includes(' 1')) return '1';
+      if (str.includes('ثانيه') || str.includes('الثانيه') || str.includes('ثاني') || str.includes('الثاني') || str.includes('2nd') || str.includes(' 2')) return '2';
+      if (str.includes('ثالثه') || str.includes('الثالثه') || str.includes('ثالث') || str.includes('الثالث') || str.includes('3rd') || str.includes(' 3')) return '3';
+      if (str.includes('رابع') || str.includes('الرابع') || str.includes('4th') || str.includes(' 4')) return '4';
+      if (str.includes('خامس') || str.includes('الخامس') || str.includes('5th') || str.includes(' 5')) return '5';
+      if (str.includes('سادس') || str.includes('السادس') || str.includes('6th') || str.includes(' 6')) return '6';
+      if (str.includes('سابع') || str.includes('السابع') || str.includes('7th') || str.includes(' 7')) return '7';
+      if (str.includes('ثامن') || str.includes('الثامن') || str.includes('8th') || str.includes(' 8')) return '8';
+      if (str.includes('تاسع') || str.includes('التاسع') || str.includes('9th') || str.includes(' 9')) return '9';
+      if (str.includes('عاشر') || str.includes('العاشر') || str.includes('10th') || str.includes(' 10')) return '10';
+      if (str.includes('حادي') || str.includes('11th') || str.includes(' 11')) return '11';
+      if (str.includes('ثاني عشر') || str.includes('12th') || str.includes(' 12')) return '12';
+      return null;
+    };
+
+    const sLvl = getGradeLevel(sG);
+    const tLvl = getGradeLevel(tG);
+
+    if (sLvl && tLvl) {
+      return sLvl === tLvl;
+    }
+
+    return sG.includes(tG) || tG.includes(sG);
   };
 
-  const isSecMatch = (s1, s2) => {
-    if (!s1 || !s2) return true;
-    const n1 = normStr(s1);
-    const n2 = normStr(s2);
-    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  const cleanSec = (str) => (str || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/[\(\)\-\_\s]/g, '');
+
+  const isSecMatch = (studentSec, targetSec) => {
+    if (!targetSec) return true;
+    if (!studentSec) return false;
+    const sS = cleanSec(studentSec);
+    const tS = cleanSec(targetSec);
+    if (sS === tS) return true;
+
+    const getSecLetter = (s) => {
+      if (s.includes('أ') || s.includes('ا') || s.includes('a')) return 'a';
+      if (s.includes('ب') || s.includes('b')) return 'b';
+      if (s.includes('ج') || s.includes('c')) return 'c';
+      if (s.includes('د') || s.includes('d')) return 'd';
+      if (s.includes('ه') || s.includes('e')) return 'e';
+      return null;
+    };
+
+    const sL = getSecLetter(sS);
+    const tL = getSecLetter(tS);
+    if (sL && tL) return sL === tL;
+
+    return sS.includes(tS) || tS.includes(sS);
   };
 
   const filteredTimetableSlots = safeTimetable.filter((s) => {
@@ -575,7 +629,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {safeGrades.map((grd) => {
             const gradeSections = safeClassrooms.filter((c) => c.gradeId === grd.id || c.gradeName === grd.name);
-            const gradeStudents = safeStudents.filter((s) => s.grade && s.grade.includes(grd.name.replace(' الابتدائي', '').replace(' المتوسط', '')));
+            const gradeStudents = safeStudents.filter((s) => isGradeMatch(s.grade, grd.name));
 
             return (
               <div
@@ -685,14 +739,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
             const fullClass = `${cls.gradeName} (${cls.sectionName})`;
             return assigned.some(a => a === fullClass || (cls.gradeName && a.includes(cls.gradeName) && (a.includes(`(${cls.sectionName})`) || a.includes(cls.sectionName))));
           }).map((cls) => {
-            const sectionStudents = safeStudents.filter((s) => {
-              const studentGrade = normStr(s.grade);
-              const targetGrade = normStr(cls.gradeName);
-              const studentSec = normStr(s.classRoom || s.classroom);
-              const targetSec = normStr(cls.sectionName);
-              return (studentGrade.includes(targetGrade) || targetGrade.includes(studentGrade)) &&
-                     (studentSec.includes(targetSec) || targetSec.includes(studentSec));
-            });
+            const sectionStudents = safeStudents.filter((s) => 
+              isGradeMatch(s.grade, cls.gradeName) && 
+              isSecMatch(s.classRoom || s.classroom, cls.sectionName)
+            );
 
             return (
               <div

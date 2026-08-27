@@ -58,6 +58,54 @@ const getSectionSortOrder = (sec = '') => {
   return 99;
 };
 
+const cleanGrade = (str) => (str || '')
+  .toLowerCase()
+  .trim()
+  .replace(/[أإآ]/g, 'ا')
+  .replace(/ة/g, 'ه')
+  .replace(/\s+/g, ' ');
+
+const isGradeMatch = (studentGrade, targetGrade) => {
+  if (!targetGrade) return true;
+  if (!studentGrade) return false;
+  
+  if (studentGrade.trim() === targetGrade.trim()) return true;
+
+  const sG = cleanGrade(studentGrade);
+  const tG = cleanGrade(targetGrade);
+
+  if (sG === tG) return true;
+
+  const sIsKg = sG.includes('روضه') || sG.includes('kg') || sG.includes('تمهيدي');
+  const tIsKg = tG.includes('روضه') || tG.includes('kg') || tG.includes('تمهيدي');
+  if (sIsKg !== tIsKg) return false;
+
+  const getGradeLevel = (str) => {
+    if (str.includes('اولى') || str.includes('الاولى') || str.includes('اول') || str.includes('الاول') || str.includes('1st') || str.includes(' 1')) return '1';
+    if (str.includes('ثانيه') || str.includes('الثانيه') || str.includes('ثاني') || str.includes('الثاني') || str.includes('2nd') || str.includes(' 2')) return '2';
+    if (str.includes('ثالثه') || str.includes('الثالثه') || str.includes('ثالث') || str.includes('الثالث') || str.includes('3rd') || str.includes(' 3')) return '3';
+    if (str.includes('رابع') || str.includes('الرابع') || str.includes('4th') || str.includes(' 4')) return '4';
+    if (str.includes('خامس') || str.includes('الخامس') || str.includes('5th') || str.includes(' 5')) return '5';
+    if (str.includes('سادس') || str.includes('السادس') || str.includes('6th') || str.includes(' 6')) return '6';
+    if (str.includes('سابع') || str.includes('السابع') || str.includes('7th') || str.includes(' 7')) return '7';
+    if (str.includes('ثامن') || str.includes('الثامن') || str.includes('8th') || str.includes(' 8')) return '8';
+    if (str.includes('تاسع') || str.includes('التاسع') || str.includes('9th') || str.includes(' 9')) return '9';
+    if (str.includes('عاشر') || str.includes('العاشر') || str.includes('10th') || str.includes(' 10')) return '10';
+    if (str.includes('حادي') || str.includes('11th') || str.includes(' 11')) return '11';
+    if (str.includes('ثاني عشر') || str.includes('12th') || str.includes(' 12')) return '12';
+    return null;
+  };
+
+  const sLvl = getGradeLevel(sG);
+  const tLvl = getGradeLevel(tG);
+
+  if (sLvl && tLvl) {
+    return sLvl === tLvl;
+  }
+
+  return sG.includes(tG) || tG.includes(sG);
+};
+
 export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const { 
     lang, 
@@ -673,7 +721,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       ? true
       : selectedGradeFilter === 'special_cases'
         ? !!s.isSpecialCase
-        : (s.grade || '').includes(selectedGradeFilter);
+        : isGradeMatch(s.grade, selectedGradeFilter);
     const matchesTeacherAssignment = currentRole !== 'teacher' || isStudentAssignedToTeacher(s, currentUser?.assignedClassrooms || currentUser?.assignedClasses || []);
 
     return matchesSearch && matchesGrade && matchesTeacherAssignment;

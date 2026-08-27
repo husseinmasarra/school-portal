@@ -1703,20 +1703,39 @@ export const AppProvider = ({ children }) => {
   };
 
   const startNewAcademicYear = (newYearName) => {
+    const currentMatrixMarks = (() => {
+      try {
+        const saved = localStorage.getItem('school_matrix_marks');
+        return saved ? JSON.parse(saved) : {};
+      } catch (e) {
+        return {};
+      }
+    })();
+
     const archiveItem = {
       id: `AY-${Date.now()}`,
       yearName: siteSettings.academicYear || '2025/2026',
       archivedAt: new Date().toISOString(),
+      // 1. البيانات الأكاديمية والدرجات (أعلى أهمية 🔥)
+      matrixMarksSnapshot: { ...currentMatrixMarks },
       studentsSnapshot: [...students],
+      subjectsSnapshot: [...subjects],
+      // 2. سجلات الحضور والغياب واليوميات (أهمية عالية ⚡)
       attendanceSnapshot: [...attendance],
       dailyMarksSnapshot: [...dailyMarks],
       agendaSnapshot: [...agenda],
+      // 3. التواصل والمالية (أهمية إدارية 💵)
+      expensesSnapshot: [...expenses],
       messagesSnapshot: [...messages]
     };
 
     const updatedArchives = [archiveItem, ...academicYearsArchive];
     setAcademicYearsArchive(updatedArchives);
     dbSaveCollection('school_academic_years_archive', updatedArchives);
+
+    // Reset active matrix marks for the new year
+    localStorage.setItem('school_matrix_marks', JSON.stringify({}));
+    localStorage.setItem('school_active_term', 'first_term');
 
     // Update site settings
     updateSiteSettings({ academicYear: newYearName });
@@ -1742,7 +1761,7 @@ export const AppProvider = ({ children }) => {
 
     addNotification({
       title: `بدء العام الدراسي الجديد: ${newYearName} 🎓`,
-      message: `تم أرشفة العام الدراسي السابق وحفظ سجلاته في الأرشيف وتجهيز المنظومة للعام الجديد.`,
+      message: `تمت أرشفة العام الدراسي السابق بجميع درجاته وسجلاته بأمان وتجهيز المنظومة للعام الجديد.`,
       type: 'system'
     });
 

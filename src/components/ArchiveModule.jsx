@@ -11,7 +11,11 @@ import {
   CheckCircle2,
   Clock,
   ChevronLeft,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  X,
+  UserCheck,
+  CreditCard
 } from 'lucide-react';
 
 export const ArchiveModule = () => {
@@ -35,8 +39,9 @@ export const ArchiveModule = () => {
   const [newYearInput, setNewYearInput] = useState('');
   const [showNewYearModal, setShowNewYearModal] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+  const [inspectArchivedYear, setInspectArchivedYear] = useState(null);
 
-  // Read saved matrix marks from localStorage
+  // Read saved matrix marks from localStorage for current year
   const matrixMarks = (() => {
     try {
       const saved = localStorage.getItem('school_matrix_marks');
@@ -62,7 +67,7 @@ export const ArchiveModule = () => {
     if (!newYearInput.trim()) return;
     if (startNewAcademicYear) {
       startNewAcademicYear(newYearInput.trim());
-      setToastMsg(`تم بدء العام الدراسي الجديد (${newYearInput}) وأرشفة العام السابق بنجاح! 🎓📁`);
+      setToastMsg(`تم بدء العام الدراسي الجديد (${newYearInput}) وأرشفة العام السابق بجميع سجلاته ودرجاته بنجاح! 🎓📁`);
       setShowNewYearModal(false);
       setNewYearInput('');
       setTimeout(() => setToastMsg(''), 4000);
@@ -81,7 +86,7 @@ export const ArchiveModule = () => {
           <div>
             <h2 className="text-xl font-bold text-[#0284C7]">أرشيف السنوات السابقة وسجلات الفصول 📁</h2>
             <p className="text-xs text-slate-500 mt-1">
-              سجل أرشيفي كامل لمتابعة نتائج الفصول السابقة، ودرجات الطلاب، والأعوام الدراسية السابقة.
+              سجل أرشيفي شامل مرتب حسب الأهمية: العلامات، سجلات الطلاب، الحضور والغياب، والأعوام المكتملة.
             </p>
           </div>
         </div>
@@ -198,7 +203,7 @@ export const ArchiveModule = () => {
                   </div>
 
                   <span className="px-3 py-1 bg-white border border-sky-300 text-[#0284C7] rounded-xl text-xs font-black font-mono shadow-2xs">
-                    العام الدراسي: {siteSettings?.academicYear || '2025/2026'}
+                    العام الدراسي الحالي: {siteSettings?.academicYear || '2025/2026'}
                   </span>
                 </div>
 
@@ -207,7 +212,7 @@ export const ArchiveModule = () => {
                   <h4 className="text-sm font-black text-[#0F172A] flex items-center justify-between border-b border-slate-100 pb-2">
                     <span className="flex items-center gap-2">
                       <FileSpreadsheet className="w-4 h-4 text-[#0284C7]" />
-                      <span>جدول مقارنة وسجل علامات المواد (الفصل الأول VS الفصل الأخير)</span>
+                      <span>سجل مقارنة وعلامات المواد الرسمية (الفصل الأول VS الفصل الأخير)</span>
                     </span>
                   </h4>
 
@@ -292,13 +297,13 @@ export const ArchiveModule = () => {
               <Clock className="w-12 h-12 text-slate-300 mx-auto" />
               <h4 className="text-sm font-black text-slate-700">لا يوجد أعوام دراسية أُرشفَت بعد في النظام 📁</h4>
               <p className="text-xs text-slate-500 max-w-md mx-auto">
-                عند إقفال العام الدراسي الحالي وبدء سنة جديدة، سيتم التخفيظ التلقائي لكافة السجلات والطلاب في هذا المكان بشكل مؤرخ ودائم.
+                عند إقفال العام الدراسي الحالي وبدء سنة جديدة، سيتم حفظ ونقل كافة البيانات كلياً حسب الأهمية وتخزينها في هذا المكان بشكل مؤرخ ودائم.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {academicYearsArchive.map((arch) => (
-                <div key={arch.id} className="p-5 rounded-2xl border border-slate-200 bg-[#F8FAFC] space-y-3 shadow-xs">
+                <div key={arch.id} className="p-5 rounded-2xl border border-slate-200 bg-[#F8FAFC] space-y-4 shadow-xs hover:border-[#0284C7]/50 transition-all">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                     <h4 className="text-base font-black text-[#0284C7]">العام الدراسي: {arch.yearName} 🎓</h4>
                     <span className="text-[10px] text-slate-500 font-mono font-bold bg-white px-2 py-1 rounded-lg border border-slate-200">
@@ -306,20 +311,120 @@ export const ArchiveModule = () => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
-                    <div className="bg-[#FFFFFF] p-2.5 rounded-xl border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">عدد الطلاب المؤرشفين:</span>
-                      <span className="text-sm font-black text-[#0F172A]">{(arch.studentsSnapshot || []).length} طالب(ة)</span>
+                  {/* Priority 1 & 2 Snapshot Summary Badges */}
+                  <div className="grid grid-cols-3 gap-2 text-xs font-bold text-slate-700">
+                    <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-center">
+                      <span className="text-[10px] text-slate-400 block font-bold">🔥 الطلاب المؤرشفون:</span>
+                      <span className="text-sm font-black text-[#0284C7]">{(arch.studentsSnapshot || []).length} طالب</span>
                     </div>
-                    <div className="bg-[#FFFFFF] p-2.5 rounded-xl border border-slate-200">
-                      <span className="text-[10px] text-slate-400 block">سجلات العلامات اليومية:</span>
-                      <span className="text-sm font-black text-[#0F172A]">{(arch.dailyMarksSnapshot || []).length} سجل</span>
+                    <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-center">
+                      <span className="text-[10px] text-slate-400 block font-bold">⚡ سجلات العلامات:</span>
+                      <span className="text-sm font-black text-emerald-700">{Object.keys(arch.matrixMarksSnapshot || {}).length} درجة</span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-center">
+                      <span className="text-[10px] text-slate-400 block font-bold">📅 الحضور والغياب:</span>
+                      <span className="text-sm font-black text-indigo-700">{(arch.attendanceSnapshot || []).length} سجل</span>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => setInspectArchivedYear(arch)}
+                    className="w-full bg-[#0284C7] hover:bg-[#0369A1] text-white py-2 rounded-xl text-xs font-black shadow flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>معاينة سجلات هذا العام الأكاديمي بالتفصيل 🔍</span>
+                  </button>
                 </div>
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Inspect Archived Academic Year Detail Modal */}
+      {inspectArchivedYear && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto space-y-5 shadow-2xl animate-fade-in text-[#0F172A]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-[#0284C7] flex items-center gap-2">
+                <FolderArchive className="w-5 h-5 text-[#0284C7]" />
+                <span>سجل أرشيف العام الدراسي: {inspectArchivedYear.yearName} 🎓</span>
+              </h3>
+              <button onClick={() => setInspectArchivedYear(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">✕</button>
+            </div>
+
+            {/* Structured by Priority Breakdown */}
+            <div className="space-y-4">
+              
+              {/* Priority 1: Academic Scores & Students */}
+              <div className="bg-sky-50/80 p-4 rounded-2xl border border-sky-200 space-y-3">
+                <h4 className="text-xs font-black text-[#0284C7] flex items-center gap-2">
+                  <Award className="w-4 h-4" />
+                  <span>1. البيانات الأكاديمية والدرجات المؤرشفة (أعلى أهمية 🔥)</span>
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-bold">
+                  <div className="bg-white p-2.5 rounded-xl border border-sky-100">
+                    <span className="text-[10px] text-slate-400 block">إجمالي الطلاب:</span>
+                    <span className="text-sm font-black text-slate-800">{(inspectArchivedYear.studentsSnapshot || []).length} طالب</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-sky-100">
+                    <span className="text-[10px] text-slate-400 block">المواد الدراسية:</span>
+                    <span className="text-sm font-black text-slate-800">{(inspectArchivedYear.subjectsSnapshot || []).length} مادة</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-sky-100">
+                    <span className="text-[10px] text-slate-400 block">العلامات المرصودة:</span>
+                    <span className="text-sm font-black text-emerald-700">{Object.keys(inspectArchivedYear.matrixMarksSnapshot || {}).length} علامة</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Priority 2: Attendance & Daily Logs */}
+              <div className="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 space-y-3">
+                <h4 className="text-xs font-black text-emerald-800 flex items-center gap-2">
+                  <UserCheck className="w-4 h-4" />
+                  <span>2. سجلات الحضور واليوميات والدروس (أهمية عالية ⚡)</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                    <span className="text-[10px] text-slate-400 block">سجلات الحضور والغياب:</span>
+                    <span className="text-sm font-black text-emerald-800">{(inspectArchivedYear.attendanceSnapshot || []).length} سجل يومي</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                    <span className="text-[10px] text-slate-400 block">ملاحظات واختبارات اليوميات:</span>
+                    <span className="text-sm font-black text-emerald-800">{(inspectArchivedYear.dailyMarksSnapshot || []).length} اختبار وتقييم</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Priority 3: Finance & Admin */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <h4 className="text-xs font-black text-slate-800 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  <span>3. السجلات المالية والتواصل (أهمية إدارية 💵)</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span className="text-[10px] text-slate-400 block">مصاريف ونفقات المدرسة:</span>
+                    <span className="text-sm font-black text-slate-800">{(inspectArchivedYear.expensesSnapshot || []).length} عملية مالية</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span className="text-[10px] text-slate-400 block">رسائل وإشعارات النظام:</span>
+                    <span className="text-sm font-black text-slate-800">{(inspectArchivedYear.messagesSnapshot || []).length} رسالة</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setInspectArchivedYear(null)}
+                className="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 cursor-pointer"
+              >
+                إغلاق النافذة
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -348,9 +453,14 @@ export const ArchiveModule = () => {
                 />
               </div>
 
-              <p className="text-[11px] text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200 leading-relaxed font-bold">
-                ⚠️ تنبيه: سيقوم النظام بأرشفة كافة سجلات وطلاب العام الحالي ({siteSettings?.academicYear || '2025/2026'}) وحفظها بالأرشيف بأمان، ثم تصفير المنظومة للعام الجديد.
-              </p>
+              <div className="p-3 bg-sky-50 rounded-2xl border border-sky-200 space-y-1 text-xs font-bold text-[#0284C7]">
+                <h4 className="font-black text-slate-900">ترتيب حفظ البيانات حسب الأهمية:</h4>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-700">
+                  <li>🔥 <strong>درجات وحاصل المواد الكاشفة</strong> للـ الفصل الأول والفصل الأخير.</li>
+                  <li>⚡ <strong>سجلات الطلاب</strong> والحضور والغياب والاختبارات اليومية.</li>
+                  <li>💵 <strong>السجلات المالية والنفقات</strong> والرسائل الإدارية.</li>
+                </ol>
+              </div>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button

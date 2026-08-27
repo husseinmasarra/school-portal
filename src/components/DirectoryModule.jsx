@@ -22,15 +22,9 @@ import {
   Bookmark
 } from 'lucide-react';
 const generateArabicUsername = (fn = '', mn = '', ln = '') => {
-  const cleanStr = (str) => {
-    return (str || '')
-      .trim()
-      .replace(/\s+/g, '.');
-  };
-
-  const parts = [cleanStr(fn), cleanStr(mn), cleanStr(ln)].filter(Boolean);
+  const parts = [(fn || '').trim(), (mn || '').trim(), (ln || '').trim()].filter(Boolean);
   if (parts.length === 0) return '';
-  return parts.join('.');
+  return parts.join(' ').replace(/\s+/g, ' ');
 };
 
 const getGradeSortOrder = (name = '') => {

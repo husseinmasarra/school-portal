@@ -757,57 +757,28 @@ export const ExamsModule = () => {
                   color-scheme: light !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
-                  margin: 0 !important;
-                  padding: 0 !important;
-                  width: 100% !important;
-                  height: auto !important;
-                }
-
-                #root,
-                body > #root,
-                main,
-                header,
-                aside,
-                footer,
-                nav,
-                .no-print {
-                  display: none !important;
-                  visibility: hidden !important;
-                  height: 0 !important;
-                  max-height: 0 !important;
-                  overflow: hidden !important;
-                  opacity: 0 !important;
-                  pointer-events: none !important;
-                }
-
-                .cert-print-backdrop {
-                  position: static !important;
-                  display: block !important;
-                  width: 100% !important;
-                  height: auto !important;
-                  background: #ffffff !important;
-                  background-color: #ffffff !important;
-                  padding: 0 !important;
-                  margin: 0 !important;
-                  overflow: visible !important;
-                  visibility: visible !important;
                 }
 
                 .print-cert-page {
                   position: relative !important;
-                  display: block !important;
-                  width: 100% !important;
-                  max-width: 100% !important;
-                  margin: 0 auto 0 auto !important;
-                  padding: 24px 28px !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  justify-content: space-between !important;
+                  width: 210mm !important;
+                  min-height: 282mm !important;
+                  max-height: 282mm !important;
+                  box-sizing: border-box !important;
+                  margin: 0 auto !important;
+                  padding: 10mm 12mm !important;
                   background: #ffffff !important;
                   color: #000000 !important;
-                  border: 4px double #0284C7 !important;
+                  border: 3px double #0284C7 !important;
                   border-radius: 0px !important;
                   box-shadow: none !important;
                   page-break-after: always !important;
                   break-after: page !important;
-                  box-sizing: border-box !important;
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
                 }
 
                 .no-print {
@@ -831,14 +802,14 @@ export const ExamsModule = () => {
               <div>
                 <h3 className="text-base font-black text-[#0F172A] flex items-center gap-2">
                   <Award className="w-5 h-5 text-[#0284C7]" />
-                  <span>معاينة وتوثيق الشهادات المدرسية الرسمية ({printableReportsList.length} طالب)</span>
+                  <span>معاينة وتوثيق الشهادات المدرسية ({printableReportsList.length} طالب)</span>
                 </h3>
                 <p className="text-xs text-slate-500 font-bold mt-0.5">
-                  جاهزة للطباعة الرسمية بأعلى قياسات الجودة A4 مع الختم والتواقيع المعتمَدة
+                  جاهزة للطباعة بأعلى قياسات الجودة A4 مع التواقيع المعتمَدة
                 </p>
               </div>
 
-              {/* Certificate Term Type Selector (Mid-Year vs End-of-Year) */}
+              {/* Certificate Term Type Selector */}
               <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                 <button
                   type="button"
@@ -902,7 +873,7 @@ export const ExamsModule = () => {
                     key={report.student.id} 
                     className="print-cert-page border-4 border-double border-[#0284C7] p-6 sm:p-8 rounded-2xl bg-white space-y-5 text-[#0F172A] print:rounded-none print:shadow-none print:m-0 relative overflow-hidden"
                   >
-                    {/* Official Document Header */}
+                    {/* Document Header */}
                     <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4 gap-4">
                       <div className="flex items-center gap-4 text-right">
                         <div className="w-20 h-20 bg-white rounded-2xl border-2 border-[#0284C7]/40 shadow-xs flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
@@ -913,12 +884,11 @@ export const ExamsModule = () => {
                           />
                         </div>
                         <div>
-                          <span className="text-[11px] font-black text-[#0284C7] tracking-wider block">الجمهورية اللبنانية • وزارة التربية والتعليم</span>
                           <h2 className="text-xl font-black text-[#0F172A] leading-tight">
-                            {siteSettings?.schoolName || 'مدرسة الدعم التعليمي الرسمية'}
+                            {siteSettings?.schoolName ? siteSettings.schoolName.replace(/الرسمية/g, '').trim() : 'مدرسة الدعم التعليمي'}
                           </h2>
                           <p className="text-xs font-bold text-slate-500">
-                            {siteSettings?.schoolNameEn || 'Educational Support Official School'}
+                            {siteSettings?.schoolNameEn ? siteSettings.schoolNameEn.replace(/Official/gi, '').trim() : 'Educational Support School'}
                           </p>
                         </div>
                       </div>
@@ -937,7 +907,7 @@ export const ExamsModule = () => {
                           ? '📘 كَشْفُ دَرَجَاتِ وَتَقْيِيمُ المَرْحَلَةِ الأُولَى (الفَصْلُ الأَوَّل)'
                           : '🎓 الشَّهَادَةُ العَامَّةُ وَالتَّقْيِيمُ النِّهَائِي (الفَصْلُ الأَخِير)'}
                       </h1>
-                      <span className="text-[10px] text-sky-100 font-bold block">OFFICIAL ACADEMIC TRANSCRIPT & REPORT CARD</span>
+                      <span className="text-[10px] text-sky-100 font-bold block">ACADEMIC TRANSCRIPT & REPORT CARD</span>
                     </div>
 
                     {/* Student Info Box */}
@@ -1015,30 +985,29 @@ export const ExamsModule = () => {
                       </table>
                     </div>
 
-                    {/* Official Signatures & Seals */}
-                    <div className="mt-6 pt-4 border-t-2 border-slate-200 flex justify-between items-end text-xs font-bold text-slate-700">
+                    {/* Homeroom Teacher Notes Section */}
+                    <div className="my-3 p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                      <span className="text-xs font-black text-[#0284C7] block">ملاحظات مربي الصف:</span>
+                      <div className="border-b border-dotted border-slate-400 h-5 w-full" />
+                      <div className="border-b border-dotted border-slate-400 h-5 w-full" />
+                    </div>
+
+                    {/* Signatures */}
+                    <div className="mt-4 pt-3 border-t-2 border-slate-200 flex justify-between items-end text-xs font-bold text-slate-700">
                       <div className="text-center space-y-2">
                         <p className="text-slate-900 font-black">توقيع مربي الصف</p>
-                        <div className="h-10 border-b-2 border-slate-300 w-36 mx-auto" />
-                      </div>
-
-                      <div className="text-center space-y-1">
-                        <p className="text-[11px] text-slate-800 font-black">الختم الرسمي للمدرسة</p>
-                        <div className="w-16 h-16 border-2 border-dashed border-[#0284C7] rounded-full mx-auto flex flex-col items-center justify-center text-[9px] text-[#0284C7] font-black bg-sky-50 shadow-xs">
-                          <span>مُعتمَد</span>
-                          <span className="text-[7px]">OFFICIAL</span>
-                        </div>
+                        <div className="h-9 border-b-2 border-slate-300 w-44 mx-auto" />
                       </div>
 
                       <div className="text-center space-y-2">
-                        <p className="text-slate-900 font-black">إقرار وتوقيع مدير المدرسة</p>
-                        <div className="h-10 border-b-2 border-slate-300 w-36 mx-auto" />
+                        <p className="text-slate-900 font-black">توقيع مدير المدرسة</p>
+                        <div className="h-9 border-b-2 border-slate-300 w-44 mx-auto" />
                       </div>
                     </div>
 
-                    {/* Official Footer Verification */}
+                    {/* Footer Verification */}
                     <div className="pt-2 text-center text-[9px] text-slate-400 border-t border-slate-100 flex justify-between items-center font-mono">
-                      <span>وثيقة رسمية صادرة إلكترونياً عن نظام إدارة مدرسة الدعم التعليمي</span>
+                      <span>وثيقة صادرة إلكترونياً عن نظام إدارة مدرسة الدعم التعليمي</span>
                       <span>كود التوثيق: CERT-{report.student.id}-{Date.now().toString().slice(-4)}</span>
                     </div>
                   </div>

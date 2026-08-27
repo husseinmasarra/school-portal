@@ -33,12 +33,7 @@ const MainContent = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { lang, dir, t, currentUser, currentRole } = useApp();
 
-  // Prevent student printing globally (Ctrl+P, Cmd+P, window.print)
-  useEffect(() => {
-    if (currentUser) {
-      setActiveTab('dashboard');
-    }
-  }, [currentUser]);
+  // Retain active page tab on refresh without resetting to dashboard
 
   useEffect(() => {
     document.documentElement.setAttribute('data-role', currentRole || 'admin');

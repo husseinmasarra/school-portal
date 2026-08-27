@@ -144,7 +144,14 @@ export const AppProvider = ({ children }) => {
     return cleanSettings;
   });
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('school_logged_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   const currentRole = currentUser?.role || 'admin';
 

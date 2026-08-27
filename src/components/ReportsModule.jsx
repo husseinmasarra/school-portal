@@ -34,7 +34,7 @@ export const ReportsModule = () => {
     return `${day} ${levantMonths[today.getMonth()]} ${year}`;
   };
 
-  const [reportType, setReportType] = useState('academic'); // academic, financial, attendance, daily_log
+  const [reportType, setReportType] = useState('daily_log'); // daily_log, financial, attendance
   const [academicTerm, setAcademicTerm] = useState('first_term'); // 'first_term' (الفصل الأول) | 'final_term' (الفصل الأخير)
   const [stuId, setStuId] = useState(selectedStudentId || safeStudents[0]?.id);
   const [reportSearchTerm, setReportSearchTerm] = useState('');
@@ -330,28 +330,7 @@ export const ReportsModule = () => {
         </div>
 
         {/* Report Type Selection Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          
-          {/* Academic Report Card */}
-          <div
-            onClick={() => setReportType('academic')}
-            className={`interactive-card p-6 rounded-3xl border-2 transition-all cursor-pointer space-y-3 shadow-sm ${
-              reportType === 'academic'
-                ? 'bg-[#F8FAFC] dark:bg-[#1E293B] border-[#0284C7] ring-1 ring-[#0284C7]'
-                : 'bg-white dark:bg-[#0F172A] border-[#E2E8F0] dark:border-[#334155] hover:border-slate-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-3 bg-[#0284C7]/10 text-[#0284C7] rounded-2xl">
-                <GraduationCap className="w-6 h-6" />
-              </div>
-              {reportType === 'academic' && <CheckCircle2 className="w-5 h-5 text-[#0284C7]" />}
-            </div>
-            <h3 className="text-base font-bold text-[#0F172A] dark:text-white">{t('academicReport')}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              {isAr ? "كشف درجات الطالب الرسمية وترتيب الصف والمعدل العام والتقييمات." : "Official student grades, rank, GPA, and teacher performance notes."}
-            </p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           {/* Daily Marks Registry Card */}
           <div

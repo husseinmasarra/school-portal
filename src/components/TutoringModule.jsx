@@ -54,7 +54,7 @@ export const TutoringModule = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newTitleEn, setNewTitleEn] = useState('');
   const [newSubject, setNewSubject] = useState('الرياضيات');
-  const [newInstructor, setNewInstructor] = useState('أ. طارق عبد الله');
+  const [newInstructor, setNewInstructor] = useState('أ. مريم صالح');
   const [newDays, setNewDays] = useState('السبت والإثنين والأربعاء (4:00 - 6:00 مساءً)');
   const [newFee, setNewFee] = useState('50');
   const [newSeats, setNewSeats] = useState('20');

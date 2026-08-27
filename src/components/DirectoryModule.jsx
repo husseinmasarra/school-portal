@@ -1767,19 +1767,19 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم المعلم الكامل' : 'Teacher Name'} <span className="text-red-500">*</span></label>
-                <input type="text" required value={tchName} onChange={(e) => setTchName(e.target.value)} placeholder="أ. طارق عبد الله..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
+                <input type="text" required value={tchName} onChange={(e) => setTchName(e.target.value)} placeholder="أ. مريم صالح..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم المعلم (English)' : 'English Name'}</label>
-                <input type="text" value={tchNameEn} onChange={(e) => setTchNameEn(e.target.value)} placeholder="Tarek Abdallah..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
+                <input type="text" value={tchNameEn} onChange={(e) => setTchNameEn(e.target.value)} placeholder="Maryam Saleh..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{t('username')} <span className="text-red-500">*</span></label>
-                <input type="text" required value={tchUsername} onChange={(e) => setTchUsername(e.target.value)} placeholder="tarek.math..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#0284C7]" />
+                <input type="text" required value={tchUsername} onChange={(e) => setTchUsername(e.target.value)} placeholder="maryam.math..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#0284C7]" />
               </div>
 
               <div className="space-y-1">

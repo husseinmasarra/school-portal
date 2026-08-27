@@ -384,7 +384,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
   const [sectionName, setSectionName] = useState('الشعبة (أ)');
   const [sectionNameEn, setSectionNameEn] = useState('Section A');
   const [capacity, setCapacity] = useState('30');
-  const [supervisor, setSupervisor] = useState(safeTeachers[0]?.name || 'أ. طارق خوري');
+  const [supervisor, setSupervisor] = useState(safeTeachers[0]?.name || '');
   const [roomNumber, setRoomNumber] = useState('101');
 
   // Edit Grade Modal State

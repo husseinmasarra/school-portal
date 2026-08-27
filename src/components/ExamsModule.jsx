@@ -799,6 +799,8 @@ export const ExamsModule = () => {
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                   width: 100% !important;
+                  height: 100% !important;
+                  direction: rtl !important;
                 }
 
                 body > #root {
@@ -808,19 +810,35 @@ export const ExamsModule = () => {
                 .cert-print-backdrop {
                   all: unset !important;
                   display: block !important;
+                  position: absolute !important;
+                  top: 0 !important;
+                  left: 0 !important;
+                  right: 0 !important;
                   width: 100% !important;
                   margin: 0 !important;
                   padding: 0 !important;
                   background: #ffffff !important;
                 }
 
+                .cert-print-backdrop > div {
+                  all: unset !important;
+                  display: block !important;
+                  width: 100% !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  background: #ffffff !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                }
+
                 .print-cert-page {
                   all: unset !important;
                   display: block !important;
-                  width: 92% !important;
-                  max-width: 680px !important;
-                  margin: 0 auto 12px auto !important;
-                  padding: 16px 20px !important;
+                  position: relative !important;
+                  width: 185mm !important;
+                  max-width: 185mm !important;
+                  margin: 6mm auto !important;
+                  padding: 8mm 10mm !important;
                   background: #ffffff !important;
                   color: #000000 !important;
                   border: 3px double #0284C7 !important;

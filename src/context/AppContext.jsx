@@ -1257,30 +1257,30 @@ export const AppProvider = ({ children }) => {
     if (payVal <= 0) return;
 
     setStudents((prev) => {
-      // 1. Find target student to identify family
-      const targetStu = prev.find(s => s.id === studentId || s.name === studentId || String(s.id) === String(studentId));
+      if (!Array.isArray(prev)) return prev;
+
+      const targetStu = prev.find(s => s && (s.id === studentId || s.name === studentId || String(s.id) === String(studentId)));
       if (!targetStu) return prev;
 
-      const phoneKey = String(targetStu.parentPhone || targetStu.phone || targetStu.id || '').trim();
+      const targetPhone = (targetStu.parentPhone || targetStu.phone || '').toString().trim();
 
-      // 2. Find ALL active (non-frozen) family members
-      const familyActiveMembers = prev.filter(s => {
-        if (s.frozen) return false;
-        if (!s.parentPhone && !targetStu.parentPhone) return s.id === targetStu.id;
-        const sPhone = String(s.parentPhone || s.phone || '').trim();
-        return sPhone && sPhone === phoneKey;
+      // Find active family members sharing the same phone
+      const activeMembers = prev.filter(s => {
+        if (!s || s.frozen) return false;
+        if (s.id === targetStu.id) return true;
+        if (!targetPhone) return false;
+        const sPhone = (s.parentPhone || s.phone || '').toString().trim();
+        return sPhone && sPhone === targetPhone;
       });
 
-      // 3. Split payment equally among active family members
-      const activeMembers = familyActiveMembers.length > 0 ? familyActiveMembers : [targetStu];
-      const memberCount = activeMembers.length;
-      const sharePerMember = payVal / memberCount;
-      const activeIdsSet = new Set(activeMembers.map(m => m.id));
+      const membersToCredit = activeMembers.length > 0 ? activeMembers : [targetStu];
+      const sharePerMember = payVal / membersToCredit.length;
+      const creditIdsSet = new Set(membersToCredit.map(m => m.id));
 
       const updated = prev.map((s) => {
-        if (activeIdsSet.has(s.id)) {
+        if (s && creditIdsSet.has(s.id)) {
           const currentPaid = Number(s.tuitionPaid || 0);
-          return { ...s, tuitionPaid: currentPaid + sharePerMember };
+          return { ...s, tuitionPaid: Math.round((currentPaid + sharePerMember) * 100) / 100 };
         }
         return s;
       });

@@ -118,75 +118,82 @@ export const TuitionModule = () => {
     if (e && e.preventDefault) e.preventDefault();
     if (!selectedStudentForPay) return;
 
-    const amountUSD = Number(payAmount);
-    if (!amountUSD || amountUSD <= 0) {
-      alert(isAr ? '⚠️ يرجى إدخال مبلغ دفعة صحيح (أكبر من صفر)' : 'Please enter a valid payment amount (> 0)');
-      return;
+    try {
+      const amountUSD = Number(payAmount);
+      if (!amountUSD || amountUSD <= 0) {
+        alert(isAr ? '⚠️ يرجى إدخال مبلغ دفعة صحيح (أكبر من صفر)' : 'Please enter a valid payment amount (> 0)');
+        return;
+      }
+
+      const stuId = selectedStudentForPay.id;
+
+      // 1. Deduct immediately in AppContext (updates tuitionPaid and persists)
+      payTuition(stuId, amountUSD, payMethod);
+
+      // 2. Save entry to payment history log for this student
+      const existingHistory = paymentHistory[stuId] || [];
+      const newEntry = {
+        id: `PAY-${Date.now()}`,
+        amount: amountUSD,
+        date: new Date().toISOString().split('T')[0],
+        desc: payDesc || 'دفعة مالية',
+        method: payMethod
+      };
+      const updatedHistory = {
+        ...paymentHistory,
+        [stuId]: [newEntry, ...existingHistory]
+      };
+      savePaymentHistory(updatedHistory);
+
+      // 3. Compute new remaining amount for the receipt
+      const totalTuition = Number(selectedStudentForPay.tuitionTotal) || 600;
+      const adminFees = Number(selectedStudentForPay.adminFees) || 0;
+      const transportFee = selectedStudentForPay.hasTransport ? (Number(selectedStudentForPay.transportFee) || 0) : 0;
+      const discount = Number(selectedStudentForPay.tuitionDiscount) || 0;
+      const oldPaid = Number(selectedStudentForPay.tuitionPaid) || 0;
+      const newPaid = oldPaid + amountUSD;
+      const remainingUSD = Math.max(0, totalTuition + adminFees + transportFee - discount - newPaid);
+
+      // 4. Get active siblings for this family so all student names appear on the receipt
+      const phoneKey = (selectedStudentForPay.parentPhone || selectedStudentForPay.phone || selectedStudentForPay.id || '').toString().trim();
+      const familySiblings = safeStudents.filter(s => {
+        if (!s) return false;
+        if (!s.parentPhone && !selectedStudentForPay.parentPhone) return s.id === selectedStudentForPay.id;
+        const sPhone = (s.parentPhone || s.phone || '').toString().trim();
+        return sPhone && sPhone === phoneKey;
+      });
+
+      const allStudentNames = familySiblings.length > 0
+        ? familySiblings.map(s => isAr ? (s.name || s.nameEn) : (s.nameEn || s.name)).join(' • ')
+        : (isAr ? selectedStudentForPay.name : (selectedStudentForPay.nameEn || selectedStudentForPay.name));
+
+      const isMultiSib = familySiblings.length > 1;
+      const stuNameStr = String(selectedStudentForPay.name || selectedStudentForPay.nameEn || 'تلميذ');
+      const parentNameVal = selectedStudentForPay.parentName || `عائلة ${stuNameStr.split(' ').slice(-1)[0]}`;
+
+      // 5. Open official receipt modal
+      const receipt = {
+        receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
+        date: new Date().toISOString().split('T')[0],
+        parentName: parentNameVal,
+        studentName: allStudentNames,
+        grade: isMultiSib ? `عائلة (${familySiblings.length} إخوة)` : (isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn),
+        amountUSD: amountUSD,
+        amountLBP: 0,
+        method: payMethod,
+        remainingUSD: remainingUSD
+      };
+
+      setPayAmount('');
+      setPayDesc('دفعة من القسط المدرسي');
+      setSelectedStudentForPay(null);
+      setShowReceiptModal(receipt);
+      setSuccessToast(true);
+      setTimeout(() => setSuccessToast(false), 4000);
+    } catch (err) {
+      console.error('Error submitting tuition payment:', err);
+      alert(isAr ? `حدث خطأ أثناء حفظ الدفعة: ${err.message}` : `Error saving payment: ${err.message}`);
     }
-
-    const stuId = selectedStudentForPay.id;
-
-    // 1. Deduct immediately in AppContext (updates tuitionPaid and persists)
-    payTuition(stuId, amountUSD, payMethod);
-
-    // 2. Save entry to payment history log for this student
-    const existingHistory = paymentHistory[stuId] || [];
-    const newEntry = {
-      id: `PAY-${Date.now()}`,
-      amount: amountUSD,
-      date: new Date().toISOString().split('T')[0],
-      desc: payDesc || 'دفعة مالية',
-      method: payMethod
-    };
-    const updatedHistory = {
-      ...paymentHistory,
-      [stuId]: [newEntry, ...existingHistory]
-    };
-    savePaymentHistory(updatedHistory);
-
-    // 3. Compute new remaining amount for the receipt
-    const totalTuition = Number(selectedStudentForPay.tuitionTotal) || 600;
-    const adminFees = Number(selectedStudentForPay.adminFees) || 0;
-    const transportFee = selectedStudentForPay.hasTransport ? (Number(selectedStudentForPay.transportFee) || 0) : 0;
-    const discount = Number(selectedStudentForPay.tuitionDiscount) || 0;
-    const oldPaid = Number(selectedStudentForPay.tuitionPaid) || 0;
-    const newPaid = oldPaid + amountUSD;
-    const remainingUSD = Math.max(0, totalTuition + adminFees + transportFee - discount - newPaid);
-
-    // 4. Get active siblings for this family so all student names appear on the receipt
-    const phoneKey = String(selectedStudentForPay.parentPhone || selectedStudentForPay.phone || selectedStudentForPay.id || '').trim();
-    const familySiblings = safeStudents.filter(s => {
-      if (!s.parentPhone && !selectedStudentForPay.parentPhone) return s.id === selectedStudentForPay.id;
-      const sPhone = String(s.parentPhone || s.phone || '').trim();
-      return sPhone && sPhone === phoneKey;
-    });
-
-    const allStudentNames = familySiblings.length > 0
-      ? familySiblings.map(s => isAr ? s.name : (s.nameEn || s.name)).join(' • ')
-      : (isAr ? selectedStudentForPay.name : selectedStudentForPay.nameEn);
-
-    const isMultiSib = familySiblings.length > 1;
-    const parentNameVal = selectedStudentForPay.parentName || `عائلة ${selectedStudentForPay.name.split(' ').slice(-1)[0]}`;
-
-    // 5. Open official receipt modal
-    const receipt = {
-      receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
-      date: new Date().toISOString().split('T')[0],
-      parentName: parentNameVal,
-      studentName: allStudentNames,
-      grade: isMultiSib ? `عائلة (${familySiblings.length} إخوة)` : (isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn),
-      amountUSD: amountUSD,
-      amountLBP: 0,
-      method: payMethod,
-      remainingUSD: remainingUSD
-    };
-
-    setPayAmount('');
-    setPayDesc('دفعة من القسط المدرسي');
-    setSelectedStudentForPay(null);
-    setShowReceiptModal(receipt);
-    setSuccessToast(true);
-    setTimeout(() => setSuccessToast(false), 4000);
   };
 
   const handleDeleteHistoryEntry = (stuId, entryId, amount) => {

@@ -1329,9 +1329,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     const mn = e.target.value;
                     setStuFatherName(mn);
                     setStuName(`${stuFirstName} ${mn} ${stuLastName}`.trim());
-                    if (!stuParentName) {
-                      setStuParentName(`${mn} ${stuLastName}`.trim());
-                    }
+                    setStuParentName(`${mn} ${stuLastName}`.trim());
                     const genUser = arabicToLatinUsername(stuFirstName, mn, stuLastName);
                     if (genUser) setStuUsername(genUser);
                   }} 
@@ -1350,9 +1348,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     const ln = e.target.value;
                     setStuLastName(ln);
                     setStuName(`${stuFirstName} ${stuFatherName} ${ln}`.trim());
-                    if (!stuParentName || stuParentName === stuFatherName) {
-                      setStuParentName(`${stuFatherName} ${ln}`.trim());
-                    }
+                    setStuParentName(`${stuFatherName} ${ln}`.trim());
                     const genUser = arabicToLatinUsername(stuFirstName, stuFatherName, ln);
                     if (genUser) setStuUsername(genUser);
                   }} 

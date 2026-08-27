@@ -9,6 +9,7 @@ import {
   Trophy,
   Search,
   Printer,
+  FolderArchive,
   X
 } from 'lucide-react';
 
@@ -112,7 +113,13 @@ export const ExamsModule = () => {
   const selectedSubject = safeSubjects.find(s => s.id === selectedSubjectId) || safeSubjects[0] || { id: 'SUB-01', name: 'الرياضيات' };
 
   // Matrix marks state: key is `${studentId}_${subjectId}` -> numeric score string
-  const [matrixMarks, setMatrixMarks] = useState({});
+  const [matrixMarks, setMatrixMarks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('school_matrix_marks');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {};
+  });
   const [savedToast, setSavedToast] = useState(false);
   const [savedToastMsg, setSavedToastMsg] = useState('');
 
@@ -126,6 +133,13 @@ export const ExamsModule = () => {
   const [printableReportsList, setPrintableReportsList] = useState(null);
   const [certificateType, setCertificateType] = useState(() => activeTerm === 'final_term' ? 'end_year' : 'mid_year'); // 'mid_year' | 'end_year'
 
+  // Persist matrixMarks to localStorage whenever it updates
+  React.useEffect(() => {
+    if (Object.keys(matrixMarks).length > 0) {
+      localStorage.setItem('school_matrix_marks', JSON.stringify(matrixMarks));
+    }
+  }, [matrixMarks]);
+
   const getCellVal = (stuId, subId) => {
     if (activeTerm === 'final_term') {
       const val = matrixMarks[`${stuId}_${subId}_final_term`];
@@ -137,18 +151,17 @@ export const ExamsModule = () => {
   };
 
   const handleCellChange = (stuId, subId, newScore) => {
-    if (activeTerm === 'final_term') {
-      setMatrixMarks(prev => ({
-        ...prev,
-        [`${stuId}_${subId}_final_term`]: newScore
-      }));
-    } else {
-      setMatrixMarks(prev => ({
-        ...prev,
-        [`${stuId}_${subId}_first_term`]: newScore,
-        [`${stuId}_${subId}`]: newScore
-      }));
-    }
+    setMatrixMarks(prev => {
+      const updated = { ...prev };
+      if (activeTerm === 'final_term') {
+        updated[`${stuId}_${subId}_final_term`] = newScore;
+      } else {
+        updated[`${stuId}_${subId}_first_term`] = newScore;
+        updated[`${stuId}_${subId}`] = newScore;
+      }
+      localStorage.setItem('school_matrix_marks', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const toggleStudentSelection = (stuId) => {
@@ -651,6 +664,17 @@ export const ExamsModule = () => {
                 className="btn-mustard px-5 py-2 rounded-2xl text-xs font-black shadow hover:scale-105 transition-all flex items-center gap-2 cursor-pointer shrink-0"
               >
                 <span>حفظ وتثبيت كافة درجات جميع الطلاب 💾</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.hash = '#/archive';
+                }}
+                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-2xl text-xs font-black shadow hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <FolderArchive className="w-4 h-4 text-amber-300" />
+                <span>أرشيف الفصول والسنوات السابقة 📁</span>
               </button>
             </div>
           </div>

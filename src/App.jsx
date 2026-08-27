@@ -21,6 +21,7 @@ import { SettingsModule } from './components/SettingsModule';
 import { UsersModule } from './components/UsersModule';
 import { AttendanceModule } from './components/AttendanceModule';
 import { BehaviorModule } from './components/BehaviorModule';
+import { ArchiveModule } from './components/ArchiveModule';
 import { GraduationCap } from 'lucide-react';
 
 const MainContent = () => {
@@ -142,6 +143,7 @@ const MainContent = () => {
         {activeTab === 'teachers' && (currentRole === 'admin' || currentRole === 'teacher') && <DirectoryModule initialSubTab="teachers" />}
         {activeTab === 'attendance' && <AttendanceModule />}
         {activeTab === 'behavior' && <BehaviorModule />}
+        {activeTab === 'archive' && <ArchiveModule />}
         {activeTab === 'users' && currentRole === 'admin' && <UsersModule />}
         {activeTab === 'settings' && currentRole === 'admin' && <SettingsModule />}
       </main>

@@ -288,12 +288,20 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
                     </div>
                   </button>
                   {currentRole === 'admin' && (
-                    <button onClick={() => handleNavClick('documents', 'academic')} className={getItemClass('documents', true)}>
-                      <div className="flex items-center gap-2">
-                        <FolderArchive className="w-3.5 h-3.5 text-sky-200" />
-                        <span>{isAr ? 'أرشفة الوثائق الثبوتية' : 'Documents Archiving'}</span>
-                      </div>
-                    </button>
+                    <>
+                      <button onClick={() => handleNavClick('documents', 'academic')} className={getItemClass('documents', true)}>
+                        <div className="flex items-center gap-2">
+                          <FolderArchive className="w-3.5 h-3.5 text-sky-200" />
+                          <span>{isAr ? 'أرشفة الوثائق الثبوتية' : 'Documents Archiving'}</span>
+                        </div>
+                      </button>
+                      <button onClick={() => handleNavClick('archive', 'academic')} className={getItemClass('archive', true)}>
+                        <div className="flex items-center gap-2">
+                          <FolderArchive className="w-3.5 h-3.5 text-amber-300" />
+                          <span>{isAr ? 'أرشيف السنوات السابقة 📁' : 'Academic Years Archive 📁'}</span>
+                        </div>
+                      </button>
+                    </>
                   )}
                 </div>
               )}

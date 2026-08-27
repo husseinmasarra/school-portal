@@ -1333,30 +1333,50 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الشعبة' : 'Section Name'}</label>
-                <input type="text" required value={sectionName} onChange={(e) => setSectionName(e.target.value)} placeholder="الشعبة (أ)..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none" />
+                <input type="text" required value={sectionName} onChange={(e) => setSectionName(e.target.value)} placeholder="الشعبة (أ)..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none font-bold" />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'رقم القاعة' : 'Room Number'}</label>
-                <input type="text" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} placeholder="101" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none" />
+                <input type="text" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} placeholder="101" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'السعة القصوى (طالب)' : 'Max Student Capacity'}</label>
-                <input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none" />
+                <input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'المعلم المشرف' : 'Class Supervisor'}</label>
-                <input type="text" value={supervisor} onChange={(e) => setSupervisor(e.target.value)} placeholder="أ. طارق خوري..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none" />
+                <select
+                  value={supervisor}
+                  onChange={(e) => setSupervisor(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
+                >
+                  {safeTeachers.length === 0 ? (
+                    <option value="أ. طارق خوري">أ. طارق خوري</option>
+                  ) : (
+                    safeTeachers.map((tch) => (
+                      <option key={tch.id} value={tch.name}>
+                        {isAr ? tch.name : (tch.nameEn || tch.name)} {tch.subject ? `(${tch.subject})` : ''}
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-              <button type="button" onClick={() => setShowAddClassroomModal(false)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
-              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">{t('save')}</button>
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button type="button" onClick={() => setShowAddClassroomModal(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5">
+                <span>إلغاء</span>
+                <span>✕</span>
+              </button>
+              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center gap-1.5">
+                <span>حفظ واعتماد</span>
+                <span>💾</span>
+              </button>
             </div>
           </form>
         </div>,
@@ -1470,30 +1490,50 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الشعبة' : 'Section Name'}</label>
-                <input type="text" required value={editSectionName} onChange={(e) => setEditSectionName(e.target.value)} placeholder="الشعبة (أ)..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none" />
+                <input type="text" required value={editSectionName} onChange={(e) => setEditSectionName(e.target.value)} placeholder="الشعبة (أ)..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none font-bold" />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'رقم القاعة' : 'Room Number'}</label>
-                <input type="text" value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} placeholder="101" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none" />
+                <input type="text" value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} placeholder="101" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'السعة القصوى (طالب)' : 'Max Student Capacity'}</label>
-                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none" />
+                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-[#0F172A] font-semibold">{isAr ? 'المعلم المشرف' : 'Class Supervisor'}</label>
-                <input type="text" value={editSupervisor} onChange={(e) => setEditSupervisor(e.target.value)} placeholder="أ. طارق خوري..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none" />
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'المعلم المشرف' : 'Class Supervisor'}</label>
+                <select
+                  value={editSupervisor}
+                  onChange={(e) => setEditSupervisor(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer font-bold"
+                >
+                  {safeTeachers.length === 0 ? (
+                    <option value="أ. طارق خوري">أ. طارق خوري</option>
+                  ) : (
+                    safeTeachers.map((tch) => (
+                      <option key={tch.id} value={tch.name}>
+                        {isAr ? tch.name : (tch.nameEn || tch.name)} {tch.subject ? `(${tch.subject})` : ''}
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-              <button type="button" onClick={() => setEditingClassroom(null)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
-              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">{t('save')}</button>
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button type="button" onClick={() => setEditingClassroom(null)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5">
+                <span>إلغاء</span>
+                <span>✕</span>
+              </button>
+              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center gap-1.5">
+                <span>حفظ واعتماد</span>
+                <span>💾</span>
+              </button>
             </div>
           </form>
         </div>,

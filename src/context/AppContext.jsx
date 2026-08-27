@@ -915,6 +915,16 @@ export const AppProvider = ({ children }) => {
     setGrades((prev) => {
       const updated = [...prev, newGrade];
       localStorage.setItem('school_grades', JSON.stringify(updated));
+      dbSaveCollection('school_grades', updated);
+      return updated;
+    });
+  };
+
+  const updateGrade = (id, updatedFields) => {
+    setGrades((prev) => {
+      const updated = prev.map((g) => (g.id === id ? { ...g, ...updatedFields } : g));
+      localStorage.setItem('school_grades', JSON.stringify(updated));
+      dbSaveCollection('school_grades', updated);
       return updated;
     });
   };
@@ -923,6 +933,7 @@ export const AppProvider = ({ children }) => {
     setGrades((prev) => {
       const updated = prev.filter((g) => g.id !== id);
       localStorage.setItem('school_grades', JSON.stringify(updated));
+      dbSaveCollection('school_grades', updated);
       return updated;
     });
   };
@@ -935,6 +946,16 @@ export const AppProvider = ({ children }) => {
     setClassrooms((prev) => {
       const updated = [...prev, newClass];
       localStorage.setItem('school_classrooms', JSON.stringify(updated));
+      dbSaveCollection('school_classrooms', updated);
+      return updated;
+    });
+  };
+
+  const updateClassroom = (id, updatedFields) => {
+    setClassrooms((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...updatedFields } : c));
+      localStorage.setItem('school_classrooms', JSON.stringify(updated));
+      dbSaveCollection('school_classrooms', updated);
       return updated;
     });
   };
@@ -943,6 +964,7 @@ export const AppProvider = ({ children }) => {
     setClassrooms((prev) => {
       const updated = prev.filter((c) => c.id !== id);
       localStorage.setItem('school_classrooms', JSON.stringify(updated));
+      dbSaveCollection('school_classrooms', updated);
       return updated;
     });
   };
@@ -1727,9 +1749,11 @@ export const AppProvider = ({ children }) => {
     deleteSubject,
     grades,
     addGrade,
+    updateGrade,
     deleteGrade,
     classrooms,
     addClassroom,
+    updateClassroom,
     deleteClassroom,
     students,
     teachers,

@@ -28,9 +28,11 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     currentUser,
     grades = [], 
     addGrade, 
+    updateGrade,
     deleteGrade, 
     classrooms = [], 
     addClassroom, 
+    updateClassroom,
     deleteClassroom, 
     students = [], 
     teachers = [],
@@ -268,6 +270,24 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
   const [supervisor, setSupervisor] = useState(safeTeachers[0]?.name || 'أ. طارق خوري');
   const [roomNumber, setRoomNumber] = useState('101');
 
+  // Edit Grade Modal State
+  const [editingGrade, setEditingGrade] = useState(null);
+  const [editGradeName, setEditGradeName] = useState('');
+  const [editGradeNameEn, setEditGradeNameEn] = useState('');
+  const [editGradeStage, setEditGradeStage] = useState('التعليم الأساسي');
+  const [editGradeStageEn, setEditGradeStageEn] = useState('Primary School');
+  const [editGradeTuition, setEditGradeTuition] = useState('700');
+  const [editGradeColor, setEditGradeColor] = useState('#0284C7');
+
+  // Edit Classroom/Section Modal State
+  const [editingClassroom, setEditingClassroom] = useState(null);
+  const [editSectionGradeId, setEditSectionGradeId] = useState('');
+  const [editSectionName, setEditSectionName] = useState('الشعبة (أ)');
+  const [editSectionNameEn, setEditSectionNameEn] = useState('Section A');
+  const [editCapacity, setEditCapacity] = useState('30');
+  const [editSupervisor, setEditSupervisor] = useState('');
+  const [editRoomNumber, setEditRoomNumber] = useState('101');
+
   // View Class Roster Modal State
   const [showStudentsModal, setShowStudentsModal] = useState(null); // { title, gradeName, sectionName }
   const [modalSearchTerm, setModalSearchTerm] = useState('');
@@ -301,6 +321,24 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
+  const handleEditGradeSubmit = (e) => {
+    e.preventDefault();
+    if (!editingGrade || !editGradeName) return;
+
+    updateGrade(editingGrade.id, {
+      name: editGradeName,
+      nameEn: editGradeNameEn || editGradeName,
+      stage: editGradeStage,
+      stageEn: editGradeStageEn || editGradeStage,
+      tuitionFee: Number(editGradeTuition),
+      color: editGradeColor
+    });
+
+    setEditingGrade(null);
+    setSuccessMsg(isAr ? 'تم تعديل الصف الدراسي بنجاح!' : 'Grade updated successfully!');
+    setTimeout(() => setSuccessMsg(''), 4000);
+  };
+
   const handleAddClassroomSubmit = (e) => {
     e.preventDefault();
     if (!sectionName) return;
@@ -320,6 +358,27 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
     setSectionName('الشعبة (أ)');
     setShowAddClassroomModal(false);
     setSuccessMsg(isAr ? 'تم إضافة الشعبة والقاعة الدراسية بنجاح!' : 'Classroom section added successfully!');
+    setTimeout(() => setSuccessMsg(''), 4000);
+  };
+
+  const handleEditClassroomSubmit = (e) => {
+    e.preventDefault();
+    if (!editingClassroom) return;
+
+    const parentGrade = safeGrades.find((g) => g.id === editSectionGradeId) || safeGrades[0];
+
+    updateClassroom(editingClassroom.id, {
+      gradeId: parentGrade ? parentGrade.id : editSectionGradeId,
+      gradeName: parentGrade ? parentGrade.name : 'الصف الدراسي',
+      sectionName: editSectionName,
+      sectionNameEn: editSectionNameEn || editSectionName,
+      capacity: Number(editCapacity),
+      supervisor: editSupervisor,
+      roomNumber: editRoomNumber
+    });
+
+    setEditingClassroom(null);
+    setSuccessMsg(isAr ? 'تم تعديل الشعبة والقاعة الدراسية بنجاح!' : 'Classroom section updated successfully!');
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
@@ -495,16 +554,35 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   </div>
 
                   {currentRole === 'admin' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteGrade(grd.id);
-                      }}
-                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all cursor-pointer"
-                      title={t('delete')}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingGrade(grd);
+                          setEditGradeName(grd.name);
+                          setEditGradeNameEn(grd.nameEn || grd.name);
+                          setEditGradeStage(grd.stage || 'التعليم الأساسي');
+                          setEditGradeStageEn(grd.stageEn || 'Primary School');
+                          setEditGradeTuition((grd.tuitionFee || 700).toString());
+                          setEditGradeColor(grd.color || '#0284C7');
+                        }}
+                        className="p-2 bg-sky-50 hover:bg-sky-100 text-[#0284C7] rounded-xl transition-all cursor-pointer"
+                        title={isAr ? 'تعديل الصف' : 'Edit Grade'}
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteGrade(grd.id);
+                        }}
+                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all cursor-pointer"
+                        title={t('delete')}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -590,16 +668,35 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   </div>
 
                   {currentRole === 'admin' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteClassroom(cls.id);
-                      }}
-                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all cursor-pointer"
-                      title={t('delete')}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingClassroom(cls);
+                          setEditSectionGradeId(cls.gradeId || safeGrades.find(g => g.name === cls.gradeName)?.id || safeGrades[0]?.id);
+                          setEditSectionName(cls.sectionName || 'الشعبة (أ)');
+                          setEditSectionNameEn(cls.sectionNameEn || 'Section A');
+                          setEditCapacity((cls.capacity || '30').toString());
+                          setEditSupervisor(cls.supervisor || '');
+                          setEditRoomNumber(cls.roomNumber || '101');
+                        }}
+                        className="p-2 bg-sky-50 hover:bg-sky-100 text-[#0284C7] rounded-xl transition-all cursor-pointer"
+                        title={isAr ? 'تعديل الشعبة' : 'Edit Section'}
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteClassroom(cls.id);
+                        }}
+                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all cursor-pointer"
+                        title={t('delete')}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -1223,6 +1320,143 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
 
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
               <button type="button" onClick={() => setShowAddClassroomModal(false)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
+              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">{t('save')}</button>
+            </div>
+          </form>
+        </div>,
+        document.body
+      )}
+
+      {/* Edit Grade Modal - Teleported to document.body */}
+      {editingGrade && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <form
+            onSubmit={handleEditGradeSubmit}
+            className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-[#0284C7]" />
+                <span>{isAr ? `تعديل بيانات الصف الدراسي (${editingGrade.name})` : 'Edit Grade'}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingGrade(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الصف الدراسي (عربي)' : 'Grade Name (Arabic)'} <span className="text-red-500">*</span></label>
+              <input type="text" required value={editGradeName} onChange={(e) => setEditGradeName(e.target.value)} placeholder="الصف الخامس الابتدائي..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">{isAr ? 'Grade Name (English)' : 'Grade Name (English)'}</label>
+              <input type="text" value={editGradeNameEn} onChange={(e) => setEditGradeNameEn(e.target.value)} placeholder="Grade 5 Elementary..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'المرحلة التعليمية' : 'Educational Stage'}</label>
+                <select value={editGradeStage} onChange={(e) => setEditGradeStage(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none">
+                  <option value="التعليم الأساسي">التعليم الأساسي (Primary)</option>
+                  <option value="التعليم المتوسط">التعليم المتوسط (Middle)</option>
+                  <option value="التعليم الثانوي">التعليم الثانوي (High School)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'القسط السنوي ($ USD)' : 'Tuition Fee ($ USD)'}</label>
+                <input type="number" value={editGradeTuition} onChange={(e) => setEditGradeTuition(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 block">{isAr ? 'لون كرت الصف:' : 'Grade Theme Color:'}</label>
+              <div className="flex items-center gap-2">
+                {presetColors.map((col) => (
+                  <button
+                    key={col.hex}
+                    type="button"
+                    onClick={() => setEditGradeColor(col.hex)}
+                    className={`w-7 h-7 rounded-full border-2 transition-all cursor-pointer ${
+                      editGradeColor === col.hex ? 'border-slate-800 scale-110 shadow' : 'border-transparent opacity-80'
+                    }`}
+                    style={{ backgroundColor: col.hex }}
+                    title={col.label}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button type="button" onClick={() => setEditingGrade(null)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
+              <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">{t('save')}</button>
+            </div>
+          </form>
+        </div>,
+        document.body
+      )}
+
+      {/* Edit Classroom Section Modal - Teleported to document.body */}
+      {editingClassroom && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <form
+            onSubmit={handleEditClassroomSubmit}
+            className="bg-white border-2 border-[#0284C7] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-up text-[#0F172A] relative"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-[#0284C7] flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-[#0284C7]" />
+                <span>{isAr ? `تعديل بيانات الشعبة (${editingClassroom.sectionName})` : 'Edit Section Classroom'}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingClassroom(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">{isAr ? 'الصف التابع له' : 'Parent Grade'} <span className="text-red-500">*</span></label>
+              <select value={editSectionGradeId} onChange={(e) => setEditSectionGradeId(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer">
+                {safeGrades.map((g) => (
+                  <option key={g.id} value={g.id}>{isAr ? g.name : g.nameEn}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'اسم الشعبة' : 'Section Name'}</label>
+                <input type="text" required value={editSectionName} onChange={(e) => setEditSectionName(e.target.value)} placeholder="الشعبة (أ)..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none" />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'رقم القاعة' : 'Room Number'}</label>
+                <input type="text" value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} placeholder="101" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'السعة القصوى (طالب)' : 'Max Student Capacity'}</label>
+                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none" />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-[#0F172A] font-semibold">{isAr ? 'المعلم المشرف' : 'Class Supervisor'}</label>
+                <input type="text" value={editSupervisor} onChange={(e) => setEditSupervisor(e.target.value)} placeholder="أ. طارق خوري..." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none" />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button type="button" onClick={() => setEditingClassroom(null)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
               <button type="submit" className="px-5 py-2 btn-mustard rounded-xl text-xs font-bold shadow cursor-pointer">{t('save')}</button>
             </div>
           </form>

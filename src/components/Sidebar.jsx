@@ -230,45 +230,20 @@ export const Sidebar = ({ activeTab: activeTabProp, setActiveTab: setActiveTabPr
             </button>
           )}
 
-          {/* ── 3. التقييم والنتائج والأداء ── */}
-          {/* 3.1 الاختبارات والنتائج (للجميع) */}
-          <div className="space-y-1">
-            <button
-              onClick={() => toggleSection('exams', 'exams', 'academic')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'exams' || activeTab === 'reports'
-                  ? 'bg-[#032541] dark:bg-zinc-900 text-white shadow-md border border-sky-400/40'
-                  : 'text-white/90 hover:bg-white/12 dark:hover:bg-zinc-900/60 border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Award className="w-4 h-4 text-amber-300" />
-                <span>
-                  {currentRole === 'student' || currentRole === 'parent'
-                    ? (isAr ? 'النتائج والشهادات الدراسية' : 'Grades & Report Cards')
-                    : (isAr ? 'الاختبارات والنتائج' : 'Exams & Grades')}
-                </span>
-              </div>
-              {openSections.exams ? <ChevronUp className="w-3.5 h-3.5 text-white/70" /> : <ChevronDown className="w-3.5 h-3.5 text-white/70" />}
-            </button>
-
-            {openSections.exams && (
-              <div className={`space-y-1 text-xs animate-fade-in ${isAr ? 'pr-6 border-r-2' : 'pl-6 border-l-2'} border-white/20 my-1`}>
-                <button onClick={() => handleNavClick('exams', 'academic')} className={getItemClass('exams', true)}>
-                  <div className="flex items-center gap-2">
-                    <Award className="w-3.5 h-3.5 text-amber-300" />
-                    <span>{currentRole === 'student' || currentRole === 'parent' ? (isAr ? 'علاماتي الدراسية' : 'My Grades') : (isAr ? 'إدخال العلامات' : 'Enter Marks')}</span>
-                  </div>
-                </button>
-                <button onClick={() => handleNavClick('reports', 'academic')} className={getItemClass('reports', true)}>
-                  <div className="flex items-center gap-2">
-                    <Printer className="w-3.5 h-3.5 text-sky-200" />
-                    <span>{isAr ? 'طباعة الشهادة الأكاديمية' : 'Academic Report Card'}</span>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
+          {/* 3.1 إدخال العلامات والنتائج */}
+          <button
+            onClick={() => handleNavClick('exams', 'academic')}
+            className={getItemClass('exams')}
+          >
+            <div className="flex items-center gap-3">
+              <Award className="w-4 h-4 text-amber-300" />
+              <span>
+                {currentRole === 'student' || currentRole === 'parent'
+                  ? (isAr ? 'علاماتي الدراسية' : 'My Grades')
+                  : (isAr ? 'إدخال العلامات' : 'Enter Marks')}
+              </span>
+            </div>
+          </button>
 
           {/* 3.2 سجل الحضور والغياب (للجميع) */}
           <button

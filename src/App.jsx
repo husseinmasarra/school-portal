@@ -131,13 +131,13 @@ const MainContent = () => {
         {activeTab === 'messages' && <MessagesModule />}
         {activeTab === 'agenda' && <AgendaModule />}
         {activeTab === 'exams' && <ExamsModule />}
+        {activeTab === 'reports' && <ExamsModule />}
         {activeTab === 'documents' && currentRole === 'admin' && <DocumentsModule />}
         {activeTab === 'bus' && <BusModule />}
         {activeTab === 'tuition' && currentRole === 'admin' && <TuitionModule />}
         {activeTab === 'finance' && currentRole === 'admin' && <FinanceModule />}
         {activeTab === 'tutoring' && <TutoringModule />}
         {activeTab === 'subjects' && <SubjectsModule />}
-        {activeTab === 'reports' && <ReportsModule />}
         {activeTab === 'directory' && (currentRole === 'admin' || currentRole === 'teacher') && <DirectoryModule initialSubTab="students" />}
         {activeTab === 'teachers' && (currentRole === 'admin' || currentRole === 'teacher') && <DirectoryModule initialSubTab="teachers" />}
         {activeTab === 'attendance' && <AttendanceModule />}

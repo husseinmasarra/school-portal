@@ -182,6 +182,19 @@ export const ExamsModule = () => {
     };
   }, [printableReportsList]);
 
+  // Close any open modals when pressing ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        setPrintableReportsList(null);
+        setShowAddExamModal(false);
+        setShowGradeModal(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Pre-fill matrixMarks from existing scores on initial load
   React.useEffect(() => {
     if (safeStudents.length > 0 && safeSubjects.length > 0 && getStudentSubjectScores) {

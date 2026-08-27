@@ -54,6 +54,19 @@ export const SettingsModule = () => {
   const [clearDemoPasswordInput, setClearDemoPasswordInput] = useState('');
   const [clearDemoPasswordError, setClearDemoPasswordError] = useState('');
 
+  // Close any open modals when pressing ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        setShowArchivesModal(false);
+        setShowClearDemoModal(false);
+        setShowNewYearModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Dynamically resolve current Admin password
   const adminAccount = (systemUsers || []).find(u => u.role === 'admin' || u.username === 'admin');
   const currentAdminPassword = adminAccount?.password || '123123123';

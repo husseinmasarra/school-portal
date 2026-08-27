@@ -96,6 +96,19 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
 
   const [showAddSlotModal, setShowAddSlotModal] = useState(false);
 
+  // Close any open modals when pressing ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        setShowAddSlotModal(false);
+        setShowAddGradeModal(false);
+        setShowAddClassroomModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const [slotTeacherId, setSlotTeacherId] = useState(safeTeachers[0]?.id || '');
   const [slotSubject, setSlotSubject] = useState(safeSubjects[0]?.name || '');
   const [slotGrade, setSlotGrade] = useState(safeGrades[0]?.name || 'الصف السادس الابتدائي');

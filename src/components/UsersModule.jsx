@@ -48,6 +48,18 @@ export const UsersModule = () => {
 
   // Edit System User Full Modal State
   const [editingSystemUser, setEditingSystemUser] = useState(null);
+
+  // Close any open modals when pressing ESC key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        setShowAddUserModal(false);
+        setEditingSystemUser(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const [editUserName, setEditUserName] = useState('');
   const [editUserNameEn, setEditUserNameEn] = useState('');
   const [editUserUsername, setEditUserUsername] = useState('');

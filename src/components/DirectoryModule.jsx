@@ -195,6 +195,23 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   // Success Toast State
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Close any open modals when pressing ESC key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        setShowAddStudentModal(false);
+        setShowEditStudentModal(null);
+        setShowAddTeacherModal(false);
+        setShowEditTeacherModal(null);
+        setShowSendLessonModal(null);
+        setShowStudentDetailModal(null);
+        setStudentToPrint(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Handle Student Photo File Upload
   const handleStudentAvatarUpload = (e) => {
     const file = e.target.files[0];

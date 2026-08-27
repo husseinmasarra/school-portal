@@ -73,6 +73,19 @@ export const TuitionModule = () => {
     };
   }, [showReceiptModal]);
 
+  // Close any open modals when pressing ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        setShowReceiptModal(null);
+        setSelectedStudentForPay(null);
+        setShowPaymentPlanModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Active student for Parent / Student View
   const currentStudent = safeStudents.find((s) => s.id === selectedStudentId) || safeStudents[0];
   const isOverduePeriod = new Date().getDate() > 5;

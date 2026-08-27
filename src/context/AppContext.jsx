@@ -1284,7 +1284,7 @@ export const AppProvider = ({ children }) => {
         return s;
       });
 
-      localStorage.setItem('school_students', JSON.stringify(updated));
+      dbSaveCollection('school_students', updated);
       return updated;
     });
   };

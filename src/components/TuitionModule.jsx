@@ -793,7 +793,6 @@ export const TuitionModule = () => {
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-700">المبلغ المدفوع ($ USD) <span className="text-red-500">*</span></label>
               <input type="number" required min="1"
-                max={Math.max(1, (selectedStudentForPay.tuitionTotal || 600) - (selectedStudentForPay.tuitionPaid || 0))}
                 value={payAmount} onChange={(e) => setPayAmount(e.target.value)}
                 placeholder="مثال: 100 أو 200..."
                 className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-[#0284C7]" />

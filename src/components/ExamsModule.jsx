@@ -379,8 +379,27 @@ export const ExamsModule = () => {
     setTimeout(() => setSavedToast(false), 3500);
   };
 
-  // Sort Top Performing Roster
-  const topStudentsRoster = [...safeStudents].sort((a, b) => (b.gpa || 0) - (a.gpa || 0));
+  const getStudentLiveGpaPercentage = (stuId) => {
+    let stuTotalSum = 0;
+    let hasAnyMark = false;
+    safeSubjects.forEach(sub => {
+      const val = getCellVal(stuId, sub.id);
+      if (val !== undefined && val !== '' && val !== null) {
+        stuTotalSum += Number(val) || 0;
+        hasAnyMark = true;
+      }
+    });
+    if (!hasAnyMark) return 0;
+    const maxTotalScore = (safeSubjects.length || 1) * 100;
+    return Math.round((stuTotalSum / maxTotalScore) * 100);
+  };
+
+  // Sort Top Performing Roster based on live GPA
+  const topStudentsRoster = [...safeStudents].sort((a, b) => {
+    const gpaA = getStudentLiveGpaPercentage(a.id);
+    const gpaB = getStudentLiveGpaPercentage(b.id);
+    return gpaB - gpaA;
+  });
 
   return (
     <div className="space-y-6 animate-fade-in text-[#0F172A]">
@@ -395,7 +414,7 @@ export const ExamsModule = () => {
             <h2 className="text-xl font-bold text-[#0284C7]">{isAr ? 'الجدول الشامل لرصد العلامات والدرجات' : 'Master Grade Registry Sheet'}</h2>
             <p className="text-xs text-slate-500 mt-1">
               {isAr 
-                ? "رصد كافة علامات المواد في جدول موحد كملف Excel لحساب المجموع التراكمي E15 والمستوى فوراً."
+                ? "رصد كافة علامات المواد في جدول موحد كملف Excel لحساب المجموع التراكمي والمستوى فوراً."
                 : "Master spreadsheet layout to record all subject marks in one grid."}
             </p>
           </div>
@@ -440,20 +459,13 @@ export const ExamsModule = () => {
             {activeTerm === 'first_term' ? '📘' : '🔒'}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-black">
-                {activeTerm === 'first_term' ? 'مرحلة رصد علامات: الفصل الأول' : 'مرحلة رصد علامات: الفصل الأخير'}
-              </h4>
-              {activeTerm === 'final_term' && (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-black border border-emerald-400">
-                  🔒 مقفل على الفصل الأخير (غير قابل للرجوع)
-                </span>
-              )}
-            </div>
-            <p className="text-xs opacity-85 mt-0.5 font-medium">
-              {activeTerm === 'first_term'
-                ? 'تتم عملية الإدخال حالياً لعلامات الفصل الأول. بمجرد طباعة إيصال/شهادة الفصل الأول سيتم التحول والاعتماد تلقائياً للفصل الأخير.'
-                : 'تمت طباعة واعتمد الفصل الأول بنجاح! تم قفل النظام وتوجيه الإدخال تلقائياً للفصل الأخير منعاً لأي خطأ حمايةً للبيانات.'}
+            <h3 className="font-black text-sm flex items-center gap-2">
+              <span>{activeTerm === 'first_term' ? 'رصد درجات: الفصل الأول 📘' : 'رصد درجات: الفصل الأخير 🎓 (مُعتمد ومقفل 🔒)'}</span>
+            </h3>
+            <p className="text-xs opacity-80 mt-0.5">
+              {activeTerm === 'first_term' 
+                ? 'يتم رصد درجات الفصل الأول هنا. عند طباعة إشعار/شهادة الفصل الأول، سيتحول النظام تلقائياً وبشكل دائم إلى الفصل الأخير مع تصفير الخانات.' 
+                : 'تم اعتماد وطباعة الفصل الأول بنجاح! العلامات الظاهرة الآن هي للفصل الأخير حمايةً لسجلات الفصل الأول من التعديل.'}
             </p>
           </div>
         </div>
@@ -477,22 +489,27 @@ export const ExamsModule = () => {
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {topStudentsRoster.slice(0, 3).map((stu, index) => (
-              <div key={stu.id} className="interactive-card bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0] flex items-center gap-3 shadow-sm hover:border-[#0284C7]/50">
-                <div className="relative">
-                  <img src={stu.avatar} alt={stu.name} className="w-12 h-12 rounded-full object-cover border-2 border-[#0284C7]" />
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF4444] text-white font-bold text-[10px] rounded-full flex items-center justify-center border border-white">
-                    #{index + 1}
-                  </span>
-                </div>
+            {topStudentsRoster.slice(0, 3).map((stu, index) => {
+              const liveGpa = getStudentLiveGpaPercentage(stu.id);
+              return (
+                <div key={stu.id} className="interactive-card bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0] flex items-center gap-3 shadow-sm hover:border-[#0284C7]/50">
+                  <div className="relative">
+                    <img src={stu.avatar} alt={stu.name} className="w-12 h-12 rounded-full object-cover border-2 border-[#0284C7]" />
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF4444] text-white font-bold text-[10px] rounded-full flex items-center justify-center border border-white">
+                      #{index + 1}
+                    </span>
+                  </div>
 
-                <div>
-                  <h4 className="text-xs font-bold text-[#0F172A]">{isAr ? stu.name : stu.nameEn}</h4>
-                  <p className="text-[11px] text-[#0284C7] font-semibold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom})</p>
-                  <span className="text-[10px] font-mono font-bold text-slate-500">GPA: {stu.gpa || 95}%</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#0F172A]">{getStudentTripleName(stu)}</h4>
+                    <p className="text-[11px] text-[#0284C7] font-semibold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})</p>
+                    <span className="text-[10px] font-mono font-bold text-slate-500">
+                      المعدل التراكمي: {liveGpa > 0 ? `${liveGpa}%` : '0%'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

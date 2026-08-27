@@ -584,6 +584,41 @@ export const ExamsModule = () => {
                 />
               </div>
 
+              {/* 📅 Active Term Selector Dropdown */}
+              <select
+                value={activeTerm}
+                onChange={(e) => {
+                  const newTerm = e.target.value;
+                  setActiveTerm(newTerm);
+                  localStorage.setItem('school_active_term', newTerm);
+                  setCertificateType(newTerm === 'final_term' ? 'end_year' : 'mid_year');
+
+                  if (newTerm === 'final_term') {
+                    const freshFinalMarks = {};
+                    safeStudents.forEach(stu => {
+                      safeSubjects.forEach(sub => {
+                        const k = `${stu.id}_${sub.id}_final_term`;
+                        if (matrixMarks[k] === undefined) {
+                          freshFinalMarks[k] = 0;
+                        }
+                      });
+                    });
+                    if (Object.keys(freshFinalMarks).length > 0) {
+                      setMatrixMarks(prev => ({ ...prev, ...freshFinalMarks }));
+                    }
+                  }
+                }}
+                className={`border-2 text-xs font-black rounded-2xl px-3 py-1.5 focus:outline-none cursor-pointer transition-all shadow-xs ${
+                  activeTerm === 'first_term'
+                    ? 'bg-sky-50 border-[#0284C7] text-[#0284C7]'
+                    : 'bg-emerald-50 border-emerald-600 text-emerald-800'
+                }`}
+                title="اختر الفصل الدراسي لرصد العلامات"
+              >
+                <option value="first_term">📘 الفصل الأول</option>
+                <option value="final_term">🎓 الفصل الأخير (يبدأ 0 لكل المواد)</option>
+              </select>
+
               {/* Grade Filter Dropdown */}
               <select
                 value={selectedGradeFilter}

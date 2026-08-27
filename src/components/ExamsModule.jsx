@@ -176,11 +176,15 @@ export const ExamsModule = () => {
     // 1. Save student marks first
     handleSaveStudentAllSubjects(stu.id);
 
-    // 2. Build breakdown of student subject scores
+    // 2. Build breakdown of student subject scores strictly for the chosen active term
+    const isFinalTermCert = certificateType === 'end_year' || activeTerm === 'final_term';
     let stuTotalSum = 0;
     const scoresBreakdown = safeSubjects.map(sub => {
-      const val = getCellVal(stu.id, sub.id);
-      const markNum = (val !== undefined && val !== '') ? Number(val) : 0;
+      const val = isFinalTermCert
+        ? matrixMarks[`${stu.id}_${sub.id}_final_term`]
+        : (matrixMarks[`${stu.id}_${sub.id}_first_term`] ?? matrixMarks[`${stu.id}_${sub.id}`]);
+
+      const markNum = (val !== undefined && val !== '' && val !== null) ? Number(val) : 0;
       stuTotalSum += markNum;
       return {
         subject: sub.name,
@@ -552,7 +556,7 @@ export const ExamsModule = () => {
                     <h4 className="text-xs font-bold text-[#0F172A]">{getStudentTripleName(stu)}</h4>
                     <p className="text-[11px] text-[#0284C7] font-semibold">{isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})</p>
                     <span className="text-[10px] font-mono font-bold text-slate-500">
-                      المعدل التراكمي: {liveGpa > 0 ? `${liveGpa}%` : '0%'}
+                      معدل الفصل الحالي: {liveGpa > 0 ? `${liveGpa}%` : '0%'}
                     </span>
                   </div>
                 </div>
@@ -1119,9 +1123,9 @@ export const ExamsModule = () => {
                       <h1 className="text-lg font-black tracking-wide">
                         {certificateType === 'mid_year'
                           ? '📘 كَشْفُ دَرَجَاتِ وَتَقْيِيمُ المَرْحَلَةِ الأُولَى (الفَصْلُ الأَوَّل)'
-                          : '🎓 الشَّهَادَةُ العَامَّةُ وَالتَّقْيِيمُ النِّهَائِي (الفَصْلُ الأَخِير)'}
+                          : '🎓 كَشْفُ دَرَجَاتِ وَتَقْيِيمُ المَرْحَلَةِ الثَّانِيَةِ (الفَصْلُ الأَخِير)'}
                       </h1>
-                      <span className="text-[10px] text-sky-100 font-bold block">ACADEMIC TRANSCRIPT & REPORT CARD</span>
+                      <span className="text-[10px] text-sky-100 font-bold block">ACADEMIC TERM TRANSCRIPT & REPORT CARD</span>
                     </div>
 
                     {/* Student Info Box */}
@@ -1135,11 +1139,11 @@ export const ExamsModule = () => {
                         <p className="text-xs font-bold text-[#0284C7]">{report.student.grade} ({report.student.classRoom || 'أ'})</p>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-400 font-bold block">المعدل المئوي العام:</span>
+                        <span className="text-[10px] text-slate-400 font-bold block">المعدل المئوي للفصل:</span>
                         <p className="text-xs font-black text-emerald-700">{percentage}%</p>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-400 font-bold block">التقدير الأكاديمي الشامل:</span>
+                        <span className="text-[10px] text-slate-400 font-bold block">التقدير الأكاديمي للفصل:</span>
                         <span className="px-2.5 py-0.5 bg-amber-100 text-amber-900 font-black rounded-lg text-xs border border-amber-300 inline-block mt-0.5">
                           {report.grandLevel}
                         </span>

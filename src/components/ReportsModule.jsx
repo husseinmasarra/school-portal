@@ -35,6 +35,7 @@ export const ReportsModule = () => {
   };
 
   const [reportType, setReportType] = useState('academic'); // academic, financial, attendance, daily_log
+  const [academicTerm, setAcademicTerm] = useState('first_term'); // 'first_term' (الفصل الأول) | 'final_term' (الفصل الأخير)
   const [stuId, setStuId] = useState(selectedStudentId || safeStudents[0]?.id);
   const [reportSearchTerm, setReportSearchTerm] = useState('');
   const [reportGradeFilter, setReportGradeFilter] = useState('all');
@@ -431,19 +432,53 @@ export const ReportsModule = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => window.print()}
-            className="btn-mustard flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold shadow transition-all cursor-pointer"
-          >
-            <Printer className="w-4 h-4" />
-            <span>
-              {reportType === 'academic' 
-                ? (isAr ? 'طباعة التقرير الأكاديمي 🖨️' : 'Print Academic Report 🖨️')
-                : reportType === 'financial'
-                ? (isAr ? 'طباعة الكشف المالي 🖨️' : 'Print Financial Statement 🖨️')
-                : (isAr ? 'طباعة تقرير الحضور 🖨️' : 'Print Attendance Log 🖨️')}
-            </span>
-          </button>
+          <div className="flex items-center gap-3">
+            {reportType === 'academic' && (
+              <div className="flex items-center gap-1.5 bg-[#F8FAFC] dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 p-1 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setAcademicTerm('first_term')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    academicTerm === 'first_term'
+                      ? 'bg-[#0284C7] text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-[#0284C7]'
+                  }`}
+                >
+                  📘 الفصل الأول (مرة واحدة)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAcademicTerm('final_term')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    academicTerm === 'final_term'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600'
+                  }`}
+                >
+                  🎓 الفصل الأخير
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                window.print();
+                if (academicTerm === 'first_term') {
+                  setAcademicTerm('final_term');
+                }
+              }}
+              className="btn-mustard flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold shadow transition-all cursor-pointer"
+            >
+              <Printer className="w-4 h-4" />
+              <span>
+                {reportType === 'academic' 
+                  ? (isAr ? 'طباعة التقرير الأكاديمي 🖨️' : 'Print Academic Report 🖨️')
+                  : reportType === 'financial'
+                  ? (isAr ? 'طباعة الكشف المالي 🖨️' : 'Print Financial Statement 🖨️')
+                  : (isAr ? 'طباعة تقرير الحضور 🖨️' : 'Print Attendance Log 🖨️')}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Academic Report Section - Harmonized Official Report Certificate */}
@@ -492,7 +527,7 @@ export const ReportsModule = () => {
 
               <div className="space-y-1">
                 <span className="text-xs font-bold text-[#0284C7] dark:text-[#38BDF8] block">العام الدراسي والمرحلة:</span>
-                <span className="text-sm font-black text-[#0F172A] dark:text-white block">{getDynamicAcademicYear()} (الفصل الثاني)</span>
+                <span className="text-sm font-black text-[#0F172A] dark:text-white block">{getDynamicAcademicYear()} ({academicTerm === 'first_term' ? 'الفصل الأول' : 'الفصل الأخير'})</span>
                 <div className="text-xs font-bold pt-1 space-y-0.5">
                   {(() => {
                     const level = calculateStudentLevel ? calculateStudentLevel(computedGpa) : (computedGpa >= 90 ? 'ممتاز' : computedGpa >= 80 ? 'جيد جداً' : computedGpa >= 70 ? 'جيد' : computedGpa >= 50 ? 'مقبول' : 'راسب');

@@ -849,7 +849,7 @@ export const ExamsModule = () => {
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
                 >
-                  <span>📘 شهادة منتصف العام</span>
+                  <span>📘 الفصل الأول (مرة واحدة)</span>
                 </button>
                 <button
                   type="button"
@@ -860,7 +860,7 @@ export const ExamsModule = () => {
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
                 >
-                  <span>🎓 شهادة نهاية العام</span>
+                  <span>🎓 الفصل الأخير</span>
                 </button>
               </div>
 
@@ -871,7 +871,12 @@ export const ExamsModule = () => {
                     const bd = document.querySelector('.cert-print-backdrop');
                     if (bd) bd.scrollTop = 0;
                     window.scrollTo(0, 0);
-                    setTimeout(() => window.print(), 30);
+                    setTimeout(() => {
+                      window.print();
+                      if (certificateType === 'mid_year') {
+                        setCertificateType('end_year');
+                      }
+                    }, 30);
                   }}
                   className="bg-[#0284C7] hover:bg-[#0369A1] text-white px-5 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2 cursor-pointer transition-all"
                 >
@@ -929,8 +934,8 @@ export const ExamsModule = () => {
                     <div className="text-center py-2.5 bg-[#0284C7] text-white rounded-xl shadow-xs border border-sky-600 cert-header-bg">
                       <h1 className="text-lg font-black tracking-wide">
                         {certificateType === 'mid_year'
-                          ? '📘 كَشْفُ دَرَجَاتِ وَتَقْيِيمُ مُنْتَصَفِ العَامِ الدِّرَاسِي (الفَصْلُ الأَوَّل)'
-                          : '🎓 الشَّهَادَةُ العَامَّةُ وَالتَّقْيِيمُ النِّهَائِي لِنِهَايَةِ العَامِ الدِّرَاسِي (الفَصْلُ الثَّانِي)'}
+                          ? '📘 كَشْفُ دَرَجَاتِ وَتَقْيِيمُ المَرْحَلَةِ الأُولَى (الفَصْلُ الأَوَّل)'
+                          : '🎓 الشَّهَادَةُ العَامَّةُ وَالتَّقْيِيمُ النِّهَائِي (الفَصْلُ الأَخِير)'}
                       </h1>
                       <span className="text-[10px] text-sky-100 font-bold block">OFFICIAL ACADEMIC TRANSCRIPT & REPORT CARD</span>
                     </div>

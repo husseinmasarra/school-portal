@@ -1261,13 +1261,14 @@ export const AppProvider = ({ children }) => {
       const targetStu = prev.find(s => s.id === studentId || s.name === studentId || String(s.id) === String(studentId));
       if (!targetStu) return prev;
 
-      const phoneKey = (targetStu.parentPhone || targetStu.phone || targetStu.id).trim();
+      const phoneKey = String(targetStu.parentPhone || targetStu.phone || targetStu.id || '').trim();
 
       // 2. Find ALL active (non-frozen) family members
       const familyActiveMembers = prev.filter(s => {
         if (s.frozen) return false;
         if (!s.parentPhone && !targetStu.parentPhone) return s.id === targetStu.id;
-        return s.parentPhone && s.parentPhone.trim() === phoneKey;
+        const sPhone = String(s.parentPhone || s.phone || '').trim();
+        return sPhone && sPhone === phoneKey;
       });
 
       // 3. Split payment equally among active family members

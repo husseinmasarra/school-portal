@@ -115,10 +115,15 @@ export const TuitionModule = () => {
 
   // ── Direct Payment Handler (Immediate Deduction) ──────────────────────
   const handleDirectPaySubmit = (e) => {
-    e.preventDefault();
-    if (!selectedStudentForPay || !payAmount || Number(payAmount) <= 0) return;
+    if (e && e.preventDefault) e.preventDefault();
+    if (!selectedStudentForPay) return;
 
     const amountUSD = Number(payAmount);
+    if (!amountUSD || amountUSD <= 0) {
+      alert(isAr ? '⚠️ يرجى إدخال مبلغ دفعة صحيح (أكبر من صفر)' : 'Please enter a valid payment amount (> 0)');
+      return;
+    }
+
     const stuId = selectedStudentForPay.id;
 
     // 1. Deduct immediately in AppContext (updates tuitionPaid and persists)
@@ -149,10 +154,11 @@ export const TuitionModule = () => {
     const remainingUSD = Math.max(0, totalTuition + adminFees + transportFee - discount - newPaid);
 
     // 4. Get active siblings for this family so all student names appear on the receipt
-    const phoneKey = (selectedStudentForPay.parentPhone || selectedStudentForPay.phone || selectedStudentForPay.id).trim();
+    const phoneKey = String(selectedStudentForPay.parentPhone || selectedStudentForPay.phone || selectedStudentForPay.id || '').trim();
     const familySiblings = safeStudents.filter(s => {
       if (!s.parentPhone && !selectedStudentForPay.parentPhone) return s.id === selectedStudentForPay.id;
-      return s.parentPhone && s.parentPhone.trim() === phoneKey;
+      const sPhone = String(s.parentPhone || s.phone || '').trim();
+      return sPhone && sPhone === phoneKey;
     });
 
     const allStudentNames = familySiblings.length > 0
@@ -821,7 +827,11 @@ export const TuitionModule = () => {
 
             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
               <button type="button" onClick={() => setSelectedStudentForPay(null)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">{t('cancel')}</button>
-              <button type="submit" className="btn-mustard px-5 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer flex items-center gap-1.5">
+              <button 
+                type="button" 
+                onClick={handleDirectPaySubmit} 
+                className="btn-mustard px-5 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer flex items-center gap-1.5"
+              >
                 <Check className="w-4 h-4" /> تأكيد خصم الدفعة والإيصال 🧾
               </button>
             </div>

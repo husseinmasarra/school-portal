@@ -108,6 +108,31 @@ export const ExamsModule = () => {
   const [printableReportsList, setPrintableReportsList] = useState(null);
   const [certificateType, setCertificateType] = useState(() => activeTerm === 'final_term' ? 'end_year' : 'mid_year'); // 'mid_year' | 'end_year'
 
+  const getCellVal = (stuId, subId) => {
+    if (activeTerm === 'final_term') {
+      const val = matrixMarks[`${stuId}_${subId}_final_term`];
+      return val !== undefined ? val : 0;
+    } else {
+      const val = matrixMarks[`${stuId}_${subId}_first_term`] ?? matrixMarks[`${stuId}_${subId}`];
+      return val !== undefined ? val : '';
+    }
+  };
+
+  const handleCellChange = (stuId, subId, newScore) => {
+    if (activeTerm === 'final_term') {
+      setMatrixMarks(prev => ({
+        ...prev,
+        [`${stuId}_${subId}_final_term`]: newScore
+      }));
+    } else {
+      setMatrixMarks(prev => ({
+        ...prev,
+        [`${stuId}_${subId}_first_term`]: newScore,
+        [`${stuId}_${subId}`]: newScore
+      }));
+    }
+  };
+
   const toggleStudentSelection = (stuId) => {
     setSelectedStudentIds(prev => {
       const next = new Set(prev);
@@ -136,7 +161,7 @@ export const ExamsModule = () => {
     // 2. Build breakdown of student subject scores
     let stuTotalSum = 0;
     const scoresBreakdown = safeSubjects.map(sub => {
-      const val = matrixMarks[`${stu.id}_${sub.id}`];
+      const val = getCellVal(stu.id, sub.id);
       const markNum = (val !== undefined && val !== '') ? Number(val) : 0;
       stuTotalSum += markNum;
       return {
@@ -290,10 +315,11 @@ export const ExamsModule = () => {
 
   // Save single student marks across all subjects in Master View
   const handleSaveStudentAllSubjects = (studentId) => {
+    const typeLabel = activeTerm === 'final_term' ? 'الفصل الأخير' : 'الفصل الأول';
     safeSubjects.forEach(sub => {
-      const val = matrixMarks[`${studentId}_${sub.id}`];
+      const val = getCellVal(studentId, sub.id);
       if (val !== undefined && val !== '') {
-        const markNum = Number(val);
+        const markNum = Number(val) || 0;
         const evalText = calculateStudentLevel ? calculateStudentLevel(markNum) : (markNum >= 90 ? 'ممتاز' : markNum >= 80 ? 'جيد جداً' : markNum >= 70 ? 'جيد' : markNum >= 50 ? 'مقبول' : 'راسب');
 
         const examObj = safeExams.find(ex => ex.subjectId === sub.id || (ex.subject && ex.subject.trim() === sub.name.trim())) || { id: `EXM-AUTO-${sub.id}` };
@@ -306,7 +332,7 @@ export const ExamsModule = () => {
             subjectName: sub.name,
             score: markNum,
             maxScore: 100,
-            type: 'النهائي',
+            type: typeLabel,
             notes: evalText,
             date: new Date().toISOString().split('T')[0]
           });
@@ -314,18 +340,19 @@ export const ExamsModule = () => {
       }
     });
 
-    setSavedToastMsg(isAr ? 'تم حفظ كافة درجات الطالب وتحديث المجموع النهائي والمستوى بنجاح! 💾' : 'Student marks updated!');
+    setSavedToastMsg(isAr ? `تم حفظ كافة درجات الطالب لـ (${typeLabel}) وتحديث المجموع والمستوى بنجاح! 💾` : 'Student marks updated!');
     setSavedToast(true);
     setTimeout(() => setSavedToast(false), 3000);
   };
 
   // Save ALL students and ALL subjects in one master click
   const handleSaveAllMasterMatrix = () => {
+    const typeLabel = activeTerm === 'final_term' ? 'الفصل الأخير' : 'الفصل الأول';
     safeStudents.forEach(stu => {
       safeSubjects.forEach(sub => {
-        const val = matrixMarks[`${stu.id}_${sub.id}`];
+        const val = getCellVal(stu.id, sub.id);
         if (val !== undefined && val !== '') {
-          const markNum = Number(val);
+          const markNum = Number(val) || 0;
           const evalText = calculateStudentLevel ? calculateStudentLevel(markNum) : (markNum >= 90 ? 'ممتاز' : markNum >= 80 ? 'جيد جداً' : markNum >= 70 ? 'جيد' : markNum >= 50 ? 'مقبول' : 'راسب');
 
           const examObj = safeExams.find(ex => ex.subjectId === sub.id || (ex.subject && ex.subject.trim() === sub.name.trim())) || { id: `EXM-AUTO-${sub.id}` };
@@ -338,7 +365,7 @@ export const ExamsModule = () => {
               subjectName: sub.name,
               score: markNum,
               maxScore: 100,
-              type: 'النهائي',
+              type: typeLabel,
               notes: evalText,
               date: new Date().toISOString().split('T')[0]
             });
@@ -347,7 +374,7 @@ export const ExamsModule = () => {
       });
     });
 
-    setSavedToastMsg(isAr ? 'تم حفظ وتثبيت كافة درجات جميع الطلاب لجميع المواد بنجاح! 💾✨' : 'All marks saved successfully!');
+    setSavedToastMsg(isAr ? `تم حفظ وتثبيت كافة درجات جميع الطلاب لـ (${typeLabel}) لجميع المواد بنجاح! 💾✨` : 'All marks saved successfully!');
     setSavedToast(true);
     setTimeout(() => setSavedToast(false), 3500);
   };
@@ -529,7 +556,7 @@ export const ExamsModule = () => {
               <thead>
                 <tr className="bg-[#0284C7] text-white font-black text-xs">
                   {/* ☒ Persistent Checkbox Column Header */}
-                  <th className="p-3 border border-sky-700 text-center w-[50px] min-w-[50px] max-w-[50px] bg-[#0284C7] sticky right-0 z-20">
+                  <th className="p-3 border border-sky-700 text-center w-[45px] min-w-[45px] bg-[#0284C7] sticky right-0 z-20">
                     <input
                       type="checkbox"
                       checked={isAllFilteredSelected}
@@ -538,23 +565,23 @@ export const ExamsModule = () => {
                       title={isAllFilteredSelected ? "إلغاء تحديد الكل" : "تحديد كافة الطلاب الظاهرين"}
                     />
                   </th>
-                  <th className="p-3 border border-sky-700 text-right sticky right-[50px] bg-[#0284C7] z-20 w-[160px] min-w-[160px] max-w-[160px]">اسم الطالب</th>
-                  <th className="p-3 border border-sky-700 text-center sticky right-[210px] bg-[#0284C7] z-20 w-[110px] min-w-[110px] max-w-[110px]">الصف والشعبة</th>
+                  <th className="p-3 border border-sky-700 text-right sticky right-[45px] bg-[#0284C7] z-20 w-[220px] min-w-[220px]">اسم الطالب الكامل</th>
+                  <th className="p-3 border border-sky-700 text-center sticky right-[265px] bg-[#0284C7] z-20 w-[100px] min-w-[100px]">الصف والشعبة</th>
                   
                   {/* Dynamic Subject Columns */}
                   {safeSubjects.map(sub => (
-                    <th key={sub.id} className="p-3 border border-sky-700 text-center min-w-[110px]">
+                    <th key={sub.id} className="p-3 border border-sky-700 text-center min-w-[100px]">
                       {sub.icon || '📚'} {sub.name}
                     </th>
                   ))}
 
-                  <th className="p-3 border border-sky-700 text-center bg-sky-900 min-w-[120px]">
+                  <th className="p-3 border border-sky-700 text-center bg-sky-900 min-w-[110px]">
                     المجموع (E15)
                   </th>
-                  <th className="p-3 border border-sky-700 text-center bg-sky-950 min-w-[120px]">
-                    التقدير والمستوى العام
+                  <th className="p-3 border border-sky-700 text-center bg-sky-950 min-w-[110px]">
+                    التقدير العام
                   </th>
-                  <th className="p-3 border border-sky-700 text-center min-w-[110px]">
+                  <th className="p-3 border border-sky-700 text-center min-w-[105px]">
                     طباعة الشهادة 🖨️
                   </th>
                 </tr>
@@ -572,7 +599,7 @@ export const ExamsModule = () => {
                     // Compute live grand total score sum for this student
                     let stuTotalSum = 0;
                     safeSubjects.forEach(sub => {
-                      const val = matrixMarks[`${stu.id}_${sub.id}`];
+                      const val = getCellVal(stu.id, sub.id);
                       if (val !== undefined && val !== '') {
                         stuTotalSum += Number(val) || 0;
                       }
@@ -586,7 +613,7 @@ export const ExamsModule = () => {
                     return (
                       <tr key={stu.id} className="hover:bg-sky-50/50 transition-colors">
                         {/* ☒ Row Checkbox */}
-                        <td className="p-3 border border-slate-200 text-center sticky right-0 bg-white shadow-sm z-10 w-[50px] min-w-[50px] max-w-[50px]">
+                        <td className="p-3 border border-slate-200 text-center sticky right-0 bg-white shadow-sm z-10 w-[45px] min-w-[45px]">
                           <input
                             type="checkbox"
                             checked={selectedStudentIds.has(stu.id)}
@@ -594,20 +621,21 @@ export const ExamsModule = () => {
                             className="w-4 h-4 accent-[#0284C7] rounded cursor-pointer"
                           />
                         </td>
-                        <td className="p-3 border border-slate-200 font-black text-sm text-[#0F172A] sticky right-[50px] bg-white shadow-sm z-10 w-[160px] min-w-[160px] max-w-[160px]">
+                        <td className="p-3 border border-slate-200 font-black text-xs text-[#0F172A] sticky right-[45px] bg-white shadow-sm z-10 w-[220px] min-w-[220px]">
                           <div className="flex items-center gap-2">
                             <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border-2 border-[#0284C7] shrink-0" />
-                            <span className="truncate">{isAr ? stu.name : stu.nameEn}</span>
+                            <span className="font-black text-xs text-[#0F172A] leading-snug whitespace-normal">
+                              {getStudentTripleName(stu)}
+                            </span>
                           </div>
                         </td>
-                        <td className="p-3 border border-slate-200 text-center text-slate-600 font-bold sticky right-[210px] bg-white shadow-sm z-10 w-[110px] min-w-[110px] max-w-[110px]">
+                        <td className="p-3 border border-slate-200 text-center text-slate-600 font-bold sticky right-[265px] bg-white shadow-sm z-10 w-[100px] min-w-[100px]">
                           {isAr ? stu.grade : stu.gradeEn} ({stu.classRoom || 'أ'})
                         </td>
 
                         {/* Subject Cell Input Fields */}
                         {safeSubjects.map(sub => {
-                          const cellKey = `${stu.id}_${sub.id}`;
-                          const cellVal = matrixMarks[cellKey] ?? '';
+                          const cellVal = getCellVal(stu.id, sub.id);
 
                           return (
                             <td key={sub.id} className="p-2 border border-slate-200 text-center">
@@ -616,9 +644,9 @@ export const ExamsModule = () => {
                                 min="0"
                                 max="100"
                                 value={cellVal}
-                                onChange={(e) => setMatrixMarks({ ...matrixMarks, [cellKey]: e.target.value })}
-                                placeholder="0-100"
-                                className="w-20 bg-white border-2 border-slate-200 text-[#0F172A] rounded-xl px-2 py-1.5 text-xs font-black text-center focus:outline-none focus:border-[#0284C7] shadow-sm"
+                                onChange={(e) => handleCellChange(stu.id, sub.id, e.target.value)}
+                                placeholder="0"
+                                className="w-16 sm:w-20 bg-white border-2 border-slate-200 text-[#0F172A] rounded-xl px-2 py-1.5 text-xs font-black text-center focus:outline-none focus:border-[#0284C7] shadow-sm"
                               />
                             </td>
                           );

@@ -145,23 +145,34 @@ export const TuitionModule = () => {
       };
       savePaymentHistory(updatedHistory);
 
-      // 3. Compute new remaining amount for the receipt
-      const totalTuition = Number(selectedStudentForPay.tuitionTotal) || 600;
-      const adminFees = Number(selectedStudentForPay.adminFees) || 0;
-      const transportFee = selectedStudentForPay.hasTransport ? (Number(selectedStudentForPay.transportFee) || 0) : 0;
-      const discount = Number(selectedStudentForPay.tuitionDiscount) || 0;
-      const oldPaid = Number(selectedStudentForPay.tuitionPaid) || 0;
-      const newPaid = oldPaid + amountUSD;
-      const remainingUSD = Math.max(0, totalTuition + adminFees + transportFee - discount - newPaid);
-
-      // 4. Get active siblings for this family so all student names appear on the receipt
+      // 3. Get active siblings for this family so all student names & combined dues appear on the receipt
       const phoneKey = (selectedStudentForPay.parentPhone || selectedStudentForPay.phone || selectedStudentForPay.id || '').toString().trim();
       const familySiblings = safeStudents.filter(s => {
-        if (!s) return false;
+        if (!s || s.frozen) return false;
         if (!s.parentPhone && !selectedStudentForPay.parentPhone) return s.id === selectedStudentForPay.id;
         const sPhone = (s.parentPhone || s.phone || '').toString().trim();
         return sPhone && sPhone === phoneKey;
       });
+
+      const activeFamily = familySiblings.length > 0 ? familySiblings : [selectedStudentForPay];
+      const isMultiSib = activeFamily.length > 1;
+
+      // Calculate combined total dues across all active family members:
+      const familyTotalDuesUSD = activeFamily.reduce((sum, s) => {
+        const tot = Number(s.tuitionTotal) || 600;
+        const adm = Number(s.adminFees) || 0;
+        const trs = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
+        const disc = Number(s.tuitionDiscount) || 0;
+        return sum + Math.max(0, tot + adm + trs - disc);
+      }, 0);
+
+      // Calculate total paid across all active family members (including new payment):
+      const familyTotalPaidUSD = activeFamily.reduce((sum, s) => {
+        return sum + (Number(s.tuitionPaid) || 0);
+      }, 0) + amountUSD;
+
+      // Remaining combined balance for all siblings:
+      const familyRemainingUSD = Math.max(0, Math.round((familyTotalDuesUSD - familyTotalPaidUSD) * 100) / 100);
 
       const getFirstName = (fullName) => {
         if (!fullName) return '';
@@ -169,25 +180,22 @@ export const TuitionModule = () => {
         return clean.split(' ')[0] || clean;
       };
 
-      const allStudentNames = familySiblings.length > 0
-        ? familySiblings.map(s => getFirstName(isAr ? (s.name || s.nameEn) : (s.nameEn || s.name))).join(' • ')
-        : getFirstName(isAr ? selectedStudentForPay.name : (selectedStudentForPay.nameEn || selectedStudentForPay.name));
-
-      const isMultiSib = familySiblings.length > 1;
+      const allStudentNames = activeFamily.map(s => getFirstName(isAr ? (s.name || s.nameEn) : (s.nameEn || s.name))).join(' • ');
       const stuNameStr = String(selectedStudentForPay.name || selectedStudentForPay.nameEn || 'تلميذ');
       const parentNameVal = selectedStudentForPay.parentName || `عائلة ${stuNameStr.split(' ').slice(-1)[0]}`;
 
-      // 5. Open official receipt modal
+      // 4. Open official receipt modal
       const receipt = {
         receiptNo: `REC-LB-${Date.now().toString().slice(-6)}`,
         date: new Date().toISOString().split('T')[0],
         parentName: parentNameVal,
         studentName: allStudentNames,
-        grade: isMultiSib ? `عائلة (${familySiblings.length} إخوة)` : (isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn),
+        grade: isMultiSib ? `عائلة (${activeFamily.length} إخوة)` : (isAr ? selectedStudentForPay.grade : selectedStudentForPay.gradeEn),
         amountUSD: amountUSD,
-        amountLBP: 0,
+        totalDuesUSD: familyTotalDuesUSD,
+        remainingUSD: familyRemainingUSD,
         method: payMethod,
-        remainingUSD: remainingUSD
+        isMultiSib: isMultiSib
       };
 
       setPayAmount('');
@@ -1021,9 +1029,10 @@ export const TuitionModule = () => {
                 [isAr ? 'اسم الطالب / الإخوة:' : 'Student / Siblings:', formatReceiptStudentNames(showReceiptModal.studentName), 'text-[#0284C7] text-sm font-black'],
                 [isAr ? 'الصف / الشعبة:' : 'Grade:', showReceiptModal.grade, 'text-slate-700'],
                 [isAr ? 'طريقة الدفع:' : 'Payment Method:', showReceiptModal.method === 'fresh_cash' ? 'Fresh Cash USD' : 'OMT / Whish Transfer', 'text-slate-800'],
-                [isAr ? 'المبلغ المدفوع بالدولار:' : 'Paid (USD):', `$${showReceiptModal.amountUSD} USD`, 'text-emerald-600 text-sm'],
-                [isAr ? 'القسط المتبقي:' : 'Remaining Balance:', `$${showReceiptModal.remainingUSD} USD`, 'text-red-600'],
-              ].map(([label, val, cls], i) => (
+                showReceiptModal.totalDuesUSD !== undefined ? [isAr ? (showReceiptModal.isMultiSib ? 'إجمالي قسط الإخوة:' : 'إجمالي القسط المستحق:') : 'Total Dues:', `$${showReceiptModal.totalDuesUSD.toLocaleString()} USD`, 'text-slate-800 font-bold'] : null,
+                [isAr ? 'المبلغ المدفوع (هذا الإيصال):' : 'Paid (This Receipt):', `$${showReceiptModal.amountUSD.toLocaleString()} USD`, 'text-emerald-600 text-sm font-black'],
+                [isAr ? (showReceiptModal.isMultiSib ? 'إجمالي المتبقي (جميع الإخوة):' : 'القسط المتبقي:') : 'Remaining Balance:', `$${showReceiptModal.remainingUSD.toLocaleString()} USD`, 'text-red-600 font-black'],
+              ].filter(Boolean).map(([label, val, cls], i) => (
                 <div key={i} className="flex justify-between border-b border-slate-100 pb-1.5 last:border-0 last:pb-0">
                   <span className="text-slate-500">{label}</span>
                   <span className={`font-bold ${cls}`}>{val}</span>

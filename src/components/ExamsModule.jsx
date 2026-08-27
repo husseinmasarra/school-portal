@@ -15,7 +15,7 @@ import {
 export const ExamsModule = () => {
   const { 
     lang, t, currentRole, currentUser, siteSettings,
-    exams = [], subjects = [], students = [], 
+    exams = [], subjects = [], students = [], grades = [], classrooms = [],
     addExam, gradeExamResult, calculateStudentLevel, calculateGrandTotalLevel, addDailyMark, getStudentSubjectScores 
   } = useApp();
 
@@ -41,6 +41,16 @@ export const ExamsModule = () => {
       .trim()
       .toLowerCase();
   };
+
+  const normGradeStr = (str) => (str || '')
+    .toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace('الابتدائي', '')
+    .replace('المتوسط', '')
+    .replace('الثانوي', '')
+    .replace('الصف', '')
+    .replace('الشعبة', '')
+    .replace(/[\(\)\-\_\s]/g, '');
 
   const getStudentTripleName = (student) => {
     if (!student) return '';
@@ -75,17 +85,25 @@ export const ExamsModule = () => {
     return fullName.trim() || rawName;
   };
 
-  // Dynamically collect unique grades from registered students
-  const availableGrades = Array.from(new Set(safeStudents.map(s => s.grade).filter(Boolean)));
+  // Dynamically collect unique grades from registered system grades, classrooms, and students
+  const availableGrades = Array.from(
+    new Set([
+      ...(grades || []).map(g => (typeof g === 'string' ? g : g.name || g.nameAr || g.nameEn)).filter(Boolean),
+      ...(classrooms || []).map(c => c.gradeName || c.grade).filter(Boolean),
+      ...(safeStudents || []).map(s => s.grade).filter(Boolean)
+    ])
+  ).filter(Boolean);
 
   const filteredStudents = safeStudents.filter((stu) => {
     const normSearch = normalizeArabic(searchTerm);
-    const normName = normalizeArabic(stu.name || '') + ' ' + (stu.nameEn || '').toLowerCase();
+    const normName = normalizeArabic(stu.name || '') + ' ' + (stu.nameEn || '').toLowerCase() + ' ' + normalizeArabic(getStudentTripleName(stu));
     const nameMatch = !normSearch || normName.includes(normSearch);
 
-    const normFilterGrade = normalizeArabic(selectedGradeFilter);
-    const normStuGrade = normalizeArabic(stu.grade || '');
-    const gradeMatch = selectedGradeFilter === 'all' || normStuGrade.includes(normFilterGrade) || normFilterGrade.includes(normStuGrade);
+    if (selectedGradeFilter === 'all') return nameMatch;
+
+    const sNorm = normGradeStr(stu.grade);
+    const fNorm = normGradeStr(selectedGradeFilter);
+    const gradeMatch = sNorm.includes(fNorm) || fNorm.includes(sNorm);
 
     return nameMatch && gradeMatch;
   });

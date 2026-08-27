@@ -92,7 +92,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [stuGrade, setStuGrade] = useState(() => safeGrades[0]?.name || 'الصف الخامس الابتدائي');
   const [stuGradeEn, setStuGradeEn] = useState(() => safeGrades[0]?.nameEn || 'Grade 5');
   const [stuClassRoom, setStuClassRoom] = useState(() => safeClassrooms[0]?.sectionName || 'أ');
-  const [stuTuitionTotal, setStuTuitionTotal] = useState(() => (safeGrades[0]?.tuitionFee || 1500).toString());
+  const [stuTuitionTotal, setStuTuitionTotal] = useState(() => (safeGrades[0]?.tuitionFee || 700).toString());
   const [stuTuitionDiscount, setStuTuitionDiscount] = useState('0');
   const [stuAdminFees, setStuAdminFees] = useState('0');
   const [stuHasTransport, setStuHasTransport] = useState(false);
@@ -117,7 +117,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       grade: safeGrades[0]?.name || 'الصف الأول الابتدائي',
       gradeEn: safeGrades[0]?.nameEn || 'Grade 1',
       classRoom: 'أ',
-      tuitionTotal: (safeGrades[0]?.tuitionFee || 1500).toString(),
+      tuitionTotal: (safeGrades[0]?.tuitionFee || 700).toString(),
       tuitionDiscount: '0',
       adminFees: '0',
       username: suggestedUsername,
@@ -137,7 +137,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       const foundGrd = safeGrades.find(g => g.name === val);
       if (foundGrd) {
         updated[index].gradeEn = foundGrd.nameEn || val;
-        updated[index].tuitionTotal = (foundGrd.tuitionFee || 1500).toString();
+        updated[index].tuitionTotal = (foundGrd.tuitionFee || 700).toString();
       }
     }
     setSiblingsList(updated);
@@ -257,7 +257,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
     setStuGrade(safeGrades[0]?.name || 'الصف الأول الابتدائي');
     setStuGradeEn(safeGrades[0]?.nameEn || 'Grade 1');
     setStuClassRoom('أ');
-    setStuTuitionTotal((safeGrades[0]?.tuitionFee || 1500).toString());
+    setStuTuitionTotal((safeGrades[0]?.tuitionFee || 700).toString());
     setStuTuitionDiscount('0');
     setStuAdminFees('0');
     setStuHasTransport(false);

@@ -68,7 +68,7 @@ export const initialGrades = [
     nameEn: "Grade 5 Elementary",
     stage: "التعليم الأساسي",
     stageEn: "Primary School",
-    tuitionFee: 1500,
+    tuitionFee: 700,
     color: "#0284C7"
   },
   {
@@ -77,7 +77,7 @@ export const initialGrades = [
     nameEn: "Grade 6 Elementary",
     stage: "التعليم الأساسي",
     stageEn: "Primary School",
-    tuitionFee: 1600,
+    tuitionFee: 700,
     color: "#10b981"
   },
   {
@@ -86,7 +86,7 @@ export const initialGrades = [
     nameEn: "Grade 7 Intermediate",
     stage: "التعليم المتوسط",
     stageEn: "Middle School",
-    tuitionFee: 1750,
+    tuitionFee: 700,
     color: "#a855f7"
   }
 ];

@@ -21,7 +21,51 @@ import {
   Printer,
   Bookmark
 } from 'lucide-react';
-import { SubjectBadge } from './SubjectBadge';
+const arabicToLatinUsername = (fn = '', mn = '', ln = '') => {
+  const mapArabic = (str) => {
+    return (str || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[أإآءئؤ]/g, 'a')
+      .replace(/ب/g, 'b')
+      .replace(/ت/g, 't')
+      .replace(/ث/g, 'th')
+      .replace(/ج/g, 'j')
+      .replace(/ح/g, 'h')
+      .replace(/خ/g, 'kh')
+      .replace(/د/g, 'd')
+      .replace(/ذ/g, 'dh')
+      .replace(/ر/g, 'r')
+      .replace(/ز/g, 'z')
+      .replace(/س/g, 's')
+      .replace(/ش/g, 'sh')
+      .replace(/ص/g, 's')
+      .replace(/ض/g, 'd')
+      .replace(/ط/g, 't')
+      .replace(/ظ/g, 'z')
+      .replace(/ع/g, 'a')
+      .replace(/غ/g, 'gh')
+      .replace(/ف/g, 'f')
+      .replace(/ق/g, 'q')
+      .replace(/ك/g, 'k')
+      .replace(/ل/g, 'l')
+      .replace(/م/g, 'm')
+      .replace(/ن/g, 'n')
+      .replace(/ه/g, 'h')
+      .replace(/و/g, 'w')
+      .replace(/[ىي]/g, 'y')
+      .replace(/ة/g, 'h')
+      .replace(/[^a-z0-9]/g, '');
+  };
+
+  const latinFn = mapArabic(fn);
+  const latinMn = mapArabic(mn);
+  const latinLn = mapArabic(ln);
+
+  const parts = [latinFn, latinMn, latinLn].filter(Boolean);
+  if (parts.length === 0) return '';
+  return parts.join('.');
+};
 
 export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const { 
@@ -108,11 +152,13 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const [siblingsList, setSiblingsList] = useState([]);
 
   const addSiblingRow = () => {
-    const nextRand = Math.floor(100 + Math.random() * 900);
-    const suggestedUsername = stuName ? `${stuName.toLowerCase().replace(/\s+/g, '')}_sib${siblingsList.length + 1}.${nextRand}` : `student.${Date.now().toString().slice(-4)}`;
+    // Inherit fatherName and lastName from primary student, clear First Name
+    const suggestedUsername = arabicToLatinUsername('', stuFatherName, stuLastName) || `student.${Date.now().toString().slice(-4)}`;
     setSiblingsList([...siblingsList, {
       id: Math.random().toString(),
-      name: '',
+      name: '', // Empty first name ready for new sibling input
+      fatherName: stuFatherName,
+      lastName: stuLastName,
       nameEn: '',
       grade: safeGrades[0]?.name || 'الصف الأول الابتدائي',
       gradeEn: safeGrades[0]?.nameEn || 'Grade 1',
@@ -133,6 +179,13 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
   const updateSiblingField = (index, field, val) => {
     const updated = [...siblingsList];
     updated[index][field] = val;
+    if (field === 'name') {
+      // Auto-generate username from First Name + Inherited Father Name + Inherited Surname
+      const autoUser = arabicToLatinUsername(val, stuFatherName, stuLastName);
+      if (autoUser) {
+        updated[index].username = autoUser;
+      }
+    }
     if (field === 'grade') {
       const foundGrd = safeGrades.find(g => g.name === val);
       if (foundGrd) {
@@ -1258,6 +1311,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     const fn = e.target.value;
                     setStuFirstName(fn);
                     setStuName(`${fn} ${stuFatherName} ${stuLastName}`.trim());
+                    const genUser = arabicToLatinUsername(fn, stuFatherName, stuLastName);
+                    if (genUser) setStuUsername(genUser);
                   }} 
                   placeholder={isAr ? "مثال: أحمد..." : "e.g. Ahmed"} 
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
@@ -1277,6 +1332,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     if (!stuParentName) {
                       setStuParentName(`${mn} ${stuLastName}`.trim());
                     }
+                    const genUser = arabicToLatinUsername(stuFirstName, mn, stuLastName);
+                    if (genUser) setStuUsername(genUser);
                   }} 
                   placeholder={isAr ? "مثال: محمد..." : "e.g. Mohamed"} 
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
@@ -1296,6 +1353,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     if (!stuParentName || stuParentName === stuFatherName) {
                       setStuParentName(`${stuFatherName} ${ln}`.trim());
                     }
+                    const genUser = arabicToLatinUsername(stuFirstName, stuFatherName, ln);
+                    if (genUser) setStuUsername(genUser);
                   }} 
                   placeholder={isAr ? "مثال: مسرة..." : "e.g. Masarra"} 
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 

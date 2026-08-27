@@ -833,20 +833,54 @@ export const ExamsModule = () => {
 
                 .print-cert-page {
                   all: unset !important;
-                  display: block !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  justify-content: space-between !important;
                   position: relative !important;
-                  width: 185mm !important;
-                  max-width: 185mm !important;
+                  width: 190mm !important;
+                  max-width: 190mm !important;
+                  height: 272mm !important;
+                  min-height: 272mm !important;
+                  max-height: 272mm !important;
                   margin: 6mm auto !important;
                   padding: 8mm 10mm !important;
                   background: #ffffff !important;
                   color: #000000 !important;
-                  border: 3px double #0284C7 !important;
+                  border: 4px double #0284C7 !important;
                   box-sizing: border-box !important;
                   page-break-after: always !important;
                   break-after: page !important;
                   page-break-inside: avoid !important;
                   break-inside: avoid !important;
+                }
+
+                /* Scaled Certificate Fonts & Elements to Fill A4 Page Completely */
+                .print-cert-page .text-\[9px\] { font-size: 11px !important; }
+                .print-cert-page .text-\[10px\] { font-size: 12px !important; }
+                .print-cert-page .text-\[11px\] { font-size: 13px !important; }
+                .print-cert-page .text-xs { font-size: 14px !important; }
+                .print-cert-page .text-sm { font-size: 16px !important; }
+                .print-cert-page .text-base { font-size: 18px !important; }
+                .print-cert-page .text-lg { font-size: 20px !important; }
+                .print-cert-page .text-xl { font-size: 24px !important; }
+
+                .print-cert-page table {
+                  font-size: 14px !important;
+                }
+
+                .print-cert-page table th {
+                  font-size: 14px !important;
+                  padding: 8px 10px !important;
+                }
+
+                .print-cert-page table td {
+                  font-size: 14px !important;
+                  padding: 8px 10px !important;
+                }
+
+                .print-cert-page table tfoot td {
+                  font-size: 15px !important;
+                  padding: 10px 10px !important;
                 }
 
                 .no-print {
@@ -1067,22 +1101,22 @@ export const ExamsModule = () => {
                     </div>
 
                     {/* Homeroom Teacher Notes Section */}
-                    <div className="my-3 p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
-                      <span className="text-xs font-black text-[#0284C7] block">ملاحظات مربي الصف:</span>
-                      <div className="border-b border-dotted border-slate-400 h-5 w-full" />
-                      <div className="border-b border-dotted border-slate-400 h-5 w-full" />
+                    <div className="my-3 p-4 rounded-xl border border-slate-300 bg-slate-50/50 space-y-3">
+                      <span className="text-sm font-black text-[#0284C7] block">ملاحظات مربي الصف:</span>
+                      <div className="border-b border-dotted border-slate-400 h-6 w-full" />
+                      <div className="border-b border-dotted border-slate-400 h-6 w-full" />
                     </div>
 
                     {/* Signatures */}
-                    <div className="mt-4 pt-3 border-t-2 border-slate-200 flex justify-between items-end text-xs font-bold text-slate-700">
-                      <div className="text-center space-y-2">
-                        <p className="text-slate-900 font-black">توقيع مربي الصف</p>
-                        <div className="h-9 border-b-2 border-slate-300 w-44 mx-auto" />
+                    <div className="mt-4 pt-3 border-t-2 border-slate-300 flex justify-between items-end text-sm font-bold text-slate-800">
+                      <div className="text-center space-y-3">
+                        <p className="text-slate-900 font-black text-base">توقيع مربي الصف</p>
+                        <div className="h-11 border-b-2 border-slate-400 w-48 mx-auto" />
                       </div>
 
-                      <div className="text-center space-y-2">
-                        <p className="text-slate-900 font-black">توقيع مدير المدرسة</p>
-                        <div className="h-9 border-b-2 border-slate-300 w-44 mx-auto" />
+                      <div className="text-center space-y-3">
+                        <p className="text-slate-900 font-black text-base">توقيع مدير المدرسة</p>
+                        <div className="h-11 border-b-2 border-slate-400 w-48 mx-auto" />
                       </div>
                     </div>
 

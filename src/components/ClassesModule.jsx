@@ -655,7 +655,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                     <div className="flex flex-wrap gap-2">
                       {gradeSections.map((sec) => (
                         <span key={sec.id} className="px-2.5 py-1 bg-sky-50 text-[#0284C7] border border-sky-200 rounded-xl text-[11px] font-bold">
-                          {isAr ? sec.sectionName : sec.sectionNameEn} (قاعة {sec.roomNumber})
+                          {isAr ? sec.sectionName : sec.sectionNameEn}
                         </span>
                       ))}
                     </div>
@@ -707,7 +707,7 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#0284C7] transition-colors">{cls.gradeName}</h3>
-                      <span className="text-xs text-[#0284C7] font-bold block">{isAr ? cls.sectionName : cls.sectionNameEn} • (قاعة {cls.roomNumber})</span>
+                      <span className="text-xs text-[#0284C7] font-bold block">{isAr ? cls.sectionName : cls.sectionNameEn}</span>
                     </div>
                   </div>
 
@@ -1361,16 +1361,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">{isAr ? 'رقم القاعة' : 'Room Number'}</label>
-                <input type="text" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} placeholder="101" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'السعة القصوى (طالب)' : 'Max Student Capacity'}</label>
+                <input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center font-bold" />
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">{isAr ? 'السعة القصوى (طالب)' : 'Max Student Capacity'}</label>
-                <input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
-              </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'المعلم المشرف' : 'Class Supervisor'}</label>
@@ -1387,7 +1381,6 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   ))}
                 </select>
               </div>
-            </div>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
               <button type="button" onClick={() => setShowAddClassroomModal(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5">
@@ -1531,16 +1524,10 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">{isAr ? 'رقم القاعة' : 'Room Number'}</label>
-                <input type="text" value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} placeholder="101" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
+                <label className="text-xs font-semibold text-slate-700">{isAr ? 'السعة القصوى (طالب)' : 'Max Student Capacity'}</label>
+                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center font-bold" />
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">{isAr ? 'السعة القصوى (طالب)' : 'Max Student Capacity'}</label>
-                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-mono focus:outline-none text-center" />
-              </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'المعلم المشرف' : 'Class Supervisor'}</label>
@@ -1557,7 +1544,6 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
                   ))}
                 </select>
               </div>
-            </div>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
               <button type="button" onClick={() => setEditingClassroom(null)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5">

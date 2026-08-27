@@ -789,7 +789,7 @@ export const AppProvider = ({ children }) => {
 
     // 1. Search system users (admin, staff, drivers)
     const foundSystem = (systemUsers || []).find(
-      (u) => (u.username || '').toLowerCase() === cleanUser && u.password === passwordInput
+      (u) => (u.username || '').toLowerCase().trim() === cleanUser && u.password === passwordInput
     );
     if (foundSystem) {
       setCurrentUser(foundSystem);
@@ -799,89 +799,55 @@ export const AppProvider = ({ children }) => {
       return { success: true, user: foundSystem };
     }
 
-    // 2. Search teachers collection & teacher role fallback
+    // 2. Search teachers collection
     const foundTeacher = (teachers || []).find((t) => {
-      const matchId = (t.id || '').toLowerCase() === cleanUser;
-      const matchUsername = (t.username || '').toLowerCase() === cleanUser;
-      const matchName = (t.name || '').toLowerCase() === cleanUser;
-      const matchPass = t.password ? t.password === passwordInput : (passwordInput === '123456' || passwordInput === 'teacher123' || passwordInput === t.id);
-      return (matchId || matchUsername || matchName) && matchPass;
+      const matchUsername = (t.username || t.id || '').toLowerCase().trim() === cleanUser;
+      const matchPass = t.password ? t.password === passwordInput : passwordInput === '123456';
+      return matchUsername && matchPass;
     });
 
-    if (foundTeacher || cleanUser === 'teacher' || cleanUser === 'meryem') {
-      const teacherObj = foundTeacher || (teachers && teachers[0]) || {
-        id: "TCH-101",
-        name: "أ. معلم المادة",
-        nameEn: "Prof. Subject Teacher",
-        username: "teacher",
-        role: "teacher",
-        subject: "العلوم والفيزياء",
-        assignedClassrooms: ["الصف السادس الابتدائي (أ)"],
-        avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
-      };
+    if (foundTeacher) {
       const teacherUser = {
-        ...teacherObj,
+        ...foundTeacher,
         role: 'teacher',
-        roleTitle: `معلم - ${teacherObj.subject || 'المحتوى التعليمي'}`
+        roleTitle: `معلم - ${foundTeacher.subject || 'المحتوى التعليمي'}`
       };
       setCurrentUser(teacherUser);
       return { success: true, user: teacherUser };
     }
 
-    // 3. Search students collection (students roster)
+    // 3. Search students collection
     const foundStudent = (students || []).find((s) => {
-      const matchId = (s.id || '').toLowerCase() === cleanUser;
-      const matchUsername = (s.username || '').toLowerCase() === cleanUser;
-      const matchName = (s.name || '').toLowerCase() === cleanUser;
-      const matchPass = s.password ? s.password === passwordInput : (passwordInput === '123456' || passwordInput === 'student123' || passwordInput === s.id);
-      return (matchId || matchUsername || matchName) && matchPass;
+      const matchUsername = (s.username || s.id || '').toLowerCase().trim() === cleanUser;
+      const matchPass = s.password ? s.password === passwordInput : passwordInput === '123456';
+      return matchUsername && matchPass;
     });
 
-    if (foundStudent && foundStudent.frozen) {
-      return {
-        success: false,
-        message: lang === 'ar'
-          ? '❌ تم تجميد حساب هذا الطالب مؤقتاً! يرجى مراجعة إدارة المدرسة.'
-          : '❌ This student account has been frozen. Please contact school administration.'
-      };
-    }
+    if (foundStudent) {
+      if (foundStudent.frozen) {
+        return {
+          success: false,
+          message: lang === 'ar'
+            ? '❌ تم تجميد حساب هذا الطالب مؤقتاً! يرجى مراجعة إدارة المدرسة.'
+            : '❌ This student account has been frozen. Please contact school administration.'
+        };
+      }
 
-    if (foundStudent || cleanUser === 'student' || cleanUser.startsWith('stu')) {
-      const stuObj = foundStudent || (students && students[0]) || {
-        id: "STU-101",
-        name: "محمد خالد مسرة",
-        nameEn: "Mohammad Khaled",
-        grade: "الصف السادس الابتدائي",
-        classRoom: "أ"
-      };
       const studentUser = {
-        id: stuObj.id,
-        studentId: stuObj.id,
-        name: stuObj.name,
-        nameEn: stuObj.nameEn || stuObj.name,
-        username: stuObj.username || stuObj.id,
+        id: foundStudent.id,
+        studentId: foundStudent.id,
+        name: foundStudent.name,
+        nameEn: foundStudent.nameEn || foundStudent.name,
+        username: foundStudent.username || foundStudent.id,
         role: 'student',
-        roleTitle: `طالب (${stuObj.grade || 'مدرسة الدعم'})`,
-        avatar: stuObj.avatar || "https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80",
-        grade: stuObj.grade,
-        classRoom: stuObj.classRoom
+        roleTitle: `طالب (${foundStudent.grade || 'مدرسة الدعم'})`,
+        avatar: foundStudent.avatar || "https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80",
+        grade: foundStudent.grade,
+        classRoom: foundStudent.classRoom
       };
       setCurrentUser(studentUser);
-      setSelectedStudentId(stuObj.id);
+      setSelectedStudentId(foundStudent.id);
       return { success: true, user: studentUser };
-    }
-
-    // 4. Admin fallback
-    if (cleanUser === 'admin') {
-      const adminUser = (systemUsers || [])[0] || {
-        id: "ADM-01",
-        username: "admin",
-        password: "admin123",
-        name: "إدارة المدرسة العامة",
-        role: "admin"
-      };
-      setCurrentUser(adminUser);
-      return { success: true, user: adminUser };
     }
 
     return { success: false, message: lang === 'ar' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password' };

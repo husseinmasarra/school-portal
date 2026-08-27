@@ -22,23 +22,28 @@ import {
 } from 'lucide-react';
 
 const getGradeSortOrder = (name = '') => {
-  const str = String(name || '').trim();
-  if (str.includes('روضة أولى') || str.includes('KG1')) return 1;
-  if (str.includes('روضة ثانية') || str.includes('KG2')) return 2;
-  if (str.includes('روضة ثالثة') || str.includes('KG3')) return 3;
-  if (str.includes('روضة') || str.includes('تمهيدي')) return 4;
-  if (str.includes('الأول') || str.includes('اول') || str.includes('1')) return 10;
-  if (str.includes('الثاني') || str.includes('ثاني') || str.includes('2')) return 20;
-  if (str.includes('الثالث') || str.includes('ثالث') || str.includes('3')) return 30;
-  if (str.includes('الرابع') || str.includes('رابع') || str.includes('4')) return 40;
-  if (str.includes('الخامس') || str.includes('خامس') || str.includes('5')) return 50;
-  if (str.includes('السادس') || str.includes('سادس') || str.includes('6')) return 60;
-  if (str.includes('السابع') || str.includes('سابع') || str.includes('7')) return 70;
-  if (str.includes('الثامن') || str.includes('ثامن') || str.includes('8')) return 80;
-  if (str.includes('التاسع') || str.includes('تاسع') || str.includes('9')) return 90;
-  if (str.includes('العاشر') || str.includes('عاشر') || str.includes('10')) return 100;
-  if (str.includes('الحادي عشر') || str.includes('11')) return 110;
-  if (str.includes('الثاني عشر') || str.includes('12')) return 120;
+  const str = String(name || '').toLowerCase().trim().replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه');
+  const isKg = str.includes('روضه') || str.includes('kg') || str.includes('تمهيدي');
+
+  if (isKg) {
+    if (str.includes('اولى') || str.includes('اول') || str.includes('1')) return 1;
+    if (str.includes('ثانيه') || str.includes('ثاني') || str.includes('2')) return 2;
+    if (str.includes('ثالثه') || str.includes('ثالث') || str.includes('3')) return 3;
+    return 4;
+  }
+
+  if (str.includes('اول') || str.includes('1')) return 10;
+  if (str.includes('ثاني') || str.includes('2')) return 20;
+  if (str.includes('ثالث') || str.includes('3')) return 30;
+  if (str.includes('رابع') || str.includes('4')) return 40;
+  if (str.includes('خامس') || str.includes('5')) return 50;
+  if (str.includes('سادس') || str.includes('6')) return 60;
+  if (str.includes('سابع') || str.includes('7')) return 70;
+  if (str.includes('ثامن') || str.includes('8')) return 80;
+  if (str.includes('تاسع') || str.includes('9')) return 90;
+  if (str.includes('عاشر') || str.includes('10')) return 100;
+  if (str.includes('حادي') || str.includes('11')) return 110;
+  if (str.includes('ثاني عشر') || str.includes('12')) return 120;
   return 999;
 };
 
@@ -87,11 +92,25 @@ export const ClassesModule = ({ initialSubTab = 'grades' }) => {
 
   const isAr = lang === 'ar';
   const safeGrades = [...(grades || [])].sort((a, b) => getGradeSortOrder(a.name) - getGradeSortOrder(b.name));
-  const safeClassrooms = [...(classrooms || [])].sort((a, b) => {
-    const gDiff = getGradeSortOrder(a.gradeName) - getGradeSortOrder(b.gradeName);
-    if (gDiff !== 0) return gDiff;
-    return getSectionSortOrder(a.sectionName) - getSectionSortOrder(b.sectionName);
-  });
+  const safeClassrooms = (() => {
+    const raw = classrooms || [];
+    const seen = new Set();
+    const result = [];
+    for (const c of raw) {
+      const gName = (c.gradeName || c.grade || '').trim();
+      const sName = (c.sectionName || c.section || '').trim();
+      const key = `${gName}_${sName}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(c);
+      }
+    }
+    return result.sort((a, b) => {
+      const gDiff = getGradeSortOrder(a.gradeName) - getGradeSortOrder(b.gradeName);
+      if (gDiff !== 0) return gDiff;
+      return getSectionSortOrder(a.sectionName) - getSectionSortOrder(b.sectionName);
+    });
+  })();
   const safeStudents = students || [];
   const safeTeachers = teachers || [];
   const safeSubjects = subjects || [];

@@ -1,9 +1,9 @@
 export const translations = {
   ar: {
     // App Header & Branding
-    appName: "مركز الدعم التعليمي",
+    appName: "مدرسة الدعم التعليمي",
     appSubName: "",
-    schoolName: "مركز الدعم التعليمي",
+    schoolName: "مدرسة الدعم التعليمي",
     roleAdmin: "الإدارة العامة",
     roleTeacher: "كادر المعلمين",
     roleParent: "بوابة الطالب ولي الأمر (خاص)",

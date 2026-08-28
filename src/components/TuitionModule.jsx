@@ -1224,7 +1224,7 @@ export const TuitionModule = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-[#0284C7] leading-tight">
-                    {siteSettings?.schoolName || 'مركز الدعم التعليمي'}
+                    {siteSettings?.schoolName || 'مدرسة الدعم التعليمي'}
                   </h2>
                   <h3 className="text-sm font-extrabold text-slate-800 mt-1">
                     كشف الأقساط والتحصيلات المالية الموّحد للطلاب

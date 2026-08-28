@@ -826,7 +826,7 @@ export const TutoringModule = () => {
               <img src="/school-logo.png" alt="Logo" className="w-14 h-14 object-contain" />
               <div>
                 <h2 className="text-xl font-black text-[#0284C7]">
-                  🎓 معهد التقوية والدورات التعليمية الخاصة - {siteSettings?.schoolName || 'مركز الدعم التعليمي'}
+                  🎓 معهد التقوية والدورات التعليمية الخاصة - {siteSettings?.schoolName || 'مدرسة الدعم التعليمي'}
                 </h2>
                 <h1 className="text-sm font-bold text-slate-600">
                   كشف الحسابات والرسوم المالية الخاصة بدورات التقوية والدعم التعليمي

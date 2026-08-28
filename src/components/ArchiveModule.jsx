@@ -15,7 +15,8 @@ import {
   Eye,
   X,
   UserCheck,
-  CreditCard
+  CreditCard,
+  Trash2
 } from 'lucide-react';
 
 export const ArchiveModule = () => {
@@ -26,9 +27,20 @@ export const ArchiveModule = () => {
     students = [],
     subjects = [],
     academicYearsArchive = [],
+    deleteAcademicYearArchive,
     startNewAcademicYear,
     currentRole
   } = useApp();
+
+  const handleDeleteArchive = (arch) => {
+    if (window.confirm(`هل أنت تأكد من رغبتك في حذف أرشيف العام الدراسي (${arch.yearName}) كلياً وبشكل نهائي من المنظومة؟`)) {
+      if (deleteAcademicYearArchive) {
+        deleteAcademicYearArchive(arch.id);
+        setToastMsg(`تم حذف أرشيف العام الدراسي (${arch.yearName}) نهائياً بنجاح! 🗑️`);
+        setTimeout(() => setToastMsg(''), 4000);
+      }
+    }
+  };
 
   // Combine active students and all archived student snapshots across past years
   const allArchiveStudentsMap = new Map();
@@ -316,9 +328,20 @@ export const ArchiveModule = () => {
                 <div key={arch.id} className="p-5 rounded-2xl border border-slate-200 bg-[#F8FAFC] space-y-4 shadow-xs hover:border-[#0284C7]/50 transition-all">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                     <h4 className="text-base font-black text-[#0284C7]">العام الدراسي: {arch.yearName} 🎓</h4>
-                    <span className="text-[10px] text-slate-500 font-mono font-bold bg-white px-2 py-1 rounded-lg border border-slate-200">
-                      تاريخ الأرشفة: {new Date(arch.archivedAt).toLocaleDateString('ar-EG')}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-500 font-mono font-bold bg-white px-2 py-1 rounded-lg border border-slate-200">
+                        تاريخ الأرشفة: {new Date(arch.archivedAt).toLocaleDateString('ar-EG')}
+                      </span>
+                      {currentRole === 'admin' && (
+                        <button
+                          onClick={() => handleDeleteArchive(arch)}
+                          className="p-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-200 cursor-pointer transition-all shrink-0"
+                          title="حذف هذا العام الدراسي من الأرشيف نهائياً 🗑️"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Priority 1 & 2 Snapshot Summary Badges */}

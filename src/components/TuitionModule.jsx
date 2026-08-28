@@ -1168,9 +1168,15 @@ export const TuitionModule = () => {
                 .statement-print-table tr:nth-child(even).frozen-row td {
                   background-color: #FCA5A5 !important;
                 }
-                .signature-section {
+                .statement-print-footer {
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
                   margin-top: 25px !important;
-                  padding-top: 20px !important;
+                  padding-top: 15px !important;
+                }
+                .signature-section {
+                  margin-top: 20px !important;
+                  padding-top: 18px !important;
                   border-top: 2px solid #CBD5E1 !important;
                   width: 100% !important;
                 }
@@ -1185,7 +1191,7 @@ export const TuitionModule = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-[#0284C7]">معاينة وطباعة كشف الأقساط والدفعات المدرسية (A4)</h3>
-                  <p className="text-xs text-slate-500">جدول مالي مجمع بالدولار مُنسق ومصمم لملء ورقة A4 بالكامل بشكل احترافي</p>
+                  <p className="text-xs text-slate-500">جدول مالي مجمع بالدولار - المجموع والحسابات المجمدة والتواقيع مؤطرة بأسفل آخر صفحة</p>
                 </div>
               </div>
 
@@ -1227,7 +1233,7 @@ export const TuitionModule = () => {
                 </div>
               </div>
 
-              <div className="text-left font-mono text-xs text-slate-700 space-y-1.5 bg-[#F8FAFC] p-3.5 rounded-2xl border border-slate-200 min-w-52 shadow-2xs">
+              <div className="text-left font-mono text-xs text-slate-700 space-y-1.5 bg-[#F8FAFC] p-3.5 rounded-2xl border border-slate-200 min-w-56 shadow-2xs">
                 <div className="flex justify-between gap-3">
                   <span className="text-slate-500 font-sans font-bold">العام الدراسي:</span>
                   <span className="font-extrabold text-[#0284C7] text-sm">{siteSettings?.academicYear || '2026/2027'}</span>
@@ -1237,113 +1243,148 @@ export const TuitionModule = () => {
                   <span className="font-bold">{new Date().toISOString().split('T')[0]}</span>
                 </div>
                 <div className="flex justify-between gap-3 border-t border-slate-200 pt-1">
-                  <span className="text-slate-500 font-sans font-bold">عدد الحسابات:</span>
+                  <span className="text-slate-500 font-sans font-bold">إجمالي الحسابات:</span>
                   <span className="font-black text-[#0F172A]">{safeStudents.length} طالب</span>
                 </div>
               </div>
             </div>
 
-            {/* Financial Summary Cards Banner */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs font-mono py-1">
-              <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-2xl">
-                <span className="text-[11px] text-slate-500 font-sans font-bold block">إجمالي الأقساط الأساسية:</span>
-                <span className="text-base font-black text-[#0F172A]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0).toLocaleString()} USD</span>
-              </div>
-              <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-2xl">
-                <span className="text-[11px] text-slate-500 font-sans font-bold block">إجمالي الخصومات:</span>
-                <span className="text-base font-black text-emerald-600">-${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()} USD</span>
-              </div>
-              <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-2xl">
-                <span className="text-[11px] text-slate-500 font-sans font-bold block">إجمالي المقبوض:</span>
-                <span className="text-base font-black text-[#0284C7]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()} USD</span>
-              </div>
-              <div className="bg-[#F8FAFC] border border-red-200 p-3 rounded-2xl">
-                <span className="text-[11px] text-red-600 font-sans font-black block">إجمالي المتبقي المستحق:</span>
-                <span className="text-base font-black text-red-600">${totalRemainingUSD.toLocaleString()} USD</span>
-              </div>
-            </div>
+            {/* Structured Roster Table Section */}
+            {(() => {
+              const frozenStudents = safeStudents.filter(s => Boolean(s.frozen));
+              const frozenCount = frozenStudents.length;
+              const frozenTuitionTotal = frozenStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0);
+              const frozenAdminFees    = frozenStudents.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0);
+              const frozenDiscount     = frozenStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
+              const frozenPaid         = frozenStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
+              const frozenRemaining    = Math.max(0, frozenTuitionTotal + frozenAdminFees - frozenDiscount - frozenPaid);
 
-            {/* Structured Table Section */}
-            <div className="overflow-x-auto my-2">
-              <table className="w-full text-center border-collapse statement-print-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '5%' }}>#</th>
-                    <th style={{ width: '10%' }}>معرف ID</th>
-                    <th style={{ width: '22%' }}>اسم الطالب / العائلة</th>
-                    <th style={{ width: '14%' }}>الصف والشعبة</th>
-                    <th style={{ width: '16%' }}>ولي الأمر والهاتف</th>
-                    <th style={{ width: '7%' }}>القسط</th>
-                    <th style={{ width: '7%' }}>مصاريف</th>
-                    <th style={{ width: '6%' }}>الخصم</th>
-                    <th style={{ width: '7%' }}>المقبوض</th>
-                    <th style={{ width: '6%' }}>المتبقي</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {safeStudents.map((s, idx) => {
-                    const isFrozen = Boolean(s.frozen);
-                    const total = Number(s.tuitionTotal || 600);
-                    const adminFees = Number(s.adminFees || 0);
-                    const discount = Number(s.tuitionDiscount || 0);
-                    const paid = Number(s.tuitionPaid || 0);
-                    const rem = Math.max(0, total + adminFees - discount - paid);
+              return (
+                <>
+                  <div className="overflow-x-auto my-2">
+                    <table className="w-full text-center border-collapse statement-print-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '5%' }}>#</th>
+                          <th style={{ width: '10%' }}>معرف ID</th>
+                          <th style={{ width: '22%' }}>اسم الطالب / العائلة</th>
+                          <th style={{ width: '14%' }}>الصف والشعبة</th>
+                          <th style={{ width: '16%' }}>ولي الأمر والهاتف</th>
+                          <th style={{ width: '7%' }}>القسط</th>
+                          <th style={{ width: '7%' }}>مصاريف</th>
+                          <th style={{ width: '6%' }}>الخصم</th>
+                          <th style={{ width: '7%' }}>المقبوض</th>
+                          <th style={{ width: '6%' }}>المتبقي</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {safeStudents.map((s, idx) => {
+                          const isFrozen = Boolean(s.frozen);
+                          const total = Number(s.tuitionTotal || 600);
+                          const adminFees = Number(s.adminFees || 0);
+                          const discount = Number(s.tuitionDiscount || 0);
+                          const paid = Number(s.tuitionPaid || 0);
+                          const rem = Math.max(0, total + adminFees - discount - paid);
 
-                    return (
-                      <tr key={s.id || idx} className={isFrozen ? 'bg-red-100 text-red-950 font-bold border-2 border-red-400 frozen-row' : ''}>
-                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-extrabold border-red-300' : ''}`}>{idx + 1}</td>
-                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-extrabold border-red-300' : 'text-slate-500'}`}>{s.id}</td>
-                        <td className={`font-bold ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-slate-900'}`}>
-                          {isAr ? s.name : s.nameEn}
-                          {isFrozen && <span className="mr-1 text-[10px] bg-red-600 text-white px-1.5 py-0.2 rounded-md font-black inline-block">❄️ حساب مجمد</span>}
-                        </td>
-                        <td className={isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-slate-700'}>{isAr ? s.grade : s.gradeEn} ({s.classRoom || 'أ'})</td>
-                        <td className={isFrozen ? 'bg-red-100 text-red-950 font-mono text-[10.5px] border-red-300' : 'text-slate-600 font-mono text-[10.5px]'}>
-                          {s.parentName || '—'}<br/><span className={isFrozen ? 'text-red-900 font-bold' : 'text-slate-500'}>{s.parentPhone || s.phone || '—'}</span>
-                        </td>
-                        <td className={`font-mono font-bold ${isFrozen ? 'bg-red-100 text-red-950 border-red-300' : ''}`}>${total}</td>
-                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-amber-700'}`}>{adminFees > 0 ? `+$${adminFees}` : '$0'}</td>
-                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-emerald-700'}`}>{discount > 0 ? `-$${discount}` : '$0'}</td>
-                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-[#0284C7] font-bold'}`}>${paid}</td>
-                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-red-600 font-black'}`}>${rem}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
+                          return (
+                            <tr key={s.id || idx} className={isFrozen ? 'bg-red-100 text-red-950 font-bold border-2 border-red-400 frozen-row' : ''}>
+                              <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-extrabold border-red-300' : ''}`}>{idx + 1}</td>
+                              <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-extrabold border-red-300' : 'text-slate-500'}`}>{s.id}</td>
+                              <td className={`font-bold ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-slate-900'}`}>
+                                {isAr ? s.name : s.nameEn}
+                                {isFrozen && <span className="mr-1 text-[10px] bg-red-600 text-white px-1.5 py-0.2 rounded-md font-black inline-block">❄️ مجمد</span>}
+                              </td>
+                              <td className={isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-slate-700'}>{isAr ? s.grade : s.gradeEn} ({s.classRoom || 'أ'})</td>
+                              <td className={isFrozen ? 'bg-red-100 text-red-950 font-mono text-[10.5px] border-red-300' : 'text-slate-600 font-mono text-[10.5px]'}>
+                                {s.parentName || '—'}<br/><span className={isFrozen ? 'text-red-900 font-bold' : 'text-slate-500'}>{s.parentPhone || s.phone || '—'}</span>
+                              </td>
+                              <td className={`font-mono font-bold ${isFrozen ? 'bg-red-100 text-red-950 border-red-300' : ''}`}>${total}</td>
+                              <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-amber-700'}`}>{adminFees > 0 ? `+$${adminFees}` : '$0'}</td>
+                              <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-emerald-700'}`}>{discount > 0 ? `-$${discount}` : '$0'}</td>
+                              <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-[#0284C7] font-bold'}`}>${paid}</td>
+                              <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-red-600 font-black'}`}>${rem}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
 
-                <tfoot>
-                  <tr>
-                    <td colSpan={5} className="text-right font-black">
-                      إجمالي التحصيلات المالية الكلية ({safeStudents.length} طلاب)
-                    </td>
-                    <td className="font-mono font-bold">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0).toLocaleString()}</td>
-                    <td className="font-mono text-amber-800">+${safeStudents.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0).toLocaleString()}</td>
-                    <td className="font-mono text-emerald-800">-${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()}</td>
-                    <td className="font-mono text-[#0284C7] font-black">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()}</td>
-                    <td className="font-mono text-red-700 font-black">${totalRemainingUSD.toLocaleString()} USD</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+                      {/* Footer Summary Rows (All Accounts + Frozen Accounts) */}
+                      <tfoot>
+                        <tr>
+                          <td colSpan={5} className="text-right font-black">
+                            إجمالي التحصيلات المالية كافة ({safeStudents.length} طلاب)
+                          </td>
+                          <td className="font-mono font-bold">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0).toLocaleString()}</td>
+                          <td className="font-mono text-amber-800">+${safeStudents.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0).toLocaleString()}</td>
+                          <td className="font-mono text-emerald-800">-${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()}</td>
+                          <td className="font-mono text-[#0284C7] font-black">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()}</td>
+                          <td className="font-mono text-red-700 font-black">${totalRemainingUSD.toLocaleString()} USD</td>
+                        </tr>
 
-            {/* Official Report Signatures Block */}
-            <div className="signature-section flex justify-between items-end pt-6 border-t-2 border-slate-300 text-xs text-slate-800">
-              <div>
-                <p className="font-extrabold text-sm">توقيع المسؤول المالي / المحاسب:</p>
-                <div className="h-12 border-b-2 border-slate-400 w-52 mt-1" />
-              </div>
+                        {frozenCount > 0 && (
+                          <tr className="frozen-row bg-red-100 text-red-950 font-extrabold border-t-2 border-red-400">
+                            <td colSpan={5} className="text-right font-black bg-red-100 text-red-950 border-red-300">
+                              ❄️ إجمالي مجموع الحسابات المجمدة ({frozenCount} طالب مجمد)
+                            </td>
+                            <td className="font-mono font-bold bg-red-100 text-red-950 border-red-300">${frozenTuitionTotal.toLocaleString()}</td>
+                            <td className="font-mono text-red-900 bg-red-100 border-red-300">+${frozenAdminFees.toLocaleString()}</td>
+                            <td className="font-mono text-red-900 bg-red-100 border-red-300">-${frozenDiscount.toLocaleString()}</td>
+                            <td className="font-mono text-red-900 bg-red-100 border-red-300">${frozenPaid.toLocaleString()}</td>
+                            <td className="font-mono text-red-950 font-black bg-red-100 border-red-300">${frozenRemaining.toLocaleString()} USD</td>
+                          </tr>
+                        )}
+                      </tfoot>
+                    </table>
+                  </div>
 
-              <div className="text-center space-y-1.5">
-                <span className="px-6 py-2 rounded-full font-black text-xs border border-sky-300 bg-sky-50 text-[#0284C7] inline-block shadow-2xs">
-                  ختم إدارة المدرسة الرسمي 💮
-                </span>
-              </div>
+                  {/* 📍 Bottom Document Footer: Summary Cards + Signatures (Guaranteed on Last Page Bottom) */}
+                  <div className="statement-print-footer space-y-4">
+                    {/* Financial Summary Cards Banner at the VERY BOTTOM */}
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center text-xs font-mono py-1">
+                      <div className="bg-[#F8FAFC] border border-slate-200 p-2.5 rounded-2xl">
+                        <span className="text-[10px] text-slate-500 font-sans font-bold block">إجمالي الأقساط:</span>
+                        <span className="text-sm font-black text-[#0F172A]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0).toLocaleString()}</span>
+                      </div>
+                      <div className="bg-[#F8FAFC] border border-slate-200 p-2.5 rounded-2xl">
+                        <span className="text-[10px] text-slate-500 font-sans font-bold block">إجمالي الخصومات:</span>
+                        <span className="text-sm font-black text-emerald-600">-${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()}</span>
+                      </div>
+                      <div className="bg-[#F8FAFC] border border-slate-200 p-2.5 rounded-2xl">
+                        <span className="text-[10px] text-slate-500 font-sans font-bold block">إجمالي المقبوض:</span>
+                        <span className="text-sm font-black text-[#0284C7]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()}</span>
+                      </div>
+                      <div className="bg-[#F8FAFC] border border-red-200 p-2.5 rounded-2xl">
+                        <span className="text-[10px] text-red-600 font-sans font-black block">إجمالي المتبقي:</span>
+                        <span className="text-sm font-black text-red-600">${totalRemainingUSD.toLocaleString()} USD</span>
+                      </div>
+                      <div className="bg-red-50 border border-red-300 p-2.5 rounded-2xl col-span-2 sm:col-span-1">
+                        <span className="text-[10px] text-red-800 font-sans font-black block">❄️ الحسابات المجمدة:</span>
+                        <span className="text-sm font-black text-red-800">{frozenCount} طالب (${frozenRemaining})</span>
+                      </div>
+                    </div>
 
-              <div>
-                <p className="font-extrabold text-sm">اعتماد وتوقيع مدير المدرسة:</p>
-                <div className="h-12 border-b-2 border-slate-400 w-52 mt-1" />
-              </div>
-            </div>
+                    {/* Official Report Signatures Block */}
+                    <div className="signature-section flex justify-between items-end pt-4 border-t-2 border-slate-300 text-xs text-slate-800">
+                      <div>
+                        <p className="font-extrabold text-sm">توقيع المسؤول المالي / المحاسب:</p>
+                        <div className="h-10 border-b-2 border-slate-400 w-48 mt-1" />
+                      </div>
+
+                      <div className="text-center space-y-1">
+                        <span className="px-5 py-1.5 rounded-full font-black text-xs border border-sky-300 bg-sky-50 text-[#0284C7] inline-block shadow-2xs">
+                          ختم إدارة المدرسة الرسمي 💮
+                        </span>
+                      </div>
+
+                      <div>
+                        <p className="font-extrabold text-sm">اعتماد وتوقيع مدير المدرسة:</p>
+                        <div className="h-10 border-b-2 border-slate-400 w-48 mt-1" />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Bottom Actions (Screen Only) */}
             <div className="no-print flex justify-end gap-3 pt-4 border-t border-slate-200">

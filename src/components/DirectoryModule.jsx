@@ -1099,19 +1099,35 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                             {/* Scrollable Siblings/Students Container (Ensures ALL cards have identical 410px height!) */}
                             <div className="flex-1 overflow-y-auto space-y-2 my-2 pr-1 custom-scrollbar">
                               {familyMembers.map((sib) => {
+                                const isFrozen = Boolean(sib.frozen);
                                 return (
-                                  <div key={sib.id} className="bg-[#F8FAFC] border border-slate-200 p-2 rounded-xl space-y-1.5 text-xs">
+                                  <div 
+                                    key={sib.id} 
+                                    className={`p-2.5 rounded-xl space-y-1.5 text-xs transition-all border-2 ${
+                                      isFrozen
+                                        ? 'bg-red-100/90 border-red-400 text-red-950 ring-2 ring-red-400/30 shadow-xs'
+                                        : 'bg-[#F8FAFC] border-slate-200'
+                                    }`}
+                                  >
                                     <div className="flex items-center justify-between gap-1">
                                       <div className="flex items-center gap-1.5 min-w-0">
-                                        <div className="w-6 h-6 rounded-full bg-[#0284C7]/10 text-[#0284C7] font-black text-[10px] flex items-center justify-center shrink-0 border border-[#0284C7]">
-                                          {(sib.name || 'ط')[0]}
+                                        <div className={`w-6 h-6 rounded-full font-black text-[10px] flex items-center justify-center shrink-0 border ${
+                                          isFrozen ? 'bg-red-600 text-white border-red-700' : 'bg-[#0284C7]/10 text-[#0284C7] border-[#0284C7]'
+                                        }`}>
+                                          {isFrozen ? '❄️' : (sib.name || 'ط')[0]}
                                         </div>
                                         <div className="truncate">
-                                          <h5 className="text-[11px] font-black text-[#0F172A] flex items-center gap-1 truncate">
+                                          <h5 className={`text-[11px] font-black flex items-center gap-1 truncate ${isFrozen ? 'text-red-950' : 'text-[#0F172A]'}`}>
                                             <span>{isAr ? sib.name : sib.nameEn}</span>
-                                            <span className="bg-sky-50 text-[#0284C7] text-[8px] px-1 py-0.2 rounded font-bold border border-sky-100 shrink-0">
-                                              {sib.grade} ({sib.classRoom || 'أ'})
-                                            </span>
+                                            {isFrozen ? (
+                                              <span className="bg-red-600 text-white text-[8px] px-1.5 py-0.2 rounded font-black border border-red-700 shrink-0">
+                                                ❄️ حساب مجمد
+                                              </span>
+                                            ) : (
+                                              <span className="bg-sky-50 text-[#0284C7] text-[8px] px-1 py-0.2 rounded font-bold border border-sky-100 shrink-0">
+                                                {sib.grade} ({sib.classRoom || 'أ'})
+                                              </span>
+                                            )}
                                             {sib.isSpecialCase && (
                                               <span className="bg-amber-100 text-amber-900 text-[8px] px-1.5 py-0.2 rounded-md font-black border border-amber-300 shrink-0 flex items-center gap-0.5">
                                                 ⭐ حالة خاصة

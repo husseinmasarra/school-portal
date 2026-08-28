@@ -1159,6 +1159,15 @@ export const TuitionModule = () => {
                   padding: 12px 10px !important;
                   border-top: 3px solid #0284C7 !important;
                 }
+                .statement-print-table tr.frozen-row td {
+                  background-color: #FEE2E2 !important;
+                  color: #991B1B !important;
+                  font-weight: 800 !important;
+                  border-color: #FCA5A5 !important;
+                }
+                .statement-print-table tr:nth-child(even).frozen-row td {
+                  background-color: #FCA5A5 !important;
+                }
                 .signature-section {
                   margin-top: 25px !important;
                   padding-top: 20px !important;
@@ -1273,6 +1282,7 @@ export const TuitionModule = () => {
                 </thead>
                 <tbody>
                   {safeStudents.map((s, idx) => {
+                    const isFrozen = Boolean(s.frozen);
                     const total = Number(s.tuitionTotal || 600);
                     const adminFees = Number(s.adminFees || 0);
                     const discount = Number(s.tuitionDiscount || 0);
@@ -1280,17 +1290,22 @@ export const TuitionModule = () => {
                     const rem = Math.max(0, total + adminFees - discount - paid);
 
                     return (
-                      <tr key={s.id || idx}>
-                        <td className="font-mono">{idx + 1}</td>
-                        <td className="font-mono text-slate-500">{s.id}</td>
-                        <td className="font-bold text-slate-900">{isAr ? s.name : s.nameEn}</td>
-                        <td className="text-slate-700">{isAr ? s.grade : s.gradeEn} ({s.classRoom || 'أ'})</td>
-                        <td className="text-slate-600 font-mono text-[10.5px]">{s.parentName || '—'}<br/><span className="text-slate-500">{s.parentPhone || s.phone || '—'}</span></td>
-                        <td className="font-mono font-bold">${total}</td>
-                        <td className="font-mono text-amber-700">{adminFees > 0 ? `+$${adminFees}` : '$0'}</td>
-                        <td className="font-mono text-emerald-700">{discount > 0 ? `-$${discount}` : '$0'}</td>
-                        <td className="font-mono text-[#0284C7] font-bold">${paid}</td>
-                        <td className="font-mono text-red-600 font-black">${rem}</td>
+                      <tr key={s.id || idx} className={isFrozen ? 'bg-red-100 text-red-950 font-bold border-2 border-red-400 frozen-row' : ''}>
+                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-extrabold border-red-300' : ''}`}>{idx + 1}</td>
+                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-extrabold border-red-300' : 'text-slate-500'}`}>{s.id}</td>
+                        <td className={`font-bold ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-slate-900'}`}>
+                          {isAr ? s.name : s.nameEn}
+                          {isFrozen && <span className="mr-1 text-[10px] bg-red-600 text-white px-1.5 py-0.2 rounded-md font-black inline-block">❄️ حساب مجمد</span>}
+                        </td>
+                        <td className={isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-slate-700'}>{isAr ? s.grade : s.gradeEn} ({s.classRoom || 'أ'})</td>
+                        <td className={isFrozen ? 'bg-red-100 text-red-950 font-mono text-[10.5px] border-red-300' : 'text-slate-600 font-mono text-[10.5px]'}>
+                          {s.parentName || '—'}<br/><span className={isFrozen ? 'text-red-900 font-bold' : 'text-slate-500'}>{s.parentPhone || s.phone || '—'}</span>
+                        </td>
+                        <td className={`font-mono font-bold ${isFrozen ? 'bg-red-100 text-red-950 border-red-300' : ''}`}>${total}</td>
+                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-amber-700'}`}>{adminFees > 0 ? `+$${adminFees}` : '$0'}</td>
+                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-bold border-red-300' : 'text-emerald-700'}`}>{discount > 0 ? `-$${discount}` : '$0'}</td>
+                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-[#0284C7] font-bold'}`}>${paid}</td>
+                        <td className={`font-mono ${isFrozen ? 'bg-red-100 text-red-950 font-black border-red-300' : 'text-red-600 font-black'}`}>${rem}</td>
                       </tr>
                     );
                   })}

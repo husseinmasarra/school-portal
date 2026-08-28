@@ -1077,13 +1077,13 @@ export const TuitionModule = () => {
       {/* 🖨️ Official Full Printable Tuition Roster Table Modal */}
       {showPrintStatementModal && createPortal(
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] overflow-y-auto receipt-print-backdrop">
-          <div className="bg-white rounded-3xl p-7 max-w-6xl w-full shadow-2xl space-y-6 border border-slate-200 receipt-printable-card text-[#0F172A] relative text-right">
+          <div className="bg-white rounded-3xl p-7 max-w-5xl w-full shadow-2xl space-y-6 border border-slate-200 receipt-printable-card text-[#0F172A] relative text-right">
             
-            {/* Executive Print & A4 CSS Rules */}
+            {/* Executive Print & Full A4 Page CSS Rules */}
             <style>{`
               @page {
-                size: A4 landscape;
-                margin: 8mm 10mm 10mm 10mm;
+                size: A4 portrait;
+                margin: 10mm 12mm 12mm 12mm;
               }
               @media print {
                 html, body {
@@ -1091,6 +1091,8 @@ export const TuitionModule = () => {
                   color: #000000 !important;
                   margin: 0 !important;
                   padding: 0 !important;
+                  width: 100% !important;
+                  height: 100% !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
@@ -1106,34 +1108,44 @@ export const TuitionModule = () => {
                   left: 0 !important;
                   top: 0 !important;
                   width: 100% !important;
+                  min-height: 98% !important;
                   padding: 0 !important;
                   margin: 0 !important;
                   border: none !important;
                   box-shadow: none !important;
                   background: #ffffff !important;
                   color: #000000 !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  justify-content: space-between !important;
                 }
                 .no-print {
                   display: none !important;
                 }
+                .statement-header-box {
+                  border-bottom: 2.5px solid #0284C7 !important;
+                  padding-bottom: 12px !important;
+                  margin-bottom: 14px !important;
+                }
                 .statement-print-table {
                   width: 100% !important;
                   border-collapse: collapse !important;
-                  margin-top: 10px !important;
+                  margin-top: 14px !important;
+                  margin-bottom: 14px !important;
                 }
                 .statement-print-table th {
                   background-color: #0284C7 !important;
                   color: #ffffff !important;
                   font-weight: 800 !important;
                   border: 1px solid #0369A1 !important;
-                  padding: 7px 5px !important;
-                  font-size: 11px !important;
+                  padding: 10px 6px !important;
+                  font-size: 11.5px !important;
                   text-align: center !important;
                 }
                 .statement-print-table td {
                   border: 1px solid #CBD5E1 !important;
-                  padding: 6px 5px !important;
-                  font-size: 10.5px !important;
+                  padding: 9px 6px !important;
+                  font-size: 11px !important;
                   text-align: center !important;
                   color: #0F172A !important;
                 }
@@ -1143,7 +1155,14 @@ export const TuitionModule = () => {
                 .statement-print-table tfoot tr td {
                   background-color: #E2E8F0 !important;
                   font-weight: 800 !important;
-                  border-top: 2px solid #0284C7 !important;
+                  font-size: 11.5px !important;
+                  padding: 10px 6px !important;
+                  border-top: 2.5px solid #0284C7 !important;
+                }
+                .signature-section {
+                  margin-top: auto !important;
+                  padding-top: 25px !important;
+                  border-top: 2px solid #CBD5E1 !important;
                 }
               }
             `}</style>
@@ -1156,7 +1175,7 @@ export const TuitionModule = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-[#0284C7]">معاينة وطباعة كشف الأقساط والدفعات المدرسية (A4)</h3>
-                  <p className="text-xs text-slate-500">جدول مالي مجمع بالدولار مُنسق وجاهز للطباعة على ورقة A4 أو الحفظ كـ PDF</p>
+                  <p className="text-xs text-slate-500">جدول مالي مجمع بالدولار مُنسق ومصمم لملء ورقة A4 بالكامل بشكل احترافي</p>
                 </div>
               </div>
 
@@ -1182,26 +1201,26 @@ export const TuitionModule = () => {
             </div>
 
             {/* Official Header Banner */}
-            <div className="flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
+            <div className="statement-header-box flex items-center justify-between border-b-2 border-[#0284C7] pb-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white p-1 flex items-center justify-center border-2 border-[#0284C7] shadow-xs overflow-hidden shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-white p-1 flex items-center justify-center border-2 border-[#0284C7] shadow-xs overflow-hidden shrink-0">
                   <img src="/emblem.png" alt="School Emblem" className="w-full h-full object-contain" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-[#0284C7] leading-tight">
+                  <h2 className="text-2xl font-black text-[#0284C7] leading-tight">
                     {siteSettings?.schoolName || 'مركز الدعم التعليمي'}
                   </h2>
-                  <h3 className="text-xs font-extrabold text-slate-700 mt-0.5">
+                  <h3 className="text-sm font-extrabold text-slate-800 mt-1">
                     كشف الأقساط والتحصيلات المالية الموّحد للطلاب
                   </h3>
-                  <span className="text-[10px] text-slate-500 font-semibold block">سجل الإدارة المالية والأقساط الدراسية</span>
+                  <span className="text-xs text-slate-500 font-semibold block">سجل الإدارة المالية والأقساط الدراسية الرسمي</span>
                 </div>
               </div>
 
-              <div className="text-left font-mono text-xs text-slate-700 space-y-1 bg-[#F8FAFC] p-3 rounded-2xl border border-slate-200 min-w-48 shadow-2xs">
+              <div className="text-left font-mono text-xs text-slate-700 space-y-1.5 bg-[#F8FAFC] p-3.5 rounded-2xl border border-slate-200 min-w-52 shadow-2xs">
                 <div className="flex justify-between gap-3">
                   <span className="text-slate-500 font-sans font-bold">العام الدراسي:</span>
-                  <span className="font-extrabold text-[#0284C7]">{siteSettings?.academicYear || '2026/2027'}</span>
+                  <span className="font-extrabold text-[#0284C7] text-sm">{siteSettings?.academicYear || '2026/2027'}</span>
                 </div>
                 <div className="flex justify-between gap-3">
                   <span className="text-slate-500 font-sans font-bold">تاريخ الإصدار:</span>
@@ -1215,22 +1234,22 @@ export const TuitionModule = () => {
             </div>
 
             {/* Financial Summary Cards Banner */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs font-mono">
-              <div className="bg-[#F8FAFC] border border-slate-200 p-2.5 rounded-2xl">
-                <span className="text-[10px] text-slate-500 font-sans font-bold block">إجمالي الأقساط الأساسية:</span>
-                <span className="text-sm font-black text-[#0F172A]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0).toLocaleString()} USD</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs font-mono py-1">
+              <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-2xl">
+                <span className="text-[11px] text-slate-500 font-sans font-bold block">إجمالي الأقساط الأساسية:</span>
+                <span className="text-base font-black text-[#0F172A]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0).toLocaleString()} USD</span>
               </div>
-              <div className="bg-[#F8FAFC] border border-slate-200 p-2.5 rounded-2xl">
-                <span className="text-[10px] text-slate-500 font-sans font-bold block">إجمالي الخصومات:</span>
-                <span className="text-sm font-black text-emerald-600">-${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()} USD</span>
+              <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-2xl">
+                <span className="text-[11px] text-slate-500 font-sans font-bold block">إجمالي الخصومات:</span>
+                <span className="text-base font-black text-emerald-600">-${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()} USD</span>
               </div>
-              <div className="bg-[#F8FAFC] border border-slate-200 p-2.5 rounded-2xl">
-                <span className="text-[10px] text-slate-500 font-sans font-bold block">إجمالي المقبوض:</span>
-                <span className="text-sm font-black text-[#0284C7]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()} USD</span>
+              <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-2xl">
+                <span className="text-[11px] text-slate-500 font-sans font-bold block">إجمالي المقبوض:</span>
+                <span className="text-base font-black text-[#0284C7]">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()} USD</span>
               </div>
-              <div className="bg-[#F8FAFC] border border-red-200 p-2.5 rounded-2xl">
-                <span className="text-[10px] text-red-600 font-sans font-black block">إجمالي المتبقي المستحق:</span>
-                <span className="text-sm font-black text-red-600">${totalRemainingUSD.toLocaleString()} USD</span>
+              <div className="bg-[#F8FAFC] border border-red-200 p-3 rounded-2xl">
+                <span className="text-[11px] text-red-600 font-sans font-black block">إجمالي المتبقي المستحق:</span>
+                <span className="text-base font-black text-red-600">${totalRemainingUSD.toLocaleString()} USD</span>
               </div>
             </div>
 
@@ -1239,17 +1258,16 @@ export const TuitionModule = () => {
               <table className="w-full text-center border-collapse statement-print-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '4%' }}>#</th>
-                    <th style={{ width: '9%' }}>معرف ID</th>
+                    <th style={{ width: '5%' }}>#</th>
+                    <th style={{ width: '10%' }}>معرف ID</th>
                     <th style={{ width: '22%' }}>اسم الطالب / العائلة</th>
-                    <th style={{ width: '13%' }}>الصف والشعبة</th>
+                    <th style={{ width: '14%' }}>الصف والشعبة</th>
                     <th style={{ width: '16%' }}>ولي الأمر والهاتف</th>
-                    <th style={{ width: '8%' }}>القسط</th>
+                    <th style={{ width: '7%' }}>القسط</th>
                     <th style={{ width: '7%' }}>مصاريف</th>
-                    <th style={{ width: '7%' }}>الخصم</th>
-                    <th style={{ width: '8%' }}>المقبوض</th>
-                    <th style={{ width: '9%' }}>المتبقي</th>
-                    <th style={{ width: '9%' }}>الحالة</th>
+                    <th style={{ width: '6%' }}>الخصم</th>
+                    <th style={{ width: '7%' }}>المقبوض</th>
+                    <th style={{ width: '6%' }}>المتبقي</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1266,19 +1284,12 @@ export const TuitionModule = () => {
                         <td className="font-mono text-slate-500">{s.id}</td>
                         <td className="font-bold text-slate-900">{isAr ? s.name : s.nameEn}</td>
                         <td className="text-slate-700">{isAr ? s.grade : s.gradeEn} ({s.classRoom || 'أ'})</td>
-                        <td className="text-slate-600 font-mono text-[10px]">{s.parentName || '—'}<br/><span className="text-slate-500">{s.parentPhone || s.phone || '—'}</span></td>
+                        <td className="text-slate-600 font-mono text-[10.5px]">{s.parentName || '—'}<br/><span className="text-slate-500">{s.parentPhone || s.phone || '—'}</span></td>
                         <td className="font-mono font-bold">${total}</td>
                         <td className="font-mono text-amber-700">{adminFees > 0 ? `+$${adminFees}` : '$0'}</td>
                         <td className="font-mono text-emerald-700">{discount > 0 ? `-$${discount}` : '$0'}</td>
                         <td className="font-mono text-[#0284C7] font-bold">${paid}</td>
                         <td className="font-mono text-red-600 font-black">${rem}</td>
-                        <td className="font-bold">
-                          {rem === 0 ? (
-                            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-300 text-[10px]">✅ مسدد</span>
-                          ) : (
-                            <span className="text-red-700 bg-red-50 px-2 py-0.5 rounded-full border border-red-300 text-[10px]">⚠️ متأخر</span>
-                          )}
-                        </td>
                       </tr>
                     );
                   })}
@@ -1294,33 +1305,32 @@ export const TuitionModule = () => {
                     <td className="font-mono text-emerald-800">-${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()}</td>
                     <td className="font-mono text-[#0284C7] font-black">${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()}</td>
                     <td className="font-mono text-red-700 font-black">${totalRemainingUSD.toLocaleString()} USD</td>
-                    <td>—</td>
                   </tr>
                 </tfoot>
               </table>
             </div>
 
-            {/* Official Report Footer Signatures */}
-            <div className="flex justify-between items-end pt-4 border-t border-slate-300 text-xs text-slate-700">
+            {/* Official Report Signatures Block */}
+            <div className="signature-section flex justify-between items-end pt-6 border-t-2 border-slate-300 text-xs text-slate-800">
               <div>
-                <p className="font-bold">توقيع المسؤول المالي / المحاسب:</p>
-                <div className="h-8 border-b border-slate-400 w-44 mt-1" />
+                <p className="font-extrabold text-sm">توقيع المسؤول المالي / المحاسب:</p>
+                <div className="h-12 border-b-2 border-slate-400 w-52 mt-1" />
               </div>
 
-              <div className="text-center space-y-1">
-                <span className="px-4 py-1.5 rounded-full font-black text-xs border border-sky-300 bg-sky-50 text-[#0284C7] block">
+              <div className="text-center space-y-1.5">
+                <span className="px-6 py-2 rounded-full font-black text-xs border border-sky-300 bg-sky-50 text-[#0284C7] inline-block shadow-2xs">
                   ختم إدارة المدرسة الرسمي 💮
                 </span>
               </div>
 
               <div>
-                <p className="font-bold">اعتماد وتوقيع مدير المدرسة:</p>
-                <div className="h-8 border-b border-slate-400 w-44 mt-1" />
+                <p className="font-extrabold text-sm">اعتماد وتوقيع مدير المدرسة:</p>
+                <div className="h-12 border-b-2 border-slate-400 w-52 mt-1" />
               </div>
             </div>
 
-            {/* Action Buttons in Modal (Hidden on Print) */}
-            <div className="no-print flex justify-end gap-3 pt-3 border-t border-slate-200">
+            {/* Bottom Actions (Screen Only) */}
+            <div className="no-print flex justify-end gap-3 pt-4 border-t border-slate-200">
               <button
                 onClick={() => setShowPrintStatementModal(false)}
                 className="btn-mustard px-5 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer"
@@ -1331,12 +1341,12 @@ export const TuitionModule = () => {
               <button
                 onClick={() => {
                   window.scrollTo(0, 0);
-                  setTimeout(() => window.print(), 30);
+                  setTimeout(() => window.print(), 50);
                 }}
-                className="px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-md transition-all"
+                className="px-6 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-black cursor-pointer flex items-center gap-2 shadow-md transition-all"
               >
                 <Printer className="w-4 h-4 text-white" />
-                <span>طباعة الكشف الآن 🖨️</span>
+                <span>طباعة الكشف (A4) 🖨️</span>
               </button>
             </div>
 

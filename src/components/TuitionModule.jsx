@@ -1079,11 +1079,11 @@ export const TuitionModule = () => {
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] overflow-y-auto receipt-print-backdrop">
           <div className="bg-white rounded-3xl p-7 max-w-5xl w-full shadow-2xl space-y-6 border border-slate-200 receipt-printable-card text-[#0F172A] relative text-right">
             
-            {/* Executive Centered Print & Wide A4 Page CSS Rules */}
+            {/* Executive Top-Aligned Print & Wide A4 Page CSS Rules */}
             <style>{`
               @page {
                 size: A4 portrait;
-                margin: 12mm 15mm 15mm 15mm;
+                margin: 8mm 12mm 12mm 12mm;
               }
               @media print {
                 html, body {
@@ -1092,10 +1092,8 @@ export const TuitionModule = () => {
                   margin: 0 !important;
                   padding: 0 !important;
                   width: 100% !important;
-                  height: 100% !important;
-                  display: flex !important;
-                  justify-content: center !important;
-                  align-items: center !important;
+                  height: auto !important;
+                  display: block !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
@@ -1107,35 +1105,32 @@ export const TuitionModule = () => {
                   visibility: visible !important;
                 }
                 .receipt-printable-card {
-                  position: relative !important;
+                  position: absolute !important;
                   left: 0 !important;
                   top: 0 !important;
                   width: 100% !important;
                   max-width: 100% !important;
-                  margin: auto !important;
+                  margin: 0 !important;
                   padding: 0 !important;
                   border: none !important;
                   box-shadow: none !important;
                   background: #ffffff !important;
                   color: #000000 !important;
-                  display: flex !important;
-                  flex-direction: column !important;
-                  justify-content: center !important;
-                  text-align: center !important;
+                  display: block !important;
                 }
                 .no-print {
                   display: none !important;
                 }
                 .statement-header-box {
                   border-bottom: 3px solid #0284C7 !important;
-                  padding-bottom: 16px !important;
-                  margin-bottom: 18px !important;
+                  padding-bottom: 12px !important;
+                  margin-bottom: 14px !important;
                   width: 100% !important;
                 }
                 .statement-print-table {
                   width: 100% !important;
                   border-collapse: collapse !important;
-                  margin: 18px auto !important;
+                  margin: 14px 0 !important;
                 }
                 .statement-print-table th {
                   background-color: #0284C7 !important;
@@ -1165,8 +1160,8 @@ export const TuitionModule = () => {
                   border-top: 3px solid #0284C7 !important;
                 }
                 .signature-section {
-                  margin-top: 30px !important;
-                  padding-top: 25px !important;
+                  margin-top: 25px !important;
+                  padding-top: 20px !important;
                   border-top: 2px solid #CBD5E1 !important;
                   width: 100% !important;
                 }

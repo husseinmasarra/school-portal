@@ -16,7 +16,8 @@ import {
   X,
   UserCheck,
   CreditCard,
-  Trash2
+  Trash2,
+  Filter
 } from 'lucide-react';
 
 export const ArchiveModule = () => {
@@ -32,31 +33,8 @@ export const ArchiveModule = () => {
     currentRole
   } = useApp();
 
-  const handleDeleteArchive = (arch) => {
-    if (window.confirm(`هل أنت تأكد من رغبتك في حذف أرشيف العام الدراسي (${arch.yearName}) كلياً وبشكل نهائي من المنظومة؟`)) {
-      if (deleteAcademicYearArchive) {
-        deleteAcademicYearArchive(arch.id);
-        setToastMsg(`تم حذف أرشيف العام الدراسي (${arch.yearName}) نهائياً بنجاح! 🗑️`);
-        setTimeout(() => setToastMsg(''), 4000);
-      }
-    }
-  };
-
-  // Combine active students and all archived student snapshots across past years
-  const allArchiveStudentsMap = new Map();
-  (students || []).forEach(s => allArchiveStudentsMap.set(s.id, { ...s, archiveYear: siteSettings?.academicYear || 'الحالي' }));
-  (academicYearsArchive || []).forEach(ay => {
-    (ay.studentsSnapshot || []).forEach(s => {
-      if (!allArchiveStudentsMap.has(s.id)) {
-        allArchiveStudentsMap.set(s.id, { ...s, archiveYear: ay.yearName, matrixSnapshot: ay.matrixMarksSnapshot });
-      }
-    });
-  });
-  const safeStudents = Array.from(allArchiveStudentsMap.values());
-  const safeSubjects = subjects || [];
-
   const [activeTab, setActiveTab] = useState('terms'); // 'terms' (أرشيف الفصول والعلامات) | 'years' (أرشيف السنوات الدراسية)
-  const [selectedStuId, setSelectedStuId] = useState(safeStudents[0]?.id || '');
+  const [selectedYearFilter, setSelectedYearFilter] = useState('all'); // 'all' or specific archive yearName
   const [searchTerm, setSearchTerm] = useState('');
   const [newYearInput, setNewYearInput] = useState('');
   const [showNewYearModal, setShowNewYearModal] = useState(false);
@@ -73,7 +51,38 @@ export const ArchiveModule = () => {
     }
   })();
 
-  const selectedStudent = safeStudents.find(s => s.id === selectedStuId) || safeStudents[0];
+  // Combine active students and all archived student snapshots across past years
+  const allArchiveStudentsMap = new Map();
+  
+  // 1. Current active students
+  (students || []).forEach(s => {
+    allArchiveStudentsMap.set(s.id, { 
+      ...s, 
+      archiveYear: siteSettings?.academicYear || 'العام الحالي',
+      matrixSnapshot: matrixMarks 
+    });
+  });
+
+  // 2. Archived student snapshots
+  (academicYearsArchive || []).forEach(ay => {
+    if (selectedYearFilter === 'all' || selectedYearFilter === ay.yearName) {
+      (ay.studentsSnapshot || []).forEach(s => {
+        const key = `${s.id}_${ay.yearName}`;
+        allArchiveStudentsMap.set(key, { 
+          ...s, 
+          archiveYear: ay.yearName, 
+          matrixSnapshot: ay.matrixMarksSnapshot || {} 
+        });
+      });
+    }
+  });
+
+  const safeStudents = Array.from(allArchiveStudentsMap.values());
+  const safeSubjects = subjects || [];
+
+  const [selectedStuKey, setSelectedStuKey] = useState('');
+  const activeSelectedStuKey = selectedStuKey || (safeStudents[0] ? `${safeStudents[0].id}_${safeStudents[0].archiveYear}` : '');
+  const selectedStudent = safeStudents.find(s => `${s.id}_${s.archiveYear}` === activeSelectedStuKey) || safeStudents[0];
 
   const getStudentTripleName = (student) => {
     if (!student) return '';
@@ -89,10 +98,20 @@ export const ArchiveModule = () => {
     if (!newYearInput.trim()) return;
     if (startNewAcademicYear) {
       startNewAcademicYear(newYearInput.trim());
-      setToastMsg(`تم بدء العام الدراسي الجديد (${newYearInput}) وأرشفة العام السابق بجميع سجلاته ودرجاته بنجاح! 🎓📁`);
+      setToastMsg(`تم بدء العام الدراسي الجديد (${newYearInput}) وأرشفة العام السابق بجميع طلابه ودرجاته وسجلاته بنجاح! 🎓📁`);
       setShowNewYearModal(false);
       setNewYearInput('');
       setTimeout(() => setToastMsg(''), 4000);
+    }
+  };
+
+  const handleDeleteArchive = (arch) => {
+    if (window.confirm(`هل أنت تأكد من رغبتك في حذف أرشيف العام الدراسي (${arch.yearName}) كلياً وبشكل نهائي من المنظومة؟`)) {
+      if (deleteAcademicYearArchive) {
+        deleteAcademicYearArchive(arch.id);
+        setToastMsg(`تم حذف أرشيف العام الدراسي (${arch.yearName}) نهائياً بنجاح! 🗑️`);
+        setTimeout(() => setToastMsg(''), 4000);
+      }
     }
   };
 
@@ -108,7 +127,7 @@ export const ArchiveModule = () => {
           <div>
             <h2 className="text-xl font-bold text-[#0284C7]">أرشيف السنوات السابقة وسجلات الفصول 📁</h2>
             <p className="text-xs text-slate-500 mt-1">
-              سجل أرشيفي شامل مرتب حسب الأهمية: العلامات، سجلات الطلاب، الحضور والغياب، والأعوام المكتملة.
+              سجل أرشيفي شامل يحفظ بيانات الأعوام المنتهية ودرجات الفصول، مع إمكانية حذف أو إضافة سنوات جديدة.
             </p>
           </div>
         </div>
@@ -160,147 +179,179 @@ export const ArchiveModule = () => {
 
       {/* ─── TAB 1: TERMS ARCHIVE (أرشيف علامات الطلاب بالفصلين) ─── */}
       {activeTab === 'terms' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
           
-          {/* Left Column: Students Selection Roster */}
-          <div className="bg-white border border-[#E2E8F0] p-5 rounded-3xl space-y-4 shadow-sm h-fit">
-            <h3 className="text-sm font-black text-[#0F172A] flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Users className="w-4 h-4 text-[#0284C7]" />
-              <span>اختر التلميذ لمعاينة أرشيف درجاته ({safeStudents.length})</span>
-            </h3>
-
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 rtl:right-3 ltr:left-3" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="🔍 ابحث عن اسم الطالب..."
-                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl pr-9 pl-4 py-1.5 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
-              />
+          {/* Year Filter Dropdown Bar */}
+          <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-[#0284C7]" />
+              <label className="text-xs font-black text-slate-700">فلترة السجلات حسب العام الدراسي:</label>
             </div>
 
-            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
-              {safeStudents
-                .filter(s => !searchTerm || (s.name || '').includes(searchTerm))
-                .map(stu => {
-                  const isSelected = stu.id === selectedStuId;
-                  return (
-                    <button
-                      key={stu.id}
-                      onClick={() => setSelectedStuId(stu.id)}
-                      className={`w-full text-right p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                        isSelected
-                          ? 'bg-sky-50 border-[#0284C7] ring-1 ring-[#0284C7]'
-                          : 'bg-white border-slate-100 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border border-[#0284C7] shrink-0" />
-                        <div className="truncate">
-                          <h4 className="text-xs font-black text-[#0F172A] truncate">{getStudentTripleName(stu)}</h4>
-                          <span className="text-[10px] text-slate-500 font-semibold">{stu.grade} ({stu.classRoom || 'أ'})</span>
-                        </div>
-                      </div>
-                      {isSelected && <ChevronLeft className="w-4 h-4 text-[#0284C7] shrink-0" />}
-                    </button>
-                  );
-                })}
-            </div>
+            <select
+              value={selectedYearFilter}
+              onChange={(e) => setSelectedYearFilter(e.target.value)}
+              className="bg-[#F8FAFC] border-2 border-slate-200 text-xs font-black text-[#0284C7] rounded-xl px-4 py-1.5 focus:outline-none cursor-pointer"
+            >
+              <option value="all">كافة الأعوام المؤرشفة والسنوات 🎓</option>
+              {academicYearsArchive.map(ay => (
+                <option key={ay.id} value={ay.yearName}>العام الدراسي المؤرشف: {ay.yearName}</option>
+              ))}
+              <option value={siteSettings?.academicYear || 'العام الحالي'}>العام الحالي: {siteSettings?.academicYear || '2026/2027'}</option>
+            </select>
           </div>
 
-          {/* Right Column: Detailed Scores Archive Comparison Table */}
-          <div className="lg:col-span-2 space-y-6">
-            {selectedStudent ? (
-              <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-6 shadow-sm">
-                
-                {/* Student Identity Header */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-sky-50/70 p-4 rounded-2xl border border-sky-200">
-                  <div className="flex items-center gap-3">
-                    <img src={selectedStudent.avatar} alt={selectedStudent.name} className="w-12 h-12 rounded-full object-cover border-2 border-[#0284C7]" />
-                    <div>
-                      <h3 className="text-base font-black text-[#0F172A]">{getStudentTripleName(selectedStudent)}</h3>
-                      <p className="text-xs font-bold text-[#0284C7]">{selectedStudent.grade} ({selectedStudent.classRoom || 'أ'}) • رقم القيد: #{selectedStudent.id}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Left Column: Students Selection Roster */}
+            <div className="bg-white border border-[#E2E8F0] p-5 rounded-3xl space-y-4 shadow-sm h-fit">
+              <h3 className="text-sm font-black text-[#0F172A] flex items-center gap-2 border-b border-slate-100 pb-3">
+                <Users className="w-4 h-4 text-[#0284C7]" />
+                <span>اختر التلميذ لمعاينة أرشيف درجاته ({safeStudents.length})</span>
+              </h3>
+
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 rtl:right-3 ltr:left-3" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="🔍 ابحث عن اسم الطالب..."
+                  className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl pr-9 pl-4 py-1.5 text-xs font-bold focus:outline-none focus:border-[#0284C7]"
+                />
+              </div>
+
+              {safeStudents.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 font-bold text-xs space-y-1">
+                  <Clock className="w-8 h-8 mx-auto text-slate-300" />
+                  <p>لا يوجد طلاب مؤرشفون مطابقون لهذا الفلتر حالياً.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
+                  {safeStudents
+                    .filter(s => !searchTerm || (s.name || '').includes(searchTerm))
+                    .map(stu => {
+                      const stuKey = `${stu.id}_${stu.archiveYear}`;
+                      const isSelected = stuKey === activeSelectedStuKey;
+                      return (
+                        <button
+                          key={stuKey}
+                          onClick={() => setSelectedStuKey(stuKey)}
+                          className={`w-full text-right p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                            isSelected
+                              ? 'bg-sky-50 border-[#0284C7] ring-1 ring-[#0284C7]'
+                              : 'bg-white border-slate-100 hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <img src={stu.avatar} alt={stu.name} className="w-8 h-8 rounded-full object-cover border border-[#0284C7] shrink-0" />
+                            <div className="truncate">
+                              <h4 className="text-xs font-black text-[#0F172A] truncate">{getStudentTripleName(stu)}</h4>
+                              <span className="text-[10px] text-[#0284C7] font-bold block">{stu.archiveYear} • {stu.grade}</span>
+                            </div>
+                          </div>
+                          {isSelected && <ChevronLeft className="w-4 h-4 text-[#0284C7] shrink-0" />}
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Detailed Scores Archive Comparison Table */}
+            <div className="lg:col-span-2 space-y-6">
+              {selectedStudent ? (
+                <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl space-y-6 shadow-sm">
+                  
+                  {/* Student Identity Header */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-sky-50/70 p-4 rounded-2xl border border-sky-200">
+                    <div className="flex items-center gap-3">
+                      <img src={selectedStudent.avatar} alt={selectedStudent.name} className="w-12 h-12 rounded-full object-cover border-2 border-[#0284C7]" />
+                      <div>
+                        <h3 className="text-base font-black text-[#0F172A]">{getStudentTripleName(selectedStudent)}</h3>
+                        <p className="text-xs font-bold text-[#0284C7]">{selectedStudent.grade} ({selectedStudent.classRoom || 'أ'}) • رقم القيد: #{selectedStudent.id}</p>
+                      </div>
+                    </div>
+
+                    <span className="px-3 py-1 bg-white border border-sky-300 text-[#0284C7] rounded-xl text-xs font-black font-mono shadow-2xs">
+                      أرشيف العام الدراسي: {selectedStudent.archiveYear}
+                    </span>
+                  </div>
+
+                  {/* Scores Breakdown per Term Table */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-black text-[#0F172A] flex items-center justify-between border-b border-slate-100 pb-2">
+                      <span className="flex items-center gap-2">
+                        <FileSpreadsheet className="w-4 h-4 text-[#0284C7]" />
+                        <span>سجل مقارنة وعلامات المواد الرسمية (الفصل الأول VS الفصل الأخير)</span>
+                      </span>
+                    </h4>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-right border-collapse border border-slate-200">
+                        <thead>
+                          <tr className="bg-[#0284C7] text-white font-black text-[11px]">
+                            <th className="p-3 border border-sky-700 text-right">المادة الدراسية</th>
+                            <th className="p-3 border border-sky-700 text-center bg-sky-800 min-w-[110px]">📘 الفصل الأول</th>
+                            <th className="p-3 border border-sky-700 text-center bg-emerald-700 min-w-[110px]">🎓 الفصل الأخير</th>
+                            <th className="p-3 border border-sky-700 text-center min-w-[100px]">الحالة والتقييم</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 font-bold">
+                          {safeSubjects.map((sub, idx) => {
+                            const curMatrix = selectedStudent.matrixSnapshot || matrixMarks;
+                            const valFirst = curMatrix[`${selectedStudent.id}_${sub.id}_first_term`] ?? curMatrix[`${selectedStudent.id}_${sub.id}`] ?? '';
+                            const valFinal = curMatrix[`${selectedStudent.id}_${sub.id}_final_term`] ?? '';
+
+                            const numFirst = valFirst !== '' ? Number(valFirst) : null;
+                            const numFinal = valFinal !== '' ? Number(valFinal) : null;
+
+                            return (
+                              <tr key={sub.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                                <td className="p-3 border border-slate-200 font-bold text-slate-800">
+                                  <span className="ml-1.5">{sub.icon || '📚'}</span>
+                                  <span>{sub.name}</span>
+                                </td>
+                                <td className="p-3 border border-slate-200 text-center font-mono font-black text-xs text-[#0284C7] bg-sky-50/40">
+                                  {numFirst !== null ? `${numFirst} / 100` : 'غ.م'}
+                                </td>
+                                <td className="p-3 border border-slate-200 text-center font-mono font-black text-xs text-emerald-800 bg-emerald-50/40">
+                                  {numFinal !== null ? `${numFinal} / 100` : 'غ.م'}
+                                </td>
+                                <td className="p-3 border border-slate-200 text-center">
+                                  {numFinal !== null ? (
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                                      numFinal >= 90 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                                      numFinal >= 80 ? 'bg-sky-100 text-sky-800 border border-sky-300' :
+                                      numFinal >= 70 ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                                      numFinal >= 50 ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                      {numFinal >= 90 ? 'ممتاز' : numFinal >= 80 ? 'جيد جداً' : numFinal >= 70 ? 'جيد' : numFinal >= 50 ? 'مقبول' : 'راسب'}
+                                    </span>
+                                  ) : numFirst !== null ? (
+                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-sky-100 text-sky-800 border border-sky-200">
+                                      مرصود ف1
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px]">غير مرصود</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-
-                  <span className="px-3 py-1 bg-white border border-sky-300 text-[#0284C7] rounded-xl text-xs font-black font-mono shadow-2xs">
-                    العام الدراسي الحالي: {siteSettings?.academicYear || '2025/2026'}
-                  </span>
                 </div>
-
-                {/* Scores Breakdown per Term Table */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-black text-[#0F172A] flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span className="flex items-center gap-2">
-                      <FileSpreadsheet className="w-4 h-4 text-[#0284C7]" />
-                      <span>سجل مقارنة وعلامات المواد الرسمية (الفصل الأول VS الفصل الأخير)</span>
-                    </span>
-                  </h4>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-right border-collapse border border-slate-200">
-                      <thead>
-                        <tr className="bg-[#0284C7] text-white font-black text-[11px]">
-                          <th className="p-3 border border-sky-700 text-right">المادة الدراسية</th>
-                          <th className="p-3 border border-sky-700 text-center bg-sky-800 min-w-[110px]">📘 الفصل الأول</th>
-                          <th className="p-3 border border-sky-700 text-center bg-emerald-700 min-w-[110px]">🎓 الفصل الأخير</th>
-                          <th className="p-3 border border-sky-700 text-center min-w-[100px]">الحالة والتقييم</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 font-bold">
-                        {safeSubjects.map((sub, idx) => {
-                          const valFirst = matrixMarks[`${selectedStudent.id}_${sub.id}_first_term`] ?? matrixMarks[`${selectedStudent.id}_${sub.id}`] ?? '';
-                          const valFinal = matrixMarks[`${selectedStudent.id}_${sub.id}_final_term`] ?? '';
-
-                          const numFirst = valFirst !== '' ? Number(valFirst) : null;
-                          const numFinal = valFinal !== '' ? Number(valFinal) : null;
-
-                          return (
-                            <tr key={sub.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
-                              <td className="p-3 border border-slate-200 font-bold text-slate-800">
-                                <span className="ml-1.5">{sub.icon || '📚'}</span>
-                                <span>{sub.name}</span>
-                              </td>
-                              <td className="p-3 border border-slate-200 text-center font-mono font-black text-xs text-[#0284C7] bg-sky-50/40">
-                                {numFirst !== null ? `${numFirst} / 100` : 'غ.م'}
-                              </td>
-                              <td className="p-3 border border-slate-200 text-center font-mono font-black text-xs text-emerald-800 bg-emerald-50/40">
-                                {numFinal !== null ? `${numFinal} / 100` : 'غ.م'}
-                              </td>
-                              <td className="p-3 border border-slate-200 text-center">
-                                {numFinal !== null ? (
-                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                                    numFinal >= 90 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                                    numFinal >= 80 ? 'bg-sky-100 text-sky-800 border border-sky-300' :
-                                    numFinal >= 70 ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                                    numFinal >= 50 ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-red-100 text-red-800'
-                                  }`}>
-                                    {numFinal >= 90 ? 'ممتاز' : numFinal >= 80 ? 'جيد جداً' : numFinal >= 70 ? 'جيد' : numFinal >= 50 ? 'مقبول' : 'راسب'}
-                                  </span>
-                                ) : numFirst !== null ? (
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-sky-100 text-sky-800 border border-sky-200">
-                                    مرصود ف1
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-400 text-[10px]">غير مرصود</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+              ) : (
+                <div className="bg-white border border-[#E2E8F0] p-8 rounded-3xl text-center text-slate-400 font-bold text-xs shadow-sm">
+                  يرجى اختيار طالب من القائمة لمعاينة الأرشيف الخاص به.
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white border border-[#E2E8F0] p-8 rounded-3xl text-center text-slate-400 font-bold text-xs shadow-sm">
-                يرجى اختيار طالب من القائمة لمعاينة الأرشيف الخاص به.
-              </div>
-            )}
+              )}
+            </div>
+
           </div>
-
         </div>
       )}
 
@@ -335,10 +386,10 @@ export const ArchiveModule = () => {
                       {currentRole === 'admin' && (
                         <button
                           onClick={() => handleDeleteArchive(arch)}
-                          className="p-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-200 cursor-pointer transition-all shrink-0"
+                          className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-200 cursor-pointer transition-all shrink-0"
                           title="حذف هذا العام الدراسي من الأرشيف نهائياً 🗑️"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -449,10 +500,22 @@ export const ArchiveModule = () => {
 
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-slate-100">
+            <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+              {currentRole === 'admin' && (
+                <button
+                  onClick={() => {
+                    handleDeleteArchive(inspectArchivedYear);
+                    setInspectArchivedYear(null);
+                  }}
+                  className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>حذف هذا العام نهائياً من المنظومة 🗑️</span>
+                </button>
+              )}
               <button
                 onClick={() => setInspectArchivedYear(null)}
-                className="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 cursor-pointer"
+                className="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 cursor-pointer mr-auto"
               >
                 إغلاق النافذة
               </button>
@@ -481,17 +544,16 @@ export const ArchiveModule = () => {
                   required
                   value={newYearInput}
                   onChange={(e) => setNewYearInput(e.target.value)}
-                  placeholder="مثال: 2026/2027"
+                  placeholder="مثال: 2027/2028"
                   className="w-full bg-[#F8FAFC] border-2 border-slate-200 text-xs font-bold rounded-2xl p-3 focus:outline-none focus:border-[#0284C7]"
                 />
               </div>
 
               <div className="p-3 bg-sky-50 rounded-2xl border border-sky-200 space-y-1 text-xs font-bold text-[#0284C7]">
-                <h4 className="font-black text-slate-900">ترتيب حفظ البيانات حسب الأهمية:</h4>
+                <h4 className="font-black text-slate-900">ترتيب حفظ البيانات وتنظيف المنظومة:</h4>
                 <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-700">
-                  <li>🔥 <strong>درجات وحاصل المواد الكاشفة</strong> للـ الفصل الأول والفصل الأخير.</li>
-                  <li>⚡ <strong>سجلات الطلاب</strong> والحضور والغياب والاختبارات اليومية.</li>
-                  <li>💵 <strong>السجلات المالية والنفقات</strong> والرسائل الإدارية.</li>
+                  <li>🔥 <strong>نقل درجات وحاصل المواد الكاشفة والطلاب</strong> إلى الأرشيف بأمان.</li>
+                  <li>⚡ <strong>حذف وتفريغ القوائم النشطة</strong> لإدخال طلاب ومعلمين جدد للعام القادم.</li>
                 </ol>
               </div>
 

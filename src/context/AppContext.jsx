@@ -1780,7 +1780,8 @@ export const AppProvider = ({ children }) => {
     addNotification({
       title: `بدء العام الدراسي الجديد: ${newYearName} 🎓`,
       message: `تمت أرشفة العام الدراسي السابق بجميع طلابه ونتائجه بنجاح، وتم تجهيز المنظومة بحالة جديدة لإدخال طلاب العام الجديد.`,
-      type: 'system'
+      type: 'system',
+      targetRole: 'admin'
     });
 
     return true;

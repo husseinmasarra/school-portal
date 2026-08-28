@@ -165,6 +165,9 @@ export const Header = ({ activeTab, setActiveTab, setIsSidebarOpen }) => {
   const normStr = (str) => (str || '').toLowerCase().replace(/[أإآ]/g, 'ا').replace(/[\(\)\-\_\s]/g, '');
 
   const userNotifications = (notifications || []).filter((n) => {
+    if (n.targetRole === 'admin') {
+      return currentRole === 'admin';
+    }
     if (currentRole === 'admin') return true;
     if (n.targetStudentId && (n.targetStudentId === currentUser?.id || n.targetStudentId === activeStudent?.id)) return true;
     if (n.targetUser && (n.targetUser === currentUser?.username || n.targetUser === currentUser?.name || n.targetUser === activeStudent?.name)) return true;

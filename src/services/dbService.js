@@ -21,7 +21,8 @@ export function dbRead(key) {
     const raw = localStorage.getItem(key);
     if (raw === null) return null;
     return JSON.parse(raw);
-  } catch {
+  } catch (e) {
+    try { localStorage.removeItem(key); } catch {}
     return null;
   }
 }

@@ -660,60 +660,39 @@ export const AppProvider = ({ children }) => {
     fetch('/api/db/load', {
       headers: { 'x-sync-token': 'sp-secure-wifi-sync-token-2026' }
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('API server not available');
+        const cType = res.headers.get('content-type') || '';
+        if (!cType.includes('application/json')) throw new Error('API response is not JSON');
+        return res.json();
+      })
       .then(data => {
-        if (data && Object.keys(data).length > 0) {
+        if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0) {
           // Server has data -> use it and overwrite local
           Object.entries(data).forEach(([key, val]) => {
-            localStorage.setItem(key, JSON.stringify(val));
+            if (val !== undefined && val !== null) {
+              try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+            }
           });
-          if (data.school_subjects) setSubjects(data.school_subjects);
-          if (data.school_grades) setGrades(data.school_grades);
-          if (data.school_classrooms) setClassrooms(data.school_classrooms);
-          if (data.school_students) setStudents(data.school_students);
-          if (data.school_teachers) setTeachers(data.school_teachers);
-          if (data.school_staff) setStaffEmployees(data.school_staff);
-          if (data.school_exams) setExams(data.school_exams);
-          if (data.school_expenses) setExpenses(data.school_expenses);
-          if (data.school_buses) setBuses(data.school_buses);
-          if (data.school_messages) setMessages(data.school_messages);
-          if (data.school_agenda) setAgenda(data.school_agenda);
-          if (data.school_tutoring) setTutoringCourses(data.school_tutoring);
-          if (data.school_push_notifs) setPushNotifs(data.school_push_notifs);
-          if (data.school_system_users) setSystemUsers(data.school_system_users);
-          if (data.school_settings) setSiteSettings(data.school_settings);
-        } else {
-          // Server has NO data -> upload current local state to initialize server database!
-          const dbPayload = {
-            school_subjects: subjects,
-            school_grades: grades,
-            school_classrooms: classrooms,
-            school_students: students,
-            school_teachers: teachers,
-            school_staff: staffEmployees,
-            school_exams: exams,
-            school_expenses: expenses,
-            school_buses: buses,
-            school_messages: messages,
-            school_agenda: agenda,
-            school_tutoring: tutoringCourses,
-            school_push_notifs: pushNotifs,
-            school_system_users: systemUsers,
-            school_settings: siteSettings
-          };
-          fetch('/api/db/save', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'x-sync-token': 'sp-secure-wifi-sync-token-2026'
-            },
-            body: JSON.stringify(dbPayload)
-          }).catch(err => console.error('Failed to initialize server database:', err));
+          if (Array.isArray(data.school_subjects)) setSubjects(data.school_subjects);
+          if (Array.isArray(data.school_grades)) setGrades(data.school_grades);
+          if (Array.isArray(data.school_classrooms)) setClassrooms(data.school_classrooms);
+          if (Array.isArray(data.school_students)) setStudents(data.school_students);
+          if (Array.isArray(data.school_teachers)) setTeachers(data.school_teachers);
+          if (Array.isArray(data.school_staff)) setStaffEmployees(data.school_staff);
+          if (Array.isArray(data.school_exams)) setExams(data.school_exams);
+          if (Array.isArray(data.school_expenses)) setExpenses(data.school_expenses);
+          if (Array.isArray(data.school_buses)) setBuses(data.school_buses);
+          if (Array.isArray(data.school_messages)) setMessages(data.school_messages);
+          if (Array.isArray(data.school_agenda)) setAgenda(data.school_agenda);
+          if (Array.isArray(data.school_tutoring)) setTutoringCourses(data.school_tutoring);
+          if (Array.isArray(data.school_push_notifs)) setPushNotifs(data.school_push_notifs);
+          if (Array.isArray(data.school_system_users)) setSystemUsers(data.school_system_users);
+          if (data.school_settings && typeof data.school_settings === 'object') setSiteSettings(data.school_settings);
         }
         setIsInitializingSync(false);
       })
-      .catch(err => {
-        console.error('Failed to load database from server:', err);
+      .catch(() => {
         setIsInitializingSync(false);
       });
   }, []);

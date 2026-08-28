@@ -59,11 +59,12 @@ export const TuitionModule = () => {
   const [payMethod, setPayMethod] = useState('fresh_cash');
 
   const [showReceiptModal, setShowReceiptModal] = useState(null);
+  const [showPrintStatementModal, setShowPrintStatementModal] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
 
-  // Toggle body class when receipt modal is active to hide main page content on print
+  // Toggle body class when receipt or statement modal is active to hide main page content on print
   React.useEffect(() => {
-    if (showReceiptModal) {
+    if (showReceiptModal || showPrintStatementModal) {
       document.body.classList.add('has-print-portal');
     } else {
       document.body.classList.remove('has-print-portal');
@@ -71,7 +72,7 @@ export const TuitionModule = () => {
     return () => {
       document.body.classList.remove('has-print-portal');
     };
-  }, [showReceiptModal]);
+  }, [showReceiptModal, showPrintStatementModal]);
 
   // Close any open modals when pressing ESC key
   React.useEffect(() => {
@@ -343,6 +344,15 @@ export const TuitionModule = () => {
         {/* Financial Metrics + Exchange Rate Banner */}
         {currentRole === 'admin' && (
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setShowPrintStatementModal(true)}
+              className="px-4 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
+              title="معاينة وطباعة جدول كشف الأقساط المالية للطلاب"
+            >
+              <Printer className="w-4 h-4" />
+              <span>طباعة كشف الأقساط (جدول) 🖨️</span>
+            </button>
+
             <button
               onClick={handleExportTuitionExcel}
               className="btn-mustard px-4 py-2 rounded-2xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer transition-all"
@@ -1059,6 +1069,229 @@ export const TuitionModule = () => {
                 <Printer className="w-4 h-4 text-white" /> طباعة الإيصال 🖨️
               </button>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 🖨️ Official Full Printable Tuition Roster Table Modal */}
+      {showPrintStatementModal && createPortal(
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] overflow-y-auto receipt-print-backdrop">
+          <div className="bg-white rounded-3xl p-6 max-w-5xl w-full shadow-2xl space-y-5 border border-slate-200 receipt-printable-card text-[#0F172A] relative text-right">
+            
+            {/* Embedded Print CSS */}
+            <style>{`
+              @media print {
+                body * {
+                  visibility: hidden !important;
+                }
+                .receipt-printable-card,
+                .receipt-printable-card * {
+                  visibility: visible !important;
+                }
+                .receipt-printable-card {
+                  position: absolute !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  width: 100% !important;
+                  padding: 10px !important;
+                  border: none !important;
+                  box-shadow: none !important;
+                  background: #ffffff !important;
+                  color: #000000 !important;
+                }
+                .no-print {
+                  display: none !important;
+                }
+                table {
+                  width: 100% !important;
+                  border-collapse: collapse !important;
+                }
+                th, td {
+                  border: 1px solid #000000 !important;
+                  padding: 6px 4px !important;
+                  font-size: 11px !important;
+                  text-align: center !important;
+                  color: #000000 !important;
+                }
+                th {
+                  background-color: #f1f5f9 !important;
+                  font-weight: bold !important;
+                }
+              }
+            `}</style>
+
+            {/* Header / Actions */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4 no-print">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-sky-50 text-[#0284C7] rounded-2xl border border-sky-200">
+                  <Printer className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#0284C7]">معاينة وطباعة كشف الأقساط والدفعات المدرسية</h3>
+                  <p className="text-xs text-slate-500">جدول مالي مجمع بالدولار لكافة الطلاب المسجلين بالمنظومة</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    window.scrollTo(0, 0);
+                    setTimeout(() => window.print(), 30);
+                  }}
+                  className="px-4 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-extrabold shadow flex items-center gap-1.5 cursor-pointer transition-all"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>طباعة الكشف الآن 🖨️</span>
+                </button>
+
+                <button
+                  onClick={() => setShowPrintStatementModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Official Report Title Header (Appears on Print) */}
+            <div className="flex items-center justify-between border-b-2 border-slate-300 pb-3">
+              <div className="flex items-center gap-3">
+                <img src="/emblem.png" alt="Logo" className="w-12 h-12 object-contain rounded-xl border border-slate-200" />
+                <div>
+                  <h2 className="text-base font-black text-[#0284C7] leading-tight">
+                    {siteSettings?.schoolName || 'مركز الدعم التعليمي'}
+                  </h2>
+                  <span className="text-xs text-slate-600 font-bold block">كشف الأقساط والدفعات المالية الموّحد للطلاب</span>
+                </div>
+              </div>
+
+              <div className="text-left font-mono text-xs text-slate-600 space-y-0.5">
+                <div><span className="font-bold">العام الدراسي:</span> {siteSettings?.academicYear || '2026/2027'}</div>
+                <div><span className="font-bold">تاريخ الإصدار:</span> {new Date().toISOString().split('T')[0]}</div>
+                <div><span className="font-bold">إجمالي الحسابات:</span> {safeStudents.length} طالب</div>
+              </div>
+            </div>
+
+            {/* Printable Table Section */}
+            <div className="overflow-x-auto my-3">
+              <table className="w-full text-center border-collapse border border-slate-300 text-xs">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-800 font-extrabold border-b border-slate-300">
+                    <th className="p-2 border border-slate-300">#</th>
+                    <th className="p-2 border border-slate-300">معرف ID</th>
+                    <th className="p-2 border border-slate-300">اسم الطالب / العائلة</th>
+                    <th className="p-2 border border-slate-300">الصف والشعبة</th>
+                    <th className="p-2 border border-slate-300">ولي الأمر والهاتف</th>
+                    <th className="p-2 border border-slate-300">القسط ($)</th>
+                    <th className="p-2 border border-slate-300">مصاريف ($)</th>
+                    <th className="p-2 border border-slate-300">خصم ($)</th>
+                    <th className="p-2 border border-slate-300">المقبوض ($)</th>
+                    <th className="p-2 border border-slate-300">المتبقي ($)</th>
+                    <th className="p-2 border border-slate-300">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {safeStudents.map((s, idx) => {
+                    const total = Number(s.tuitionTotal || 600);
+                    const adminFees = Number(s.adminFees || 0);
+                    const discount = Number(s.tuitionDiscount || 0);
+                    const paid = Number(s.tuitionPaid || 0);
+                    const rem = Math.max(0, total + adminFees - discount - paid);
+
+                    return (
+                      <tr key={s.id || idx} className="hover:bg-slate-50 border-b border-slate-200">
+                        <td className="p-2 border border-slate-200 font-mono">{idx + 1}</td>
+                        <td className="p-2 border border-slate-200 font-mono text-slate-500">{s.id}</td>
+                        <td className="p-2 border border-slate-200 font-bold text-slate-900">{isAr ? s.name : s.nameEn}</td>
+                        <td className="p-2 border border-slate-200 text-slate-700">{isAr ? s.grade : s.gradeEn} ({s.classRoom || 'أ'})</td>
+                        <td className="p-2 border border-slate-200 text-slate-600 font-mono">{s.parentName || '—'}<br/><span className="text-[10px] text-slate-400">{s.parentPhone || s.phone || '—'}</span></td>
+                        <td className="p-2 border border-slate-200 font-mono font-bold">${total}</td>
+                        <td className="p-2 border border-slate-200 font-mono text-amber-700">+${adminFees}</td>
+                        <td className="p-2 border border-slate-200 font-mono text-emerald-700">-${discount}</td>
+                        <td className="p-2 border border-slate-200 font-mono text-sky-700 font-bold">${paid}</td>
+                        <td className="p-2 border border-slate-200 font-mono text-red-600 font-black">${rem}</td>
+                        <td className="p-2 border border-slate-200 font-bold text-[11px]">
+                          {rem === 0 ? (
+                            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">مسدد بالكامل</span>
+                          ) : (
+                            <span className="text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">متبقي مستحق</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+
+                {/* Table Summary Totals Footer Row */}
+                <tfoot>
+                  <tr className="bg-slate-200/80 font-black text-slate-900 border-t-2 border-slate-400 text-xs">
+                    <td colSpan={5} className="p-2.5 border border-slate-300 text-right">
+                      إجمالي كافة الأقساط والتحصيلات المالية ({safeStudents.length} طلاب)
+                    </td>
+                    <td className="p-2.5 border border-slate-300 font-mono text-[#0F172A]">
+                      ${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionTotal) || 600), 0).toLocaleString()}
+                    </td>
+                    <td className="p-2.5 border border-slate-300 font-mono text-amber-800">
+                      +${safeStudents.reduce((sum, s) => sum + (Number(s.adminFees) || 0), 0).toLocaleString()}
+                    </td>
+                    <td className="p-2.5 border border-slate-300 font-mono text-emerald-800">
+                      -${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0).toLocaleString()}
+                    </td>
+                    <td className="p-2.5 border border-slate-300 font-mono text-sky-800">
+                      ${safeStudents.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0).toLocaleString()}
+                    </td>
+                    <td className="p-2.5 border border-slate-300 font-mono text-red-700 text-sm">
+                      ${totalRemainingUSD.toLocaleString()} USD
+                    </td>
+                    <td className="p-2.5 border border-slate-300">
+                      —
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {/* Official Report Footer Signatures */}
+            <div className="flex justify-between items-end pt-4 border-t border-slate-300 text-xs text-slate-700">
+              <div>
+                <p className="font-bold">توقيع المسؤول المالي / المحاسب:</p>
+                <div className="h-8 border-b border-slate-400 w-44 mt-1" />
+              </div>
+
+              <div className="text-center space-y-1">
+                <span className="px-4 py-1.5 rounded-full font-black text-xs border border-sky-300 bg-sky-50 text-[#0284C7] block">
+                  ختم إدارة المدرسة الرسمي 💮
+                </span>
+              </div>
+
+              <div>
+                <p className="font-bold">اعتماد وتوقيع مدير المدرسة:</p>
+                <div className="h-8 border-b border-slate-400 w-44 mt-1" />
+              </div>
+            </div>
+
+            {/* Action Buttons in Modal (Hidden on Print) */}
+            <div className="no-print flex justify-end gap-3 pt-3 border-t border-slate-200">
+              <button
+                onClick={() => setShowPrintStatementModal(false)}
+                className="btn-mustard px-5 py-2.5 rounded-xl text-xs font-bold shadow cursor-pointer"
+              >
+                إغلاق
+              </button>
+              
+              <button
+                onClick={() => {
+                  window.scrollTo(0, 0);
+                  setTimeout(() => window.print(), 30);
+                }}
+                className="px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-md transition-all"
+              >
+                <Printer className="w-4 h-4 text-white" />
+                <span>طباعة الكشف الآن 🖨️</span>
+              </button>
+            </div>
+
           </div>
         </div>,
         document.body

@@ -105,6 +105,16 @@ export const ArchiveModule = () => {
     }
   };
 
+  const handleClearAllArchives = () => {
+    if (window.confirm('هل أنت تأكد من رغبتك في تفريغ وحذف جميع سجلاّت الأرشيف التجريبي نهائياً من المنظومة؟')) {
+      if (clearAllArchives) {
+        clearAllArchives();
+        setToastMsg('تم مسح وتفريغ كافة السجلات والأعوام المؤرشفة التجريبية بنجاح! 🗑️');
+        setTimeout(() => setToastMsg(''), 4000);
+      }
+    }
+  };
+
   const handleDeleteArchive = (arch) => {
     if (window.confirm(`هل أنت تأكد من رغبتك في حذف أرشيف العام الدراسي (${arch.yearName}) كلياً وبشكل نهائي من المنظومة؟`)) {
       if (deleteAcademicYearArchive) {
@@ -133,13 +143,24 @@ export const ArchiveModule = () => {
         </div>
 
         {currentRole === 'admin' && (
-          <button
-            onClick={() => setShowNewYearModal(true)}
-            className="bg-[#0284C7] hover:bg-[#0369A1] text-white px-4 py-2 rounded-2xl text-xs font-black shadow flex items-center gap-2 cursor-pointer transition-all shrink-0"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>أرشفة العام الحالي وبدء سنة جديدة 🎓</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            {academicYearsArchive.length > 0 && (
+              <button
+                onClick={handleClearAllArchives}
+                className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-4 py-2 rounded-2xl text-xs font-black shadow flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+              >
+                <Trash2 className="w-4 h-4 text-red-600" />
+                <span>مسح وتفريغ الأرشيف التجريبي 🗑️</span>
+              </button>
+            )}
+            <button
+              onClick={() => setShowNewYearModal(true)}
+              className="bg-[#0284C7] hover:bg-[#0369A1] text-white px-4 py-2 rounded-2xl text-xs font-black shadow flex items-center gap-2 cursor-pointer transition-all shrink-0"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>أرشفة العام الحالي وبدء سنة جديدة 🎓</span>
+            </button>
+          </div>
         )}
       </div>
 

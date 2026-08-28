@@ -1666,6 +1666,19 @@ export const AppProvider = ({ children }) => {
   // ─── Academic Years Archives & Reset Options ─────────────────────────────
   const [academicYearsArchive, setAcademicYearsArchive] = useState(() => dbLoadCollection('school_academic_years_archive', []));
 
+  const clearAllArchives = () => {
+    setAcademicYearsArchive([]);
+    dbSaveCollection('school_academic_years_archive', []);
+  };
+
+  const deleteAcademicYearArchive = (archiveId) => {
+    setAcademicYearsArchive((prev) => {
+      const updated = (prev || []).filter(a => a.id !== archiveId);
+      dbSaveCollection('school_academic_years_archive', updated);
+      return updated;
+    });
+  };
+
   const clearDemoData = () => {
     setStudents([]);
     dbSaveCollection('school_students', []);
@@ -1689,6 +1702,9 @@ export const AppProvider = ({ children }) => {
     setNotifications([]);
     dbSaveCollection('school_notifications', []);
 
+    setAcademicYearsArchive([]);
+    dbSaveCollection('school_academic_years_archive', []);
+
     setTutoringCourses(prev => {
       const resetCourses = prev.map(c => ({ ...c, enrolledStudentIds: [], studentFeesMap: {} }));
       dbSaveCollection('school_tutoring', resetCourses);
@@ -1697,7 +1713,7 @@ export const AppProvider = ({ children }) => {
 
     addNotification({
       title: 'تم تفريغ البيانات التجريبية 🧹',
-      message: 'تم تنظيف المنظومة وتفريغ كافة البيانات التجريبية بنجاح.',
+      message: 'تم تنظيف المنظومة وتفريغ كافة البيانات التجريبية والأرشيف بنجاح.',
       type: 'system'
     });
   };
@@ -1893,6 +1909,8 @@ export const AppProvider = ({ children }) => {
     deleteStudyResource,
     getHonorRollStudents,
     academicYearsArchive,
+    deleteAcademicYearArchive,
+    clearAllArchives,
     updateTeacherSalary,
     payTuition,
     resetFinancialAccounts,

@@ -1079,11 +1079,11 @@ export const TuitionModule = () => {
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] overflow-y-auto receipt-print-backdrop">
           <div className="bg-white rounded-3xl p-7 max-w-5xl w-full shadow-2xl space-y-6 border border-slate-200 receipt-printable-card text-[#0F172A] relative text-right">
             
-            {/* Executive Print & Full A4 Page CSS Rules */}
+            {/* Executive Centered Print & Wide A4 Page CSS Rules */}
             <style>{`
               @page {
                 size: A4 portrait;
-                margin: 10mm 12mm 12mm 12mm;
+                margin: 12mm 15mm 15mm 15mm;
               }
               @media print {
                 html, body {
@@ -1093,6 +1093,9 @@ export const TuitionModule = () => {
                   padding: 0 !important;
                   width: 100% !important;
                   height: 100% !important;
+                  display: flex !important;
+                  justify-content: center !important;
+                  align-items: center !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
@@ -1104,50 +1107,52 @@ export const TuitionModule = () => {
                   visibility: visible !important;
                 }
                 .receipt-printable-card {
-                  position: absolute !important;
+                  position: relative !important;
                   left: 0 !important;
                   top: 0 !important;
                   width: 100% !important;
-                  min-height: 98% !important;
+                  max-width: 100% !important;
+                  margin: auto !important;
                   padding: 0 !important;
-                  margin: 0 !important;
                   border: none !important;
                   box-shadow: none !important;
                   background: #ffffff !important;
                   color: #000000 !important;
                   display: flex !important;
                   flex-direction: column !important;
-                  justify-content: space-between !important;
+                  justify-content: center !important;
+                  text-align: center !important;
                 }
                 .no-print {
                   display: none !important;
                 }
                 .statement-header-box {
-                  border-bottom: 2.5px solid #0284C7 !important;
-                  padding-bottom: 12px !important;
-                  margin-bottom: 14px !important;
+                  border-bottom: 3px solid #0284C7 !important;
+                  padding-bottom: 16px !important;
+                  margin-bottom: 18px !important;
+                  width: 100% !important;
                 }
                 .statement-print-table {
                   width: 100% !important;
                   border-collapse: collapse !important;
-                  margin-top: 14px !important;
-                  margin-bottom: 14px !important;
+                  margin: 18px auto !important;
                 }
                 .statement-print-table th {
                   background-color: #0284C7 !important;
                   color: #ffffff !important;
                   font-weight: 800 !important;
-                  border: 1px solid #0369A1 !important;
-                  padding: 10px 6px !important;
-                  font-size: 11.5px !important;
+                  border: 1.5px solid #0369A1 !important;
+                  padding: 12px 10px !important;
+                  font-size: 12.5px !important;
                   text-align: center !important;
                 }
                 .statement-print-table td {
-                  border: 1px solid #CBD5E1 !important;
-                  padding: 9px 6px !important;
-                  font-size: 11px !important;
+                  border: 1.5px solid #CBD5E1 !important;
+                  padding: 11px 10px !important;
+                  font-size: 12px !important;
                   text-align: center !important;
                   color: #0F172A !important;
+                  line-height: 1.4 !important;
                 }
                 .statement-print-table tr:nth-child(even) td {
                   background-color: #F8FAFC !important;
@@ -1155,14 +1160,15 @@ export const TuitionModule = () => {
                 .statement-print-table tfoot tr td {
                   background-color: #E2E8F0 !important;
                   font-weight: 800 !important;
-                  font-size: 11.5px !important;
-                  padding: 10px 6px !important;
-                  border-top: 2.5px solid #0284C7 !important;
+                  font-size: 12.5px !important;
+                  padding: 12px 10px !important;
+                  border-top: 3px solid #0284C7 !important;
                 }
                 .signature-section {
-                  margin-top: auto !important;
+                  margin-top: 30px !important;
                   padding-top: 25px !important;
                   border-top: 2px solid #CBD5E1 !important;
+                  width: 100% !important;
                 }
               }
             `}</style>

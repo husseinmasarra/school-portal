@@ -1014,20 +1014,25 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                       const isMultiSiblingFamily = familyMembers.length > 1;
                       const activeFamilyMembers = familyMembers.filter(s => !s.frozen);
 
-                        // Calculate Combined Financial Totals ONLY for active (non-frozen) family members
+                        // Calculate Combined Financial Totals ONLY for active (non-frozen) family members (School Annual Tuition Dues)
                         const combinedTotalUSD = activeFamilyMembers.reduce((sum, s) => {
-                          const trans = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
-                          return sum + (Number(s.tuitionTotal) || 600) + trans;
+                          const adm = Number(s.adminFees) || 0;
+                          return sum + (Number(s.tuitionTotal) || 600) + adm;
                         }, 0);
 
                         const combinedDiscountUSD = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionDiscount) || 0), 0);
                         const combinedPaidUSD     = activeFamilyMembers.reduce((sum, s) => sum + (Number(s.tuitionPaid) || 0), 0);
                         const combinedRemUSD      = Math.max(0, combinedTotalUSD - combinedDiscountUSD - combinedPaidUSD);
 
+                        // Monthly Bus Transport Subscription Fee (Separate from School Annual Dues)
+                        const combinedMonthlyTransportUSD = activeFamilyMembers.reduce((sum, s) => {
+                          return sum + (s.hasTransport ? (Number(s.transportFee) || 0) : 0);
+                        }, 0);
+
                         return (
                           <div 
                             key={primaryStu.id} 
-                            className={`bg-white border-2 p-4.5 rounded-3xl shadow-xs transition-all relative flex flex-col justify-between h-[450px] hover:shadow-md ${
+                            className={`bg-white border-2 p-4.5 rounded-3xl shadow-xs transition-all relative flex flex-col justify-between h-[460px] hover:shadow-md ${
                               isMultiSiblingFamily 
                                 ? 'border-amber-400/80 bg-gradient-to-b from-amber-50/20 via-white to-white ring-1 ring-amber-400/20' 
                                 : 'border-[#E2E8F0] hover:border-[#0284C7]/40'
@@ -1063,13 +1068,13 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                               </div>
 
                               {/* 💰 Unified Financial Summary Box */}
-                              <div className="bg-slate-50 border border-slate-200 p-2 rounded-2xl text-center space-y-0.5">
+                              <div className="bg-slate-50 border border-slate-200 p-2 rounded-2xl text-center space-y-1">
                                 <span className="text-[9px] font-black text-[#0284C7] block">
-                                  💰 {isMultiSiblingFamily ? `المالية الموّحدة للعائلة (${familyMembers.length} إخوة)` : 'الملخص المالي'}
+                                  💰 {isMultiSiblingFamily ? `المالية الموّحدة للعائلة (${familyMembers.length} إخوة)` : 'الملخص المالي السنوي للمدرسة'}
                                 </span>
                                 <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
                                   <div className="bg-white p-1 rounded-lg border border-slate-100">
-                                    <span className="text-slate-400 block text-[8px]">القسط:</span>
+                                    <span className="text-slate-400 block text-[8px]">القسط السنوي:</span>
                                     <span className="font-extrabold text-[#0F172A]">${combinedTotalUSD}</span>
                                   </div>
                                   <div className="bg-white p-1 rounded-lg border border-slate-100">
@@ -1077,10 +1082,17 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                     <span className="font-extrabold text-emerald-600">-${combinedDiscountUSD}</span>
                                   </div>
                                   <div className="bg-white p-1 rounded-lg border border-slate-100">
-                                    <span className="text-red-500 block text-[8px] font-bold">المتبقي:</span>
+                                    <span className="text-red-500 block text-[8px] font-bold">المتبقي للمدرسة:</span>
                                     <span className="font-black text-red-600">${combinedRemUSD}</span>
                                   </div>
                                 </div>
+
+                                {combinedMonthlyTransportUSD > 0 && (
+                                  <div className="bg-sky-50 border border-sky-200 text-[#0284C7] text-[9px] font-black p-1 rounded-xl flex items-center justify-between px-2">
+                                    <span>🚌 اشتراك النقل الشهري:</span>
+                                    <span className="font-mono text-[10px]">${combinedMonthlyTransportUSD} USD / شهرياً</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
@@ -1555,17 +1567,17 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
 
                 {stuHasTransport && (
                   <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-sky-300 shadow-xs">
-                    <label className="text-xs font-black text-slate-700 shrink-0">{isAr ? 'مبلغ رسوم النقل:' : 'Transport Fee:'}</label>
-                    <div className="relative w-28">
+                    <label className="text-xs font-black text-slate-700 shrink-0">{isAr ? 'الرسوم الشهرية للنقل:' : 'Monthly Fee:'}</label>
+                    <div className="relative w-32">
                       <input
                         type="number"
                         required={stuHasTransport}
                         value={stuTransportFee}
                         onChange={(e) => setStuTransportFee(e.target.value)}
-                        placeholder="150"
-                        className="w-full bg-[#F8FAFC] border border-[#0284C7] text-[#0284C7] font-mono font-black rounded-lg pr-2 pl-6 py-1 text-xs text-center focus:outline-none"
+                        placeholder="50"
+                        className="w-full bg-[#F8FAFC] border border-[#0284C7] text-[#0284C7] font-mono font-black rounded-lg pr-2 pl-12 py-1 text-xs text-center focus:outline-none"
                       />
-                      <span className="absolute left-2 top-1 text-[10px] font-bold text-slate-400">$</span>
+                      <span className="absolute left-1 top-1 text-[9px] font-black text-slate-500">$/شهرياً</span>
                     </div>
                   </div>
                 )}

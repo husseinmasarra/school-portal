@@ -172,38 +172,7 @@ export const BusModule = () => {
         )}
       </div>
 
-      {/* Private Transport Company Account Financial Banner */}
-      <div className="bg-sky-50/80 border-2 border-sky-300 p-4 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs text-right">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#0284C7] text-white rounded-2xl">
-            <Bus className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-sm font-black text-[#0284C7] flex items-center gap-2">
-              <span>الصندوق والتحصيل الخارجي لشركة النقل والمواصلات الخاصة 🚌</span>
-              <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-lg text-[10px] border border-amber-300 font-bold">حساب مستقل عن المدرسة</span>
-            </h3>
-            <p className="text-xs text-slate-600 font-semibold mt-0.5">
-              خدمة النقل وتوزيع الحافلات مدارة بواسطة شركة نقل خاصة ومستقلة مالياً عن أقساط المدرسة.
-            </p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-sky-200 shadow-xs">
-          <div className="text-center px-2 border-l border-slate-200">
-            <span className="text-[10px] text-slate-400 font-bold block">عدد الركاب المشتركين:</span>
-            <span className="text-sm font-black text-[#0284C7]">
-              {safeStudents.filter(s => s.hasTransport || Number(s.transportFee || 0) > 0).length} طالب
-            </span>
-          </div>
-          <div className="text-center px-2">
-            <span className="text-[10px] text-slate-400 font-bold block">إجمالي مستحقات شركة النقل:</span>
-            <span className="text-sm font-black text-emerald-700 font-mono">
-              ${safeStudents.reduce((acc, s) => acc + (s.hasTransport ? (Number(s.transportFee) || 0) : 0), 0)} USD
-            </span>
-          </div>
-        </div>
-      </div>
 
       {assignToast && (
         <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold animate-fade-in shadow-lg">

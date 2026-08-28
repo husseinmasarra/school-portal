@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp, defaultAvatars, systemPermissionOptions } from '../context/AppContext';
 import { 

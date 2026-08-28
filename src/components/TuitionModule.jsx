@@ -98,14 +98,13 @@ export const TuitionModule = () => {
   const totalDiscountUSD  = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionDiscount) || 0), 0);
   const totalPaidUSD      = safeStudents.reduce((sum, s) => sum + (Number(s?.tuitionPaid) || 0), 0);
   
-  // Total overdue dues only includes active non-frozen students
+  // Total overdue dues only includes active non-frozen students (school tuition account only, excluding external transport company)
   const totalRemainingUSD = activeStudents.reduce((sum, s) => {
     const tot = Number(s.tuitionTotal) || 600;
     const adm = Number(s.adminFees) || 0;
-    const trs = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
     const disc = Number(s.tuitionDiscount) || 0;
     const paid = Number(s.tuitionPaid) || 0;
-    return sum + Math.max(0, tot + adm + trs - disc - paid);
+    return sum + Math.max(0, tot + adm - disc - paid);
   }, 0);
 
   const savePaymentHistory = (updated) => {
@@ -161,9 +160,8 @@ export const TuitionModule = () => {
       const familyTotalDuesUSD = activeFamily.reduce((sum, s) => {
         const tot = Number(s.tuitionTotal) || 600;
         const adm = Number(s.adminFees) || 0;
-        const trs = s.hasTransport ? (Number(s.transportFee) || 0) : 0;
         const disc = Number(s.tuitionDiscount) || 0;
-        return sum + Math.max(0, tot + adm + trs - disc);
+        return sum + Math.max(0, tot + adm - disc);
       }, 0);
 
       // Calculate total paid across all active family members (including new payment):

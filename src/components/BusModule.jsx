@@ -58,6 +58,10 @@ export const BusModule = () => {
   const [assignToast, setAssignToast] = useState(false);
 
   const filteredStudentsForAssign = safeStudents.filter((s) => {
+    // Only include students who are subscribed to transport or assigned to a bus
+    const isTransportRegistered = !!s.hasTransport || Number(s.transportFee || 0) > 0 || !!s.busId;
+    if (!isTransportRegistered) return false;
+
     if (!studentSearchQuery.trim()) return true;
     const q = studentSearchQuery.toLowerCase().trim();
     return (

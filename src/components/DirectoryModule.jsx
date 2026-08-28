@@ -1460,7 +1460,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
             </div>
 
             {/* Dynamic Grades, Classrooms & Financial Fees Select */}
-            <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{t('grade')}</label>
                 <select
@@ -1529,20 +1529,46 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'المصاريف الإدارية ($ USD)' : 'Admin Fees ($ USD)'}</label>
                 <input type="number" value={stuAdminFees} onChange={(e) => setStuAdminFees(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-amber-600 font-mono rounded-xl px-3 py-2 text-xs focus:outline-none" />
               </div>
+            </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#0284C7]">{isAr ? 'رسوم النقل 🚌 ($ USD)' : 'Transport Fee ($ USD)'}</label>
-                <input 
-                  type="number" 
-                  value={stuTransportFee} 
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setStuTransportFee(val);
-                    setStuHasTransport(Number(val) > 0);
-                  }} 
-                  placeholder="0"
-                  className="w-full bg-[#F8FAFC] border border-[#0284C7]/40 text-[#0284C7] font-mono font-bold rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
-                />
+            {/* Transport Subscription Checkbox & Amount Panel */}
+            <div className="bg-sky-50/80 border-2 border-sky-200 p-3.5 rounded-2xl text-right space-y-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <label htmlFor="stuHasTransportCheck" className="text-xs font-black text-[#0284C7] cursor-pointer flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="stuHasTransportCheck"
+                    checked={stuHasTransport}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setStuHasTransport(checked);
+                      if (!checked) {
+                        setStuTransportFee('0');
+                      } else if (stuTransportFee === '0' || !stuTransportFee) {
+                        setStuTransportFee('150');
+                      }
+                    }}
+                    className="w-4.5 h-4.5 accent-[#0284C7] rounded cursor-pointer"
+                  />
+                  <span>{isAr ? '🚌 الاشتراك في خدمة النقل والمواصلات المدرسية (يظهر الطالب في صفحة النقل)' : '🚌 Subscribe to Bus Transport (Student appears in Transport page)'}</span>
+                </label>
+
+                {stuHasTransport && (
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-sky-300 shadow-xs">
+                    <label className="text-xs font-black text-slate-700 shrink-0">{isAr ? 'مبلغ رسوم النقل:' : 'Transport Fee:'}</label>
+                    <div className="relative w-28">
+                      <input
+                        type="number"
+                        required={stuHasTransport}
+                        value={stuTransportFee}
+                        onChange={(e) => setStuTransportFee(e.target.value)}
+                        placeholder="150"
+                        className="w-full bg-[#F8FAFC] border border-[#0284C7] text-[#0284C7] font-mono font-black rounded-lg pr-2 pl-6 py-1 text-xs text-center focus:outline-none"
+                      />
+                      <span className="absolute left-2 top-1 text-[10px] font-bold text-slate-400">$</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

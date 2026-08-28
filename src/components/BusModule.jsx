@@ -172,6 +172,30 @@ export const BusModule = () => {
         )}
       </div>
 
+      {/* Minimal Transport Summary Bar */}
+      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs font-bold text-xs text-[#0F172A]">
+        <div className="flex items-center gap-2 text-[#0284C7]">
+          <Bus className="w-5 h-5" />
+          <span>{isAr ? 'إحصائيات الاشتراك في النقل:' : 'Transport Registration Stats:'}</span>
+        </div>
+
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2 bg-[#F8FAFC] px-4 py-2 rounded-xl border border-slate-200">
+            <span className="text-slate-500">{isAr ? 'عدد الطلاب المشتركين:' : 'Subscribed Students:'}</span>
+            <span className="text-sm font-black text-[#0284C7]">
+              {safeStudents.filter(s => s.hasTransport || Number(s.transportFee || 0) > 0).length} {isAr ? 'طالب' : 'Students'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 bg-[#F8FAFC] px-4 py-2 rounded-xl border border-slate-200">
+            <span className="text-slate-500">{isAr ? 'مجموع المبلغ:' : 'Total Amount:'}</span>
+            <span className="text-sm font-black text-emerald-700 font-mono">
+              ${safeStudents.reduce((acc, s) => acc + (s.hasTransport ? (Number(s.transportFee) || 0) : 0), 0)} USD
+            </span>
+          </div>
+        </div>
+      </div>
+
 
 
       {assignToast && (

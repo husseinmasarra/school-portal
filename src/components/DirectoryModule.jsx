@@ -214,6 +214,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
       tuitionTotal: (safeGrades[0]?.tuitionFee || 700).toString(),
       tuitionDiscount: '0',
       adminFees: '0',
+      transportFee: '0',
+      hasTransport: false,
       username: suggestedUsername,
       password: Math.floor(100000 + Math.random() * 900000).toString(),
       ministryClearance: ''
@@ -1457,8 +1459,8 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               </div>
             </div>
 
-            {/* Dynamic Grades and Classrooms Select */}
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+            {/* Dynamic Grades, Classrooms & Financial Fees Select */}
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{t('grade')}</label>
                 <select
@@ -1526,6 +1528,21 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">{isAr ? 'المصاريف الإدارية ($ USD)' : 'Admin Fees ($ USD)'}</label>
                 <input type="number" value={stuAdminFees} onChange={(e) => setStuAdminFees(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-amber-600 font-mono rounded-xl px-3 py-2 text-xs focus:outline-none" />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-[#0284C7]">{isAr ? 'رسوم النقل 🚌 ($ USD)' : 'Transport Fee ($ USD)'}</label>
+                <input 
+                  type="number" 
+                  value={stuTransportFee} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setStuTransportFee(val);
+                    setStuHasTransport(Number(val) > 0);
+                  }} 
+                  placeholder="0"
+                  className="w-full bg-[#F8FAFC] border border-[#0284C7]/40 text-[#0284C7] font-mono font-bold rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0284C7]" 
+                />
               </div>
             </div>
 
@@ -1719,6 +1736,9 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                   <span className="text-sm font-black text-[#0284C7] dark:text-sky-400 block" title={isAr ? 'إجمالي الأقساط' : 'Total Tuition'}>
                     {isAr ? 'القسط:' : 'Tuition:'} ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0))} USD
                   </span>
+                  <span className="text-[10px] text-sky-600 font-extrabold block" title={isAr ? 'رسوم النقل والمواصلات' : 'Transport Fees'}>
+                    {isAr ? 'رسوم النقل 🚌:' : 'Transport:'} +${(Number(stuTransportFee || 0) + siblingsList.reduce((acc, s) => acc + Number(s.transportFee || 0), 0))} USD
+                  </span>
                   <span className="text-[10px] text-amber-600 font-extrabold block" title={isAr ? 'إجمالي المصاريف الإدارية' : 'Total Admin Fees'}>
                     {isAr ? 'المصاريف الإدارية:' : 'Admin Fees:'} +${(Number(stuAdminFees || 0) + siblingsList.reduce((acc, s) => acc + Number(s.adminFees || 0), 0))} USD
                   </span>
@@ -1726,7 +1746,7 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                     {isAr ? 'الخصم الإجمالي:' : 'Total Discount:'} -${(Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
                   </span>
                   <span className="text-xs font-black text-slate-800 dark:text-slate-200 border-t border-slate-200 dark:border-slate-800 pt-0.5 block">
-                    {isAr ? 'صافي المبلغ المطلوب:' : 'Net Total:'} ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0)) + (Number(stuAdminFees || 0) + siblingsList.reduce((acc, s) => acc + Number(s.adminFees || 0), 0)) - (Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
+                    {isAr ? 'صافي المبلغ المطلوب:' : 'Net Total:'} ${(Number(stuTuitionTotal || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionTotal || 0), 0)) + (Number(stuTransportFee || 0) + siblingsList.reduce((acc, s) => acc + Number(s.transportFee || 0), 0)) + (Number(stuAdminFees || 0) + siblingsList.reduce((acc, s) => acc + Number(s.adminFees || 0), 0)) - (Number(stuTuitionDiscount || 0) + siblingsList.reduce((acc, s) => acc + Number(s.tuitionDiscount || 0), 0))} USD
                   </span>
                 </div>
               </div>

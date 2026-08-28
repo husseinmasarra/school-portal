@@ -30,7 +30,17 @@ export const ArchiveModule = () => {
     currentRole
   } = useApp();
 
-  const safeStudents = students || [];
+  // Combine active students and all archived student snapshots across past years
+  const allArchiveStudentsMap = new Map();
+  (students || []).forEach(s => allArchiveStudentsMap.set(s.id, { ...s, archiveYear: siteSettings?.academicYear || 'الحالي' }));
+  (academicYearsArchive || []).forEach(ay => {
+    (ay.studentsSnapshot || []).forEach(s => {
+      if (!allArchiveStudentsMap.has(s.id)) {
+        allArchiveStudentsMap.set(s.id, { ...s, archiveYear: ay.yearName, matrixSnapshot: ay.matrixMarksSnapshot });
+      }
+    });
+  });
+  const safeStudents = Array.from(allArchiveStudentsMap.values());
   const safeSubjects = subjects || [];
 
   const [activeTab, setActiveTab] = useState('terms'); // 'terms' (أرشيف الفصول والعلامات) | 'years' (أرشيف السنوات الدراسية)

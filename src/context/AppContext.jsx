@@ -1719,6 +1719,8 @@ export const AppProvider = ({ children }) => {
       // 1. البيانات الأكاديمية والدرجات (أعلى أهمية 🔥)
       matrixMarksSnapshot: { ...currentMatrixMarks },
       studentsSnapshot: [...students],
+      teachersSnapshot: [...teachers],
+      staffEmployeesSnapshot: [...staffEmployees],
       subjectsSnapshot: [...subjects],
       // 2. سجلات الحضور والغياب واليوميات (أهمية عالية ⚡)
       attendanceSnapshot: [...attendance],
@@ -1733,22 +1735,29 @@ export const AppProvider = ({ children }) => {
     setAcademicYearsArchive(updatedArchives);
     dbSaveCollection('school_academic_years_archive', updatedArchives);
 
-    // Reset active matrix marks for the new year
+    // Reset active matrix marks & active term for the new year
     localStorage.setItem('school_matrix_marks', JSON.stringify({}));
     localStorage.setItem('school_active_term', 'first_term');
 
-    // Update site settings
-    updateSiteSettings({ academicYear: newYearName });
+    // 1. Clear Active Students (to enter fresh students for the new year)
+    setStudents([]);
+    dbSaveCollection('school_students', []);
 
-    // Reset tuition paid for new academic year
-    const resetStudents = students.map(s => ({
-      ...s,
-      tuitionPaid: 0
-    }));
-    setStudents(resetStudents);
-    dbSaveCollection('school_students', resetStudents);
+    // 2. Clear Active Teachers & Staff (to enter fresh staff for the new year)
+    setTeachers([]);
+    dbSaveCollection('school_teachers', []);
 
-    // Reset daily logs for new year
+    setStaffEmployees([]);
+    dbSaveCollection('school_staff', []);
+
+    // 3. Clear System Users (keep master admin only)
+    setSystemUsers(prev => {
+      const adminOnly = (prev || []).filter(u => u.username === 'admin' || u.id === 'USR-01' || u.role === 'admin');
+      dbSaveCollection('school_system_users', adminOnly);
+      return adminOnly;
+    });
+
+    // 4. Reset Daily Logs (attendance, marks, agenda, messages)
     setAttendance([]);
     dbSaveCollection('school_attendance', []);
 
@@ -1759,9 +1768,18 @@ export const AppProvider = ({ children }) => {
     setAgenda([]);
     dbSaveCollection('school_agenda', []);
 
+    setMessages([]);
+    dbSaveCollection('school_messages', []);
+
+    setNotifications([]);
+    dbSaveCollection('school_notifications', []);
+
+    // 5. Update site settings academic year name
+    updateSiteSettings({ academicYear: newYearName });
+
     addNotification({
       title: `بدء العام الدراسي الجديد: ${newYearName} 🎓`,
-      message: `تمت أرشفة العام الدراسي السابق بجميع درجاته وسجلاته بأمان وتجهيز المنظومة للعام الجديد.`,
+      message: `تمت أرشفة العام الدراسي السابق بجميع طلابه ونتائجه بنجاح، وتم تجهيز المنظومة بحالة جديدة لإدخال طلاب العام الجديد.`,
       type: 'system'
     });
 

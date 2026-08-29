@@ -727,32 +727,6 @@ export const FinanceModule = () => {
               </table>
             </div>
           </div>
-
-          {/* 🌟 COMBINED OVERALL SALARIES SUMMARY BANNER */}
-          <div className="bg-gradient-to-r from-[#0A5C36] via-[#0f766e] to-[#0284C7] text-white p-5 rounded-3xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/20">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/10 rounded-2xl border border-white/20">
-                <Wallet className="w-6 h-6 text-amber-300" />
-              </div>
-              <div>
-                <h4 className="text-sm font-black text-amber-300">مجموع الرواتب الشهري الإجمالي العام (موظفين + معلمون)</h4>
-                <p className="text-xs text-white/80 mt-0.5">
-                  إجمالي كتلة التزامات الرواتب والمستحقات الشهرية الكلية لجميع كوادرك.
-                </p>
-              </div>
-            </div>
-
-            <div className="text-right font-mono shrink-0 bg-black/25 px-5 py-2.5 rounded-2xl border border-white/20">
-              <span className="text-[10px] text-white/80 block font-sans font-bold">إجمالي كتل الرواتب الكلية:</span>
-              <span className="text-2xl font-black text-amber-300">
-                ${(
-                  (staffEmployees || []).reduce((sum, e) => sum + (Number(e.monthlySalary) || 800), 0) +
-                  (teachers || []).reduce((sum, t) => sum + (Number(t.monthlySalary) || 1200) + (Number(t.dueBonus) || 0), 0)
-                ).toLocaleString()} USD
-              </span>
-            </div>
-          </div>
-
         </div>
       ) : activeFinanceTab === 'expenses' ? (
         /* Expenses Ledger Tab */

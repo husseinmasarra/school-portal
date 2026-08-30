@@ -550,10 +550,14 @@ export const SettingsModule = () => {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => {
-              // Export all localStorage data as a JSON backup file
+              // Export ALL localStorage data as a JSON backup file
               const backup = {};
-              const keys = ['school_subjects','school_grades','school_classrooms','school_students','school_teachers','school_staff','school_exams','school_expenses','school_buses','school_messages','school_agenda','school_tutoring','school_push_notifs','school_system_users','school_settings','school_academic_years_archive','school_db_init','school_db_version'];
-              keys.forEach(k => { const v = localStorage.getItem(k); if (v) backup[k] = JSON.parse(v); });
+              for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('school_')) {
+                  try { backup[k] = JSON.parse(localStorage.getItem(k)); } catch { backup[k] = localStorage.getItem(k); }
+                }
+              }
               const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a'); a.href = url; a.download = `school-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();

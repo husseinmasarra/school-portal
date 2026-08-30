@@ -1049,10 +1049,14 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                   </div>
                                   <div className="truncate">
                                     <h4 className="text-xs font-black text-[#0F172A] truncate flex items-center gap-1.5">
-                                      <span>{isMultiSiblingFamily ? (primaryStu.parentName || `عائلة ${primaryStu.name.split(' ').slice(-1)[0]}`) : (isAr ? primaryStu.name : primaryStu.nameEn)}</span>
+                                      <span>{isAr ? primaryStu.name : primaryStu.nameEn}</span>
                                     </h4>
-                                    <span className="text-[10px] text-slate-500 font-mono block">
-                                      📞 {primaryStu.parentPhone || 'غير مسجل'}
+                                    <div className="text-[10.5px] font-bold text-[#0284C7] flex items-center gap-1 mt-0.5 truncate">
+                                      <span className="text-slate-400 font-sans font-normal text-[10px]">👨‍👩‍👦 ولي الأمر:</span>
+                                      <span className="font-black text-[#0F172A] text-[11px]">{primaryStu.parentName || (primaryStu.name ? primaryStu.name.split(' ').slice(1).join(' ') : '—')}</span>
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                                      📞 {primaryStu.parentPhone || primaryStu.phone || 'غير مسجل'}
                                     </span>
                                   </div>
                                 </div>

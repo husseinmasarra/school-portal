@@ -1051,11 +1051,11 @@ export const DirectoryModule = ({ initialSubTab = 'students' }) => {
                                     <h4 className="text-xs font-black text-[#0F172A] truncate flex items-center gap-1.5">
                                       <span>{isAr ? primaryStu.name : primaryStu.nameEn}</span>
                                     </h4>
-                                    <div className="text-[10.5px] font-bold text-[#0284C7] flex items-center gap-1 mt-0.5 truncate">
-                                      <span className="text-slate-400 font-sans font-normal text-[10px]">👨‍👩‍👦 ولي الأمر:</span>
-                                      <span className="font-black text-[#0F172A] text-[11px]">{primaryStu.parentName || (primaryStu.name ? primaryStu.name.split(' ').slice(1).join(' ') : '—')}</span>
+                                    <div className="bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-lg flex items-center gap-1.5 mt-1 text-[10.5px]">
+                                      <span className="text-slate-500 font-bold shrink-0">👨‍👩‍👦 ولي الأمر:</span>
+                                      <span className="font-black text-[#0284C7] truncate">{primaryStu.parentName || (primaryStu.name ? primaryStu.name.split(' ').slice(1).join(' ') : '—')}</span>
                                     </div>
-                                    <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                                    <span className="text-[10px] text-slate-500 font-mono block mt-1">
                                       📞 {primaryStu.parentPhone || primaryStu.phone || 'غير مسجل'}
                                     </span>
                                   </div>

@@ -132,12 +132,8 @@ export const AgendaModule = () => {
   const safeAgenda = agenda || [];
   const safeGrades = grades || [];
 
-  // Merged subject names: dynamic subjects from context + activityBank fallback
-  const dynamicSubjectNames = (subjects || []).map(s => s.name).filter(Boolean);
-  const bankSubjectNames = Object.keys(activityBank);
-  const allSubjectNames = dynamicSubjectNames.length > 0
-    ? [...new Set([...dynamicSubjectNames, ...bankSubjectNames])]
-    : bankSubjectNames;
+  // Subject names: only from dynamic subjects (SubjectsModule)
+  const allSubjectNames = (subjects || []).map(s => s.name).filter(Boolean);
 
   const normStr = (str) => (str || '')
     .toLowerCase()

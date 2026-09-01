@@ -32,7 +32,16 @@ export const SubjectsModule = () => {
   } = useApp();
 
   const isAr = lang === 'ar';
-  const safeSubjects = subjects || [];
+  const safeSubjects = (subjects && subjects.length > 0) ? subjects : (() => {
+    // Auto-seed subjects from initialData if empty
+    try {
+      const { initialSubjects } = require('../initialData');
+      if (initialSubjects && initialSubjects.length > 0 && addSubject) {
+        initialSubjects.forEach(s => addSubject(s));
+      }
+      return initialSubjects || [];
+    } catch { return []; }
+  })();
   const safeStudents = students || [];
   const safeGrades = grades || [];
 

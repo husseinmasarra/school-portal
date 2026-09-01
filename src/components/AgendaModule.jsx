@@ -125,12 +125,19 @@ export const activityBank = {
 };
 
 export const AgendaModule = () => {
-  const { lang, t, currentRole, currentUser, agenda = [], addAgendaItem, updateAgendaItem, deleteAgendaItem, students = [], teachers = [], grades = [], submittedTasks = {}, addHomeworkSubmission, gradeHomeworkSubmission } = useApp();
+  const { lang, t, currentRole, currentUser, agenda = [], addAgendaItem, updateAgendaItem, deleteAgendaItem, students = [], teachers = [], grades = [], subjects = [], submittedTasks = {}, addHomeworkSubmission, gradeHomeworkSubmission } = useApp();
 
   const isAr = lang === 'ar';
   const safeStudents = students || [];
   const safeAgenda = agenda || [];
   const safeGrades = grades || [];
+
+  // Merged subject names: dynamic subjects from context + activityBank fallback
+  const dynamicSubjectNames = (subjects || []).map(s => s.name).filter(Boolean);
+  const bankSubjectNames = Object.keys(activityBank);
+  const allSubjectNames = dynamicSubjectNames.length > 0
+    ? [...new Set([...dynamicSubjectNames, ...bankSubjectNames])]
+    : bankSubjectNames;
 
   const normStr = (str) => (str || '')
     .toLowerCase()
@@ -349,7 +356,7 @@ export const AgendaModule = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalGrade, setModalGrade] = useState('');
   const [modalClass, setModalClass] = useState('');
-  const [subject, setSubject] = useState('الرياضيات');
+  const [subject, setSubject] = useState(allSubjectNames[0] || 'الرياضيات');
   const [title, setTitle] = useState('');
   const [titleEn, setTitleEn] = useState('');
   const [homework, setHomework] = useState('');
@@ -633,7 +640,7 @@ export const AgendaModule = () => {
             className="bg-[#F8FAFC] dark:bg-zinc-800 border border-[#E2E8F0] dark:border-zinc-700 px-3 py-1.5 rounded-xl text-xs font-bold text-[#0F172A] dark:text-white focus:outline-none cursor-pointer"
           >
             <option value="all" className="bg-white dark:bg-zinc-900 text-[#0F172A] dark:text-white">{isAr ? 'كافة المواد' : 'All Subjects'}</option>
-            {Object.keys(activityBank).map((sub) => (
+            {allSubjectNames.map((sub) => (
               <option key={sub} value={sub} className="bg-white dark:bg-zinc-900 text-[#0F172A] dark:text-white">{sub}</option>
             ))}
           </select>
@@ -986,7 +993,7 @@ export const AgendaModule = () => {
                 }}
                 className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#0284C7] cursor-pointer"
               >
-                {Object.keys(activityBank).map((subName) => (
+                {allSubjectNames.map((subName) => (
                   <option key={subName} value={subName}>{subName}</option>
                 ))}
               </select>
@@ -1379,7 +1386,7 @@ export const AgendaModule = () => {
                 onChange={(e) => setEditSubject(e.target.value)}
                 className="w-full bg-[#F8FAFC] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-700 text-[#0F172A] dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"
               >
-                {Object.keys(activityBank).map((sub) => (
+                {allSubjectNames.map((sub) => (
                   <option key={sub} value={sub} className="bg-white dark:bg-zinc-900 text-[#0F172A] dark:text-white">{sub}</option>
                 ))}
               </select>
